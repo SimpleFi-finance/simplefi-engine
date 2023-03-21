@@ -1,0 +1,17 @@
+# Specify the maximum line length
+max_width = 100
+
+# Use tabs instead of spaces for indentation
+use_tabs = false
+
+# Put a space between the function name and the opening parenthesis
+space_before_fn_opening_paren = true
+
+# Specify whether to wrap function arguments or not
+fn_args_layout = "Vertical"
+
+# Specify how to handle comments
+comment_preceding_blank = "Never"
+
+# To use colored output
+color="Always"
