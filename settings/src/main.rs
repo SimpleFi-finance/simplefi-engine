@@ -6,7 +6,9 @@ use serde::{Deserialize, Serialize};
 #[command(author = "SimpleFi Finance")]
 #[command(version)]
 #[command(about = "Settings Generator")]
-#[command(long_about = "Settings Generator enhaces the running experience generating a settings files with required and default properties.")]
+#[command(
+    long_about = "Settings Generator enhaces the running experience generating a settings files with required and default properties."
+)]
 #[command(next_line_help = true)]
 struct Settings {
     #[arg(
