@@ -2,4 +2,13 @@
 
 members = [
     "settings",
+    "message_broker"
 ]
+
+[workspace.dependencies]
+async-trait = "0.1"
+clap = { version = "4.1.11", features = ["derive"] }
+futures = { version = "0.3.*" }
+serde = "1.0.152"
+tokio = { version = "1", features = ["full"] }
+
