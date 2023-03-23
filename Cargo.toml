@@ -2,7 +2,10 @@
 
 members = [
     "settings",
-    "message_broker"
+    "message_broker",
+    "chains",
+    "chain-harvester",
+    "shared_types"
 ]
 
 [workspace.dependencies]

@@ -1,4 +1,3 @@
-use lapin::Connect;
 use tokio::runtime::Runtime;
 use message_broker::*;
 use tracing::{info, Level};
@@ -42,8 +41,6 @@ fn test_create_rmq_channel() {
 #[test]
 fn test_declare_exchange() {
     let rt = Runtime::new().unwrap();
-
-    setup_test_tracing();
 
     rt.block_on(async {
         declare_exchange("amqp://localhost:5672/%2f", &"test_exchange".to_string(), &lapin::ExchangeKind::Direct)

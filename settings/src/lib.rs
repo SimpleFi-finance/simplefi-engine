@@ -1,0 +1,142 @@
+use clap::Parser;
+use confy::{load, store, ConfyError};
+use serde::{Deserialize, Serialize};
+
+#[derive(Parser, Debug)]
+#[command(author = "SimpleFi Finance")]
+#[command(version)]
+#[command(about = "Settings Generator")]
+#[command(
+    long_about = "Settings Generator enhaces the running experience generating a settings files with required and default properties."
+)]
+#[command(next_line_help = true)]
+pub struct Settings {
+    #[arg(
+        short = 'M',
+        long = "mq_url",
+        default_value = "amqp://guest:guest@localhost:5672",
+        help = "RabbitMQ URL"
+    )]
+    pub rabbit_mq_url: String,
+
+    #[arg(
+        short = 'G',
+        long = "google_service_account",
+        help = "Google Service Account JSON file"
+    )]
+    pub gooogle_service_account_file: std::path::PathBuf,
+
+    #[arg(short = 'I', long = "infura_token", help = "Infura Auth Token")]
+    pub infura_token: String,
+
+    #[arg(
+        short = 'C',
+        long = "cloud_bucket",
+        help = "Cloud Bucket to store the data",
+        required = false
+    )]
+    pub cloud_bucket: String,
+
+    #[arg(
+        short = 'L',
+        long = "local_storage",
+        help = "Path to store the data locally",
+        required = false
+    )]
+    pub local_storage: std::path::PathBuf,
+
+    // Nodes
+    #[arg(
+        long = "infura_mainnet_rpc",
+        help = "Infura Mainnet RPC Node",
+        default_value = "https://mainnet.infura.io/v3/"
+    )]
+    pub infura_mainnet_rpc: String,
+
+    #[arg(
+        long = "infura_mainnet_ws",
+        help = "Infura Mainnet WS Node",
+        default_value = "https://mainnet.infura.io/ws/v3/"
+    )]
+    pub infura_mainnet_ws: String,
+
+    #[arg(
+        long = "local_mainnet_rpc",
+        help = "Local Mainnet RPC Node",
+        default_value = "http://localhost:8545"
+    )]
+    pub local_mainnet_rpc: String,
+
+    #[arg(
+        long = "local_mainnet_ws",
+        help = "Local Mainnet WS Node",
+        default_value = "wss://localhost:8545"
+    )]
+    pub local_mainnet_ws: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct MySettings {
+    pub rabbit_mq_url: String,
+    pub gooogle_service_account_file: std::path::PathBuf,
+    pub infura_token: String,
+    pub cloud_bucket: String,
+    pub local_storage: std::path::PathBuf,
+    pub infura_mainnet_rpc: String,
+    pub infura_mainnet_ws: String,
+    pub local_mainnet_rpc: String,
+    pub local_mainnet_ws: String,
+}
+
+impl MySettings {
+    pub fn new(
+        rabbit_mq_url: String,
+        gooogle_service_account_file: std::path::PathBuf,
+        infura_token: String,
+        cloud_bucket: String,
+        local_storage: std::path::PathBuf,
+        infura_mainnet_rpc: String,
+        infura_mainnet_ws: String,
+        local_mainnet_rpc: String,
+        local_mainnet_ws: String,
+    ) -> Self {
+        MySettings {
+            rabbit_mq_url,
+            gooogle_service_account_file,
+            infura_token,
+            cloud_bucket,
+            local_storage,
+            infura_mainnet_rpc,
+            infura_mainnet_ws,
+            local_mainnet_rpc,
+            local_mainnet_ws,
+        }
+    }
+}
+
+pub fn load_settings() -> Result<MySettings, ConfyError> {
+    let default_settings = MySettings {
+        rabbit_mq_url: String::from("amqp://guest:guest@localhost:5672"),
+        gooogle_service_account_file: std::path::PathBuf::from(
+            "default_google_service_account.json",
+        ),
+        infura_token: String::from("default_infura_token"),
+        cloud_bucket: String::from("default_cloud_bucket"),
+        local_storage: std::path::PathBuf::from("default_local_storage"),
+        infura_mainnet_rpc: String::from("https://mainnet.infura.io/v3/"),
+        infura_mainnet_ws: String::from("https://mainnet.infura.io/ws/v3/"),
+        local_mainnet_rpc: String::from("http://localhost:8545"),
+        local_mainnet_ws: String::from("wss://localhost:8545"),
+    };
+
+    let settings: MySettings =
+        load("simplefi_engine", Some("settings")).unwrap_or(default_settings);
+
+    Ok(settings)
+}
+
+pub fn store_settings(settings: &MySettings) -> Result<(), ConfyError> {
+    store("simplefi_engine", Some("settings"), &settings).expect("Failed to store settings");
+
+    Ok(())
+}
