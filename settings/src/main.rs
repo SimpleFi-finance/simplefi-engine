@@ -16,17 +16,37 @@ fn main() {
     println!("*** {:#?}", settings);
 
     // load settings from a local file using confy
-    let my_local_settings: MySettings =  MySettings::new(
-        settings.rabbit_mq_url,
-        settings.gooogle_service_account_file,
-        settings.infura_token,
-        settings.cloud_bucket,
-        settings.local_storage,
-        settings.infura_mainnet_rpc,
-        settings.infura_mainnet_ws,
-        settings.local_mainnet_rpc,
-        settings.local_mainnet_ws,
-    );
+    let my_local_settings: MySettings =  {
+        let rabbit_mq_url = settings.rabbit_mq_url;
+        let gooogle_service_account_file = settings.gooogle_service_account_file;
+        let infura_token = settings.infura_token;
+        let etherscan_api_key = settings.etherscan_api_key;
+        let cloud_bucket = settings.cloud_bucket;
+        let local_storage = settings.local_storage;
+        let infura_mainnet_rpc = settings.infura_mainnet_rpc;
+        let infura_mainnet_ws = settings.infura_mainnet_ws;
+        let local_mainnet_rpc = settings.local_mainnet_rpc;
+        let local_mainnet_ws = settings.local_mainnet_ws;
+        let mongodb_uri = settings.mongodb_uri;
+        let mongodb_engine_db = settings.mongodb_engine_db;
+        let redis_uri = settings.redis_uri;
+
+        MySettings {
+            rabbit_mq_url,
+            gooogle_service_account_file,
+            infura_token,
+            etherscan_api_key,
+            cloud_bucket,
+            local_storage,
+            infura_mainnet_rpc,
+            infura_mainnet_ws,
+            local_mainnet_rpc,
+            local_mainnet_ws,
+            mongodb_uri,
+            mongodb_engine_db,
+            redis_uri,
+        }
+    };
 
     println!("*** Saving Settings...");
 

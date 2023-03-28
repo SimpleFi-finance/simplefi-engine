@@ -45,6 +45,14 @@ pub struct Settings {
     )]
     pub local_storage: std::path::PathBuf,
 
+    #[arg(
+        short = 'R',
+        long = "redis_uri",
+        help = "Redis DB URI",
+        required = false
+    )]
+    pub redis_uri: String,
+
     // Nodes
     #[arg(
         long = "infura_mainnet_rpc",
@@ -52,6 +60,14 @@ pub struct Settings {
         default_value = "https://mainnet.infura.io/v3/"
     )]
     pub infura_mainnet_rpc: String,
+
+    // Etherscan API Key
+    #[arg(
+        short = 'E',
+        long = "etherscan_api_key",
+        help = "Etherscan API key",
+    )]
+    pub etherscan_api_key: String,
 
     #[arg(
         long = "infura_mainnet_ws",
@@ -73,6 +89,20 @@ pub struct Settings {
         default_value = "wss://localhost:8545"
     )]
     pub local_mainnet_ws: String,
+
+    #[arg(
+        long = "mongodb_uri",
+        help = "MongoDB URI",
+        default_value = "mongodb://localhost:27017/"
+    )]
+    pub mongodb_uri: String,
+
+    #[arg(
+        long = "mongodb_engine_db",
+        help = "MongoDB Engine DB",
+        default_value = "engine"
+    )]
+    pub mongodb_engine_db: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -80,12 +110,17 @@ pub struct MySettings {
     pub rabbit_mq_url: String,
     pub gooogle_service_account_file: std::path::PathBuf,
     pub infura_token: String,
+    pub etherscan_api_key: String,
     pub cloud_bucket: String,
     pub local_storage: std::path::PathBuf,
     pub infura_mainnet_rpc: String,
     pub infura_mainnet_ws: String,
     pub local_mainnet_rpc: String,
     pub local_mainnet_ws: String,
+    pub mongodb_uri: String,
+    pub mongodb_engine_db: String,
+    pub redis_uri: String,
+
 }
 
 impl MySettings {
@@ -93,23 +128,31 @@ impl MySettings {
         rabbit_mq_url: String,
         gooogle_service_account_file: std::path::PathBuf,
         infura_token: String,
+        etherscan_api_key: String,
         cloud_bucket: String,
         local_storage: std::path::PathBuf,
         infura_mainnet_rpc: String,
         infura_mainnet_ws: String,
         local_mainnet_rpc: String,
         local_mainnet_ws: String,
+        mongodb_uri: String,
+        mongodb_engine_db: String,
+        redis_uri: String,
     ) -> Self {
         MySettings {
             rabbit_mq_url,
             gooogle_service_account_file,
             infura_token,
+            etherscan_api_key,
             cloud_bucket,
             local_storage,
             infura_mainnet_rpc,
             infura_mainnet_ws,
             local_mainnet_rpc,
             local_mainnet_ws,
+            mongodb_uri,
+            mongodb_engine_db,
+            redis_uri,
         }
     }
 }
@@ -121,12 +164,16 @@ pub fn load_settings() -> Result<MySettings, ConfyError> {
             "default_google_service_account.json",
         ),
         infura_token: String::from("default_infura_token"),
+        etherscan_api_key: String::from("default_etherscan_api_key"),
         cloud_bucket: String::from("default_cloud_bucket"),
         local_storage: std::path::PathBuf::from("default_local_storage"),
         infura_mainnet_rpc: String::from("https://mainnet.infura.io/v3/"),
         infura_mainnet_ws: String::from("https://mainnet.infura.io/ws/v3/"),
         local_mainnet_rpc: String::from("http://localhost:8545"),
         local_mainnet_ws: String::from("wss://localhost:8545"),
+        mongodb_uri: String::from("mongodb://localhost:27017/"),
+        mongodb_engine_db: String::from("engine"),
+        redis_uri: String::from("redis://localhost:6379/"),
     };
 
     let settings: MySettings =

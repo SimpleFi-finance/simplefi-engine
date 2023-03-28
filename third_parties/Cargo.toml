@@ -1,0 +1,27 @@
+[package]
+name = "third_parties"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+http = { workspace = true }
+futures = { workspace = true }
+lapin = { workspace = true }
+mongodb = { workspace = true }
+once_cell = { workspace = true }
+redis = { workspace = true, features = ["tokio-comp", "connection-manager"] }
+reqwest = { workspace = true, features = ["json"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+settings = { path = "../settings" }
+tonic = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+
+
+[dev-dependencies]
+mockito = { workspace = true }
+shared_utils = { path = "../shared_utils", features = ["with_tracing"] }
+tracing = { version = "^0.1" }
+tracing-subscriber = { version = "0.3" }
