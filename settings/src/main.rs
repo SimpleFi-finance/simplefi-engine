@@ -18,9 +18,10 @@ fn main() {
     // load settings from a local file using confy
     let my_local_settings: MySettings =  {
         let rabbit_mq_url = settings.rabbit_mq_url;
+        let abi_discovery_exchange_name = settings.abi_discovery_exchange_name;
         let gooogle_service_account_file = settings.gooogle_service_account_file;
         let infura_token = settings.infura_token;
-        let etherscan_api_key = settings.etherscan_api_key;
+        let etherscan_api_keys = settings.etherscan_api_keys;
         let cloud_bucket = settings.cloud_bucket;
         let local_storage = settings.local_storage;
         let infura_mainnet_rpc = settings.infura_mainnet_rpc;
@@ -33,9 +34,10 @@ fn main() {
 
         MySettings {
             rabbit_mq_url,
+            abi_discovery_exchange_name,
             gooogle_service_account_file,
             infura_token,
-            etherscan_api_key,
+            etherscan_api_keys,
             cloud_bucket,
             local_storage,
             infura_mainnet_rpc,
