@@ -8,6 +8,7 @@ edition = "2021"
 bincode = { workspace = true }
 hex = { workspace = true }
 futures = { workspace = true }
+lapin = { workspace = true }
 mongodb = { workspace = true }
 settings = { path = "../settings" }
 rand = { workspace = true }
@@ -17,3 +18,11 @@ serde_json = { workspace = true }
 shared_types = { path = "../shared_types" }
 third_parties = { path = "../third_parties" }
 tokio = { workspace = true, features = ["full"] }
+
+[[bin]]
+name = "create_queue"
+path = "src/create_queue.rs"
+
+[[bin]]
+name = "scrap_etherscan"
+path = "src/scrap_etherscan.rs"

@@ -103,7 +103,7 @@ pub async fn process_queue_with_rate_limit<F>(
     handler: F,
 ) -> Result<(), lapin::Error>
 where
-    F: Fn(&Delivery) + Send + Sync + 'static, // Define the type bound for the handler
+    F: Fn(Delivery, usize) + Send + Sync + 'static, // Define the type bound for the handler
 {
     let mut consumer = channel
         .basic_consume(
@@ -132,9 +132,12 @@ where
             .await?;
 
         let mut count = counter.lock().unwrap();
+
+        handler(delivery, *count);
+
         *count += 1;
 
-        handler(&delivery);
+        println!("Count: {}", *count);
 
         if *count >= max_reads {
             interval.tick().await;
@@ -270,9 +273,10 @@ mod tests {
             let rate_limit_duration = Duration::from_secs(5);
             let counter = Arc::new(Mutex::new(0));
 
-            let handler = |delivery: &Delivery| {
+            let handler = |delivery: Delivery, current_count: usize| {
                 let message_data = String::from_utf8_lossy(&delivery.data);
                 println!("Message data: {}", message_data);
+                println!("Current count: {}", current_count);
             };
 
             let test_duration = Duration::from_secs(15);

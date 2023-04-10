@@ -20,6 +20,13 @@ pub struct Settings {
     pub rabbit_mq_url: String,
 
     #[arg(
+        long = "abi_discovery_exchange_name",
+        default_value = "abi_discovery_exchange",
+        help = "RabbitMQ exchange name for ABI Discovery"
+    )]
+    pub abi_discovery_exchange_name: String,
+
+    #[arg(
         short = 'G',
         long = "google_service_account",
         help = "Google Service Account JSON file"
@@ -64,10 +71,10 @@ pub struct Settings {
     // Etherscan API Key
     #[arg(
         short = 'E',
-        long = "etherscan_api_key",
+        long = "etherscan_api_keys",
         help = "Etherscan API key",
     )]
-    pub etherscan_api_key: String,
+    pub etherscan_api_keys: String,
 
     #[arg(
         long = "infura_mainnet_ws",
@@ -108,9 +115,10 @@ pub struct Settings {
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct MySettings {
     pub rabbit_mq_url: String,
+    pub abi_discovery_exchange_name: String,
     pub gooogle_service_account_file: std::path::PathBuf,
     pub infura_token: String,
-    pub etherscan_api_key: String,
+    pub etherscan_api_keys: String,
     pub cloud_bucket: String,
     pub local_storage: std::path::PathBuf,
     pub infura_mainnet_rpc: String,
@@ -126,9 +134,10 @@ pub struct MySettings {
 impl MySettings {
     pub fn new(
         rabbit_mq_url: String,
+        abi_discovery_exchange_name: String,
         gooogle_service_account_file: std::path::PathBuf,
         infura_token: String,
-        etherscan_api_key: String,
+        etherscan_api_keys: String,
         cloud_bucket: String,
         local_storage: std::path::PathBuf,
         infura_mainnet_rpc: String,
@@ -141,9 +150,10 @@ impl MySettings {
     ) -> Self {
         MySettings {
             rabbit_mq_url,
+            abi_discovery_exchange_name,
             gooogle_service_account_file,
             infura_token,
-            etherscan_api_key,
+            etherscan_api_keys,
             cloud_bucket,
             local_storage,
             infura_mainnet_rpc,
@@ -160,11 +170,12 @@ impl MySettings {
 pub fn load_settings() -> Result<MySettings, ConfyError> {
     let default_settings = MySettings {
         rabbit_mq_url: String::from("amqp://guest:guest@localhost:5672"),
+        abi_discovery_exchange_name: String::from("abi_discovery"),
         gooogle_service_account_file: std::path::PathBuf::from(
             "default_google_service_account.json",
         ),
         infura_token: String::from("default_infura_token"),
-        etherscan_api_key: String::from("default_etherscan_api_key"),
+        etherscan_api_keys: String::from("change_etherscan_api_key_1,change_etherscan_api_key_2"),
         cloud_bucket: String::from("default_cloud_bucket"),
         local_storage: std::path::PathBuf::from("default_local_storage"),
         infura_mainnet_rpc: String::from("https://mainnet.infura.io/v3/"),

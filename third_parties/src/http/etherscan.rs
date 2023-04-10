@@ -56,7 +56,7 @@ pub async fn get_abi(
         StatusCode::OK => {
             let results: EtherscanResponse = result.json().await?;
 
-            println!("ABI: {:?}", results.result);
+            // println!("ABI: {:?}", results.result);
 
             // let abi = results.message.parse::<Value>().ok();
 
@@ -80,7 +80,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_abi() {
         let local_settings = load_settings().unwrap();
-        let api_key = local_settings.etherscan_api_key;
+        let api_key = local_settings.etherscan_api_keys;
 
         let contract_address = "0x6b175474e89094c44da98b954eedeac495271d0f";
 
