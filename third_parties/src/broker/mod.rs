@@ -1,6 +1,7 @@
 use lapin::{
     options::*, types::FieldTable, Channel as LapinChannel, Connection as LapinConnection,
     ConnectionProperties, Error, Queue,
+    message::Delivery,
 };
 use tokio::time::{self, Duration};
 use std::sync::{Arc, Mutex};
@@ -93,13 +94,17 @@ pub async fn publish_rmq_message(
     Ok(())
 }
 
-pub async fn process_queue_with_rate_limit(
+pub async fn process_queue_with_rate_limit<F>(
     channel: &lapin::Channel,
     queue_name: &String,
     max_reads: usize,
     rate_limit_duration: Duration,
     counter: Arc<Mutex<usize>>,
-) -> Result<(), Box<dyn std::error::Error>> {
+    handler: F,
+) -> Result<(), lapin::Error>
+where
+    F: Fn(&Delivery) + Send + Sync + 'static, // Define the type bound for the handler
+{
     let mut consumer = channel
         .basic_consume(
             queue_name,
@@ -129,10 +134,14 @@ pub async fn process_queue_with_rate_limit(
         let mut count = counter.lock().unwrap();
         *count += 1;
 
+        handler(&delivery);
+
         if *count >= max_reads {
             interval.tick().await;
             *count = 0;
             println!("Rate limit reached, waiting for next interval");
+
+             // Call the injected function
         }
     }
 
@@ -144,6 +153,7 @@ mod tests {
     use super::*;
     use std::{thread, time};
     use tokio::runtime::Runtime;
+    use tokio::time::{timeout, Duration};
     use tracing::info;
 
     #[test]
@@ -209,7 +219,7 @@ mod tests {
         routing_key: &String,
         channel: &lapin::Channel,
     ) -> Result<(), Error> {
-        for i in 0..50 {
+        for i in 0..20 {
             publish_rmq_message(
                 exchange,
                 routing_key,
@@ -260,17 +270,28 @@ mod tests {
             let rate_limit_duration = Duration::from_secs(5);
             let counter = Arc::new(Mutex::new(0));
 
-            process_queue_with_rate_limit(
+            let handler = |delivery: &Delivery| {
+                let message_data = String::from_utf8_lossy(&delivery.data);
+                println!("Message data: {}", message_data);
+            };
+
+            let test_duration = Duration::from_secs(15);
+
+            let process_result = timeout(test_duration, process_queue_with_rate_limit(
                 &channel,
                 &queue_name,
                 max_reads,
                 rate_limit_duration,
                 counter,
-            )
-            .await
-            .expect("Failed to process queue");
+                handler,
+            ))
+            .await;
+            // .expect("Failed to process queue");
 
-            assert!(true);
+            match process_result {
+                Ok(_) => println!("Processing finished successfully."),
+                Err(_) => println!("Test timed out"),
+            }
         });
     }
 

@@ -3,13 +3,17 @@
 members = [
     "abi_discovery",
     "settings",
+    "solidity",
     "shared_utils",
     "third_parties",
 ]
 
 [workspace.dependencies]
 async-trait = "0.1"
-clap = { version = "4.1", features = ["derive"] }
+bincode = "1.3"
+bson = "2.6"
+chrono = "0.4.24"
+clap = { version = "4.2", features = ["derive"] }
 confy = { version = "0.5.1" }
 flate2 = "1.0"
 futures = "0.3"
@@ -19,11 +23,12 @@ hex = "0.4"
 http = "0.2"
 mongodb = "2.4"
 mockito = "1.0"
+prost = "0.11"
 rand = "0.8"
 redis = { version = "0.22", features = ["tokio-comp"] }
 reqwest = { version = "0.11", features = ["json"] }
 serde = "1.0"
 serde_json = "1.0"
-tonic = "0.8"
+tonic = "0.9"
+tonic-build = "0.9"
 tokio = { version = "1", features = ["full"] }
-

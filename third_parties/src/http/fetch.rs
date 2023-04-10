@@ -43,7 +43,7 @@ pub async fn fetch(
     // Return data if successful
     Ok(response)
 }
-/*
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -56,8 +56,8 @@ mod tests {
         value: String,
     }
 
-    #[test]
-    fn test_basic_fetch() {
+    #[tokio::test]
+    async fn test_basic_fetch() {
         // Define mock data and mock server
         let mock_response = r#"{"key": "test_key", "value": "test_value"}"#;
 
@@ -100,4 +100,4 @@ mod tests {
         mock.assert();
     }
 }
- */
+

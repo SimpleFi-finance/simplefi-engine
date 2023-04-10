@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  abi_discovery_server:
+    build:
+      context: ./src/server
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    depends_on:
+      - mongodb
+      - redis
+      - rabbitmq
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/db:/data/db
+    command: mongod --bind_ip_all
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+
+  rabbitmq:
+    image: rabbitmq:latest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq
+
+
+#  my_grpc_server:
+#    build: ./my_grpc_server
+#    ports:
+#      - "50051:50051"

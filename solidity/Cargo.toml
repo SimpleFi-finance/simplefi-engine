@@ -5,9 +5,22 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "generate_abis_from_local_contracts"
+path = "src/bin/generate_abis_from_local_contracts.rs"
+test = false
+
+
+
 [dependencies]
-serde_json = { workspace = true }
+bincode = { workspace = true }
+bson = { workspace = true }
+chrono = { workspace = true }
 flate2 = { workspace = true }
+mongodb = { workspace = true }
+serde_json = { workspace = true }
+shared_types = { path = "../shared_types" }
+third_parties = { path = "../third_parties" }
 tokio = { workspace = true, features = ["full"] }
 tracing = { version = "^0.1" }
 

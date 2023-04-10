@@ -3,12 +3,32 @@ name = "abi_discovery"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "abi_discovery_server"
+path = "src/server/main.rs"
+test = false
+
+[[bin]]
+name = "abi_discovery_client"
+path = "src/client/main.rs"
+test = false
+
 
 [dependencies]
+bincode = { workspace = true }
 hex = { workspace = true }
+futures = { workspace = true }
+mongodb = { workspace = true }
+prost = { workspace = true }
 settings = { path = "../settings" }
 rand = { workspace = true }
 redis = { workspace = true }
+serde = { workspace = true, default_features = false, features = ["derive"] }
+serde_json = { workspace = true }
+shared_types = { path = "../shared_types" }
 third_parties = { path = "../third_parties" }
+tonic = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
+
+[build-dependencies]
+tonic-build = { workspace = true }

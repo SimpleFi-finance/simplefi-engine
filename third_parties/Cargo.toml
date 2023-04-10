@@ -16,6 +16,7 @@ reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 settings = { path = "../settings" }
+shared_types = { path = "../shared_types" }
 tonic = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 

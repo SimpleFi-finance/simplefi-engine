@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package abi_discovery_proto;
+
+service AbiDiscoveryService {
+  rpc CheckTrackedAddresses(TrackedAddressesRequest) returns (TrackedAddressesResponse) {}
+}
+
+message TrackedAddressesRequest {
+  repeated string addresses = 1;
+}
+
+message TrackedAddressesResponse {
+  repeated string addresses = 1;
+}
