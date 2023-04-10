@@ -9,6 +9,7 @@ dependencies = [
  "bincode",
  "futures",
  "hex",
+ "lapin",
  "mongodb",
  "rand",
  "redis",
