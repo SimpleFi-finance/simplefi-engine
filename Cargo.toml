@@ -9,7 +9,17 @@ members = [
     "shared_utils",
     "solidity",
     "third_parties",
+    "blockchain_tracker", # listens to new blocks emitted and sends them to queue
+    "block_indexer", #listens to new blocks emitted and gets logs, data, txs
+    "daily_data_digest", #saves daily data into parquet in corresponding directory 
 ]
+
+# databases:
+#   - logs_bronze_daily
+#   - logs_decoded_daily
+#   - txs_bronze_daily
+#   - blocks_monthly
+
 
 [workspace.dependencies]
 async-trait = "0.1"

@@ -1,6 +1,6 @@
 
 use mongodb::{ Client, Collection, Database };
-
+pub mod lib;
 // Define a struct to hold the MongoDB configuration
 #[derive(Clone, Debug)]
 pub struct MongoConfig {
