@@ -35,7 +35,6 @@ pub async fn get_blocks(
             "timestamp": {
                 "$gte": timestamp_from.unwrap(),
                 "$lte": timestamp_to.unwrap_or(ts_now)
-
             },
         };
 

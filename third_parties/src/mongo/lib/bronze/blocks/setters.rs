@@ -1,6 +1,4 @@
-use crate::mongo::{
-    Mongo,
-};
+use crate::mongo::Mongo;
 
 use super::types::Block;
 
@@ -15,11 +13,14 @@ pub async fn save_blocks (db: &Mongo, blocks: Vec<Block>) -> Result<(), Box<dyn 
 #[cfg(test)]
 
 mod tests {
-    use crate::mongo::MongoConfig;
+    use crate::mongo::{
+        MongoConfig,
+        Mongo
+    };
 
     use super::*;
     use futures::TryStreamExt;
-    use mongodb::{bson::doc, options::{IndexOptions, FindOptions}, IndexModel};
+    use mongodb::{bson::doc, options::FindOptions};
 
     #[tokio::test]
     async fn test_save_blocks() -> Result<(), Box<dyn std::error::Error>>{
@@ -30,22 +31,10 @@ mod tests {
         };
 
         // Create a new MongoDB client
-        let mongo = Mongo::new(&config).await.unwrap();
-
-        let unique_options = IndexOptions::builder().unique(true).build();
-        let model = IndexModel::builder()
-            .keys(doc! {"number": 1})
-            .options(unique_options)
-            .build();
-
-        mongo
-            .collection::<Block>("blocks_bronze")
-            .create_index(model, None)
-            .await
-            .expect("error creating index!");
+        let db = Mongo::new(&config).await.unwrap();
 
         // Get a handle to the "blocks" collection
-        let blocks_collection = mongo.collection::<Block>("blocks_bronze");
+        let blocks_collection = db.collection::<Block>("blocks_bronze");
         let mock_block = Block {
             timestamp: 150000000,
             year: 2018,
@@ -74,7 +63,7 @@ mod tests {
             base_fee_per_gas: String::from("basefeepergas"),
         };
         // Insert a new user
-        save_blocks(&mongo, vec![mock_block.clone()]).await.unwrap_or(());
+        save_blocks(&db, vec![mock_block.clone()]).await.unwrap_or(());
 
         // Find the user we just inserted
         let find_options = FindOptions::builder()

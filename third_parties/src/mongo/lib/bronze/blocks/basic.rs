@@ -20,8 +20,8 @@ pub async fn blocks_db () -> Result<Mongo, Box<dyn std::error::Error>> {
     Ok(blocks_db)
 }
 
-pub async fn init_blocks_bronze() -> Result<(), Box<dyn std::error::Error>> {
-    let blocks_db = blocks_db().await?;
+pub async fn init_blocks_bronze(db: &Mongo) -> Result<(), Box<dyn std::error::Error>> {
+    let blocks_db = db;
 
     let unique_options = IndexOptions::builder().unique(true).build();
     let unique_number = IndexModel::builder()
