@@ -28,7 +28,6 @@ pub async fn get_blocks(
     let blocks_collection = db.collection::<Block>("blocks");
     
     if timestamp_from.is_some() {
-        println!("timestamp_from: {:?}", &timestamp_from);
         let ts_now = Utc::now().timestamp_micros();
 
         let doc = doc! {
