@@ -28,6 +28,21 @@ pub struct ContractAbiCollection {
     pub flag: ContractAbiFlag,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub struct ContractWithAbi {
+    pub timestamp: u64,
+    pub address: String,
+    pub abi: Vec<u8>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ContractWithAbiDocument {
+    pub timestamp: u64,
+    pub address: String,
+    pub abi: Binary,
+}
+
+
 pub struct FactoryAbiCollection {
     pub timestamp: i64,
     pub name: String,
@@ -35,10 +50,12 @@ pub struct FactoryAbiCollection {
     pub index: u32,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct FactoryContractsCollection {
     pub address: String,
-    pub factory_address: u32,
+    pub factory_address: String,
 }
+
 
 pub struct AddressResult {
     pub address: String,
