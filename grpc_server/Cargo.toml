@@ -1,0 +1,16 @@
+[package]
+name = "grpc_server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+abi_discovery = { path = "../abi_discovery" }
+prost = { workspace = true }
+serde_json = { workspace = true }
+shared_types = { path = "../shared_types" }
+settings = { path = "../settings" }
+tokio = { workspace = true, features = ["full"] }
+tonic = { workspace = true }
+
+[build-dependencies]
+tonic-build = { workspace = true }
