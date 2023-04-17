@@ -60,12 +60,13 @@ pub async fn get_abi(
 
             // let abi = results.message.parse::<Value>().ok();
 
-            // print!("ABI: {:?}", results.result);
+            println!("result: {:?}", results.result.len());
 
             Ok(results.result) // .parse::<Value>().ok())
         },
         _ => {
             println!("Error: {}", result.status());
+
             Ok("".to_string())
         }
     }
