@@ -104,5 +104,8 @@ pub async fn add_factory_addresses(
         }
     }
 
-    Ok(inserted_documents > 0)
+    println!("Skipped {} documents", skipped_documents);
+    println!("Inserted {} documents", inserted_documents);
+
+    Ok(true)
 }
