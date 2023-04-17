@@ -9,6 +9,9 @@ members = [
     "shared_utils",
     "solidity",
     "third_parties",
+    "blockchain_tracker", # listens to new blocks emitted and sends them to queue
+    "block_indexer", #listens to new blocks emitted and gets logs, data, txs
+    "daily_data_digest", #saves daily data into parquet in corresponding directory 
 ]
 
 [workspace.dependencies]
@@ -37,4 +40,7 @@ tokio = { version = "1", features = ["full"] }
 tonic = "0.9"
 tonic-build = "0.9"
 tracing = "0.1"
-
+tungstenite = { version = "0.18.0", features = ["native-tls"] }
+ethers = { version = "1.0.2", features = ["ws", "rustls", "legacy"]}
+ethers-providers = "1.0.2"
+rayon = "1.7.0"

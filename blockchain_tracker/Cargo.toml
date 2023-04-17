@@ -1,0 +1,16 @@
+[package]
+name = "blockchain_tracker"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+third_parties = { path = "../third_parties" }
+serde_json = { workspace = true }
+tungstenite = { workspace = true }
+serde = {workspace = true}
+tokio = {workspace = true}
+chrono = {workspace = true}
+lapin = { workspace = true }
+futures = {workspace = true}
