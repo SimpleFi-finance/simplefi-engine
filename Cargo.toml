@@ -2,6 +2,7 @@
 
 members = [
     "abi_discovery",
+    "grpc_server",
     "settings",
     "solidity",
     "shared_utils",
@@ -23,9 +24,15 @@ hex = "0.4"
 http = "0.2"
 mongodb = "2.4"
 mockito = "1.0"
+prost = "0.11"
+prost-build = "0.11"
 rand = "0.8"
-redis = { version = "0.22", features = ["tokio-comp"] }
+redis = { version = "0.23", features = ["tokio-comp"] }
 reqwest = { version = "0.11", features = ["json"] }
 serde = "1.0"
 serde_json = "1.0"
 tokio = { version = "1", features = ["full"] }
+tonic = "0.9"
+tonic-build = "0.9"
+tracing = "0.1"
+
