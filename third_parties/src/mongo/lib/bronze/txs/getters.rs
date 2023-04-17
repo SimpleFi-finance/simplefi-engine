@@ -1,5 +1,5 @@
 use crate::mongo::{Mongo};
-use mongodb::{bson::doc, options::{FindOptions, FindOneOptions}};
+use mongodb::{bson::doc, options::{FindOptions}};
 use super::types::Tx;
 use futures::stream::TryStreamExt;
 use chrono::Utc;
@@ -109,7 +109,7 @@ mod tests {
         let txs = get_txs(
             &mongo, 
             None,
-            Some(tx_1.timestamp), 
+            Some(tx_1.timestamp.unwrap()), 
             None, 
             None, 
             None

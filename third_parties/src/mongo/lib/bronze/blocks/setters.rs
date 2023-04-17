@@ -4,7 +4,6 @@ use super::types::Block;
 
 pub async fn save_blocks (db: &Mongo, blocks: Vec<Block>) -> Result<(), Box<dyn std::error::Error>> {
     let blocks_collection = db.collection::<Block>("blocks_bronze");
-
     blocks_collection.insert_many(blocks, None).await?;
 
     Ok(())
@@ -37,30 +36,26 @@ mod tests {
         let blocks_collection = db.collection::<Block>("blocks_bronze");
         let mock_block = Block {
             timestamp: 150000000,
-            year: 2018,
-            month: 1,
-            day: 1,
+            year: Some(2018),
+            month: Some(1),
+            day: Some(1),
             number: 12345,
-            hash: String::from("testhash"),
-            parent_hash: String::from("parenthash"),
-            uncles_hash: String::from("unclehash"),
-            author: String::from("author"),
-            state_root: String::from("stateroot"),
-            transactions_root: String::from("transactionsroot"),
-            receipts_root: String::from("receiptsroot"),
-            gas_used: String::from("gasused"),
-            gas_limit: String::from("gaslimit"),
-            extra_data: String::from("extradata"),
-            logs_bloom: String::from("logsbloom"),
-            difficulty: String::from("difficulty"),
-            total_difficulty: String::from("totaldifficulty"),
-            seal_fields: vec![String::from("sealfields")],
-            uncles: vec![String::from("uncles")],
-            transactions: vec![String::from("tx1")],
-            size: String::from("size"),
-            mix_hash: String::from("mixhash"),
-            nonce: String::from("nonce"),
-            base_fee_per_gas: String::from("basefeepergas"),
+            hash: Some(String::from("testhash")),
+            parent_hash: Some(String::from("parenthash")),
+            state_root: Some(String::from("stateroot")),
+            transactions_root: Some(String::from("transactionsroot")),
+            receipts_root: Some(String::from("receiptsroot")),
+            gas_used: 4,
+            gas_limit: 4,
+            extra_data: Some(String::from("extradata")),
+            logs_bloom: Some(String::from("logsbloom")),
+            difficulty: 3,
+            mix_hash: Some(String::from("mixhash")),
+            nonce: 3,
+            base_fee_per_gas: 3,
+            miner: Some(String::from("miner")),
+            uncles_hash: Some(String::from("sha3uncles")),
+            withdrawals_root: Some(String::from("withdrawalsroot")),
         };
         // Insert a new user
         save_blocks(&db, vec![mock_block.clone()]).await.unwrap_or(());

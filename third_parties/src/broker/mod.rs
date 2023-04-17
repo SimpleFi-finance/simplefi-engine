@@ -6,6 +6,7 @@ use lapin::{
 use tokio::time::{self, Duration};
 use std::sync::{Arc, Mutex};
 use futures::StreamExt;
+pub mod queues;
 
 pub async fn rabbit_connection(uri: &str) -> LapinConnection {
     LapinConnection::connect(uri, ConnectionProperties::default())

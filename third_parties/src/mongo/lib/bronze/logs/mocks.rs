@@ -19,21 +19,21 @@ pub fn get_mock_logs (ts: &Option<i64>, bn: &Option<i64>, n: Option<i16>) -> Vec
         let bn = bn.unwrap_or(rng.gen_range(first_bn..=18_000_000));
     
         let block = Log {
-            timestamp: ts,
-            year: 2018,
-            month: 1,
-            day: 1,
+            timestamp: Some(ts),
+            year: Some(2018),
+            month:Some(1),
+            day: Some(1),
             block_number: bn,
-            transaction_hash: String::from("testhash"),
+            transaction_hash: Some(String::from("testhash")),
             transaction_index: i64::from(i),
             log_index: i64::from(i),
-            address: String::from("thisisamockaddress"),
-            data: String::from("thisisamockdata"),
+            address: Some(String::from("thisisamockaddress")),
+            data: Some(String::from("thisisamockdata")),
             topics: vec![String::from("thisisamocktopic")],
-            block_hash: String::from("thisisamockblockhash"),
+            block_hash: Some(String::from("thisisamockblockhash")),
             transaction_log_index: i64::from(i^2),
             removed: false,
-            log_type: String::from("thisisamocklogtype"),
+            log_type: Some(String::from("thisisamocklogtype")),
         };
 
         blocks.push(block);
