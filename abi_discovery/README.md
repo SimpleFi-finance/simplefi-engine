@@ -5,10 +5,10 @@
 First it's needed to create the settings. 
 
 ### Default settings
-`cargo run -p abi_discovery --bin abi_discovery_settings`
+`cargo run -p abi_discovery --bin generate_settings`
 
 ### Help
-`cargo run -p abi_discovery --bin abi_discovery_settings -- --help`
+`cargo run -p abi_discovery --bin generate_settings -- --help`
 
 ## Runners
 

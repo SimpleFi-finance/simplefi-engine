@@ -5,10 +5,13 @@ edition = "2021"
 
 [dependencies]
 abi_discovery = { path = "../abi_discovery" }
+mongodb = { workspace = true }
 prost = { workspace = true }
+redis = { workspace = true }
 serde_json = { workspace = true }
 shared_types = { path = "../shared_types" }
 settings = { path = "../settings" }
+third_parties = { path = "../third_parties" }
 tokio = { workspace = true, features = ["full"] }
 tonic = { workspace = true }
 

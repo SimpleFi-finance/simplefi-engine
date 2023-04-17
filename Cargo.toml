@@ -5,7 +5,9 @@ members = [
     "grpc_server",
     "settings",
     "solidity",
+    "shared_types",
     "shared_utils",
+    "solidity",
     "third_parties",
 ]
 

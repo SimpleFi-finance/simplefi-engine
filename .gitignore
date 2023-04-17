@@ -2,3 +2,7 @@
 
 *_pb.rs
 *_grpc.rs
+
+Cargo.lock
+
+.vscode
