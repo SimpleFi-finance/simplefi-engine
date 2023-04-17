@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package abi_discovery;
+
+service AbiDiscoveryService {
+  rpc CheckTrackedAddresses(TrackedAddressesRequest) returns (TrackedAddressesResponse) {}
+
+  rpc GetAddressesAbi(GetAddressesAbiRequest) returns (GetAddressesAbiResponse) {}
+
+  rpc AddFactoryAddresses(AddFactoryAddressesRequest) returns (AddFactoryAddressesResponse) {}
+}
+
+message TrackedAddressesRequest {
+  repeated string addresses = 1;
+}
+
+message TrackedAddressesResponse {
+  repeated string addresses = 1;
+}
+
+message AddressAbi {
+    uint64 timestamp = 1;
+    string address = 2;
+    bytes abi = 3;
+}
+
+message GetAddressesAbiRequest {
+  repeated string addresses = 1;
+}
+
+message GetAddressesAbiResponse {
+    repeated AddressAbi addresses_abi = 1;
+}
+
+message AddFactoryAddressesRequest {
+    string factory_address = 1;
+    repeated string addresses = 2;
+}
+
+message AddFactoryAddressesResponse {
+    bool success = 1;
+}

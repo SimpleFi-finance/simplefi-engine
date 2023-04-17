@@ -38,6 +38,18 @@ impl Mongo {
     }
 }
 
+pub fn binary_to_vec(binary: &bson::Binary) -> Vec<u8> {
+    binary.bytes.to_vec()
+
+    /* let mut vec = Vec::new();
+
+    for byte in binary.bytes() {
+        vec.push(*byte);
+    }
+
+    vec */
+}
+
 // create a test for Mongo Struct which connects to a localhost mongo
 #[cfg(test)]
 mod tests {

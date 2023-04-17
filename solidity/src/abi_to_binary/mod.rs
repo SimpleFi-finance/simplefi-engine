@@ -8,3 +8,10 @@ pub fn abi_to_binary(abi: &Value) -> Result<Vec<u8>, Box<dyn std::error::Error>>
 
     Ok(binary_buffer)
 }
+
+pub fn binary_to_abi(binary: &[u8]) -> Result<Value, Box<dyn std::error::Error>> {
+    let mut cursor = Cursor::new(binary);
+    let abi = serde_json::from_reader(&mut cursor)?;
+
+    Ok(abi)
+}

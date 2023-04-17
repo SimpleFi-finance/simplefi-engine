@@ -2,11 +2,12 @@
 // call the etherscan api to get the contract abi and save it in the database.
 //
 use lapin::{ Error, message::Delivery };
-use settings::load_settings;
 use std::sync::{Arc, Mutex};
+use tokio::time::{timeout, Duration};
+
+use abi_discovery::settings::load_settings;
 use third_parties::broker::{create_rmq_channel, process_queue_with_rate_limit, publish_rmq_message};
 use third_parties::http::etherscan::get_abi;
-use tokio::time::{timeout, Duration};
 
 async fn produce_messages(
     exchange: &String,
@@ -43,17 +44,6 @@ async fn produce_messages(
         .expect("Failed to publish message");
     }
 
-    /* for i in 0..100 {
-        publish_rmq_message(
-            exchange,
-            routing_key,
-            &format!("Message {}", i).as_bytes(),
-            channel,
-        )
-        .await
-        .expect("Failed to publish message");
-    } */
-
     Ok(())
 }
 
@@ -77,14 +67,19 @@ async fn handle_message(
         get_abi(&message_data, &etherscan_key),
     ).await;
 
-    /* let abi = timeout(
-        Duration::from_secs(10),
-        get_abi(&contract_address, &etherscan_keys),
-    )
-    .await
-    .expect("Failed to get abi"); */
+    if abi.is_err() {
+        println!("Error: {:?}", abi.err());
+    } else {
+        let response = abi.unwrap().unwrap(); // .unwrap();
+        // println!("ABI: {:?}", abi);
 
-    println!("ABI: {:?}", abi);
+        // let abi = abi.unwrap();
+
+        println!("ABI: {:?}", response);
+
+
+    }
+
 
     Ok(())
 }
@@ -93,7 +88,7 @@ async fn handle_message(
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let settings = load_settings().expect("Failed to load settings");
     let rabbit_uri = settings.rabbit_mq_url.to_string();
-    let queue_name = settings.abi_discovery_exchange_name.to_string();
+    let queue_name = settings.rabbit_exchange_name.to_string();
     let exchange_name = format!("{}_exchange", queue_name);
     let routing_key = String::from("abi_discovery");
     let etherscan_keys = settings.etherscan_api_keys;
@@ -124,15 +119,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Current count: {}", current_count);
 
         let cloned_keys: String = String::from(&etherscan_keys);
-        // let keys: Vec<&str> = keys_clone.split(',').collect();
-
-
-        // let key = keys[current_count % keys.len()];
-
-        // println!("Key: {}", key);
-
-        // let contract_address = message_data.to_string();
-
         let cloned_delivery = Arc::new(delivery);
         let cloned_counter = current_count.clone();
 
@@ -140,25 +126,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             handle_message(cloned_delivery, cloned_counter, cloned_keys).await.expect("Failed to handle message");
         };
 
-        // let fut = handle_message(delivery, key);
-
         tokio::spawn(fut);
-
-
-
-        /* let abi = get_abi(&message_data, &key).await.expect("Failed to get abi");
-
-
-        println!("ABI: {:?}", abi) */
-
-
-
-        // call etherescan api
-        // save abi in database
-
     };
-
-    // let test_duration = Duration::from_secs(15);
 
     let channel = create_rmq_channel("amqp://localhost:5672/%2f")
                 .await
@@ -166,22 +135,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Channel created");
 
-
     produce_messages(&exchange_name, &routing_key, &channel)
         .await
         .expect("Failed to produce messages");
 
     println!("Messages produced");
-
-    /* let process_result = timeout(test_duration, process_queue_with_rate_limit(
-        &channel,
-        &queue_name,
-        max_reads_per_second,
-        rate_limit_duration,
-        counter,
-        handler,
-    ))
-    .await; */
 
     let result = process_queue_with_rate_limit(
         &channel,
@@ -193,39 +151,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ).await;
 
     println!("Result: {:?}", result);
-
-
-
-    /* match process_result {
-        Ok(_) => println!("Processing finished successfully."),
-        Err(_) => println!("Test timed out"),
-    } */
-
-
-/*
-
-    println!("Rabbit URI: {}", rabbit_uri);
-    println!("Rabbit Queue Name: {}", queue_name);
-    println!("Rabbit Exchange Name: {}", exchange_name);
-
-    let channel = create_rmq_channel(&rabbit_uri.as_str())
-        .await
-        .expect("Failed to create channel");
-
-    // Create a queue with declare_exchange helper
-    declare_exchange(
-        &rabbit_uri.as_str(),
-        &exchange_name,
-        &lapin::ExchangeKind::Direct,
-    ).await.expect("Failed to declare exchange");
-
-    declare_rmq_queue(&queue_name, &channel)
-        .await
-        .expect("Failed to declare queue");
-
-    bind_queue_to_exchange(&queue_name, &exchange_name, &routing_key, &channel)
-        .await
-        .expect("Failed to bind queue"); */
 
     Ok(())
 }

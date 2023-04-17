@@ -19,9 +19,6 @@ async fn main() {
     // Create a new MongoDB client
     let mongo = Mongo::new(&mongo_config).await.expect("Failed to create mongo Client");
     let abi_collection = mongo.database.collection::<AbiCollection>("abis");
-    /* let factory_collection = mongo
-        .database
-        .collection::<FactoryAbiCollection>("factory-abi"); */
 
     // We need to get the list of folders in a directory
     let files = read_dir("E:\\solidity\\factory_contracts")

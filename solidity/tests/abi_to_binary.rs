@@ -25,6 +25,17 @@ fn test_abi_to_binary() {
 
 
         assert!(binary.is_ok());
+
+
+        // test binary_to_abi
+        let abi = abi_to_binary::binary_to_abi(&binary.unwrap());
+
+        info!(abi=?abi, "abi");
+
+        assert!(abi.is_ok());
+
+        println!("abi: {:?}", abi.unwrap());
     });
 
 }
+

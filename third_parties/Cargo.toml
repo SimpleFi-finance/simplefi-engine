@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+bson = { workspace = true }
 http = { workspace = true }
 futures = { workspace = true }
 lapin = { workspace = true }
@@ -25,3 +26,4 @@ mockito = { workspace = true }
 shared_utils = { path = "../shared_utils", features = ["with_tracing"] }
 tracing = { version = "^0.1" }
 tracing-subscriber = { version = "0.3" }
+
