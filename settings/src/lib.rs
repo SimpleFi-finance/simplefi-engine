@@ -2,6 +2,8 @@ use clap::Parser;
 use confy::{load, store, ConfyError};
 use serde::{Deserialize, Serialize};
 
+pub mod helpers;
+
 #[derive(Parser, Debug)]
 #[command(author = "SimpleFi Finance")]
 #[command(version)]
@@ -198,3 +200,4 @@ pub fn store_settings(settings: &MySettings) -> Result<(), ConfyError> {
 
     Ok(())
 }
+
