@@ -71,11 +71,7 @@ pub struct Settings {
     pub infura_mainnet_rpc: String,
 
     // Etherscan API Key
-    #[arg(
-        short = 'E',
-        long = "etherscan_api_keys",
-        help = "Etherscan API key",
-    )]
+    #[arg(short = 'E', long = "etherscan_api_keys", help = "Etherscan API key")]
     pub etherscan_api_keys: String,
 
     #[arg(
@@ -112,6 +108,20 @@ pub struct Settings {
         default_value = "engine"
     )]
     pub mongodb_engine_db: String,
+
+    #[arg(
+        long = "log_level",
+        help = "Log level to filter the logs. Default is INFO",
+        default_value = "INFO"
+    )]
+    pub log_level: String,
+
+    #[arg(
+        long = "log_file",
+        help = "File name to store the logs. Keep it empty to disable file logging and show all logs in console.",
+        default_value = ""
+    )]
+    pub log_file: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -130,7 +140,8 @@ pub struct MySettings {
     pub mongodb_uri: String,
     pub mongodb_engine_db: String,
     pub redis_uri: String,
-
+    pub log_level: String,
+    pub log_file: String,
 }
 
 impl MySettings {
@@ -149,6 +160,8 @@ impl MySettings {
         mongodb_uri: String,
         mongodb_engine_db: String,
         redis_uri: String,
+        log_level: String,
+        log_file: String,
     ) -> Self {
         MySettings {
             rabbit_mq_url,
@@ -165,6 +178,8 @@ impl MySettings {
             mongodb_uri,
             mongodb_engine_db,
             redis_uri,
+            log_level,
+            log_file,
         }
     }
 }
@@ -187,6 +202,8 @@ pub fn load_settings() -> Result<MySettings, ConfyError> {
         mongodb_uri: String::from("mongodb://localhost:27017/"),
         mongodb_engine_db: String::from("engine"),
         redis_uri: String::from("redis://localhost:6379/"),
+        log_level: String::from("INFO"),
+        log_file: String::from(""),
     };
 
     let settings: MySettings =
@@ -200,4 +217,3 @@ pub fn store_settings(settings: &MySettings) -> Result<(), ConfyError> {
 
     Ok(())
 }
-

@@ -1,4 +1,4 @@
-
+use log::{ info, debug };
 use redis::{ AsyncCommands, Expiry::PX};
 use std::collections::HashMap;
 
@@ -27,8 +27,8 @@ use third_parties::redis::{ connect, is_in_set };
 /// let result = get_tracked_abis(addresses).await;
 ///
 /// match result {
-///   Ok(abis) => println!("abis: {:?}", abis),
-///  Err(e) => println!("error: {:?}", e),
+///   Ok(abis) => info!("abis: {:?}", abis),
+///  Err(e) => error!("error: {:?}", e),
 /// }
 ///
 /// ```
@@ -52,7 +52,7 @@ use third_parties::redis::{ connect, is_in_set };
 pub async fn get_tracked_abis(
     addresses: Vec<String>,
 ) -> Result<HashMap<String, String>, Box<dyn std::error::Error>> {
-    println!("get_tracked_abis: {:?}", addresses);
+    debug!("get_tracked_abis: {:?}", addresses);
 
     // get settings
     let mysettings = load_settings()?;
@@ -60,7 +60,7 @@ pub async fn get_tracked_abis(
     // get redis_url from settings
     let redis_uri = mysettings.redis_uri;
 
-    println!("redis url: {:?}", redis_uri);
+    info!("redis url: {:?}", redis_uri);
 
     // connect to redis with third_parties::redis::connect
     let mut connection = connect(&redis_uri).await?;
@@ -75,7 +75,7 @@ pub async fn get_tracked_abis(
     // check if addresses are in redis
     for address in addresses {
         let is_in_set = is_in_set(&mut connection, "tracked_addresses", &address).await?;
-        println!("address: {:?} is_in_set: {:?}", address, is_in_set);
+        debug!("address: {:?} is_in_set: {:?}", address, is_in_set);
 
         if is_in_set {
             tracked_addresses.push(address);
@@ -92,7 +92,7 @@ pub async fn get_tracked_abis(
 
 
     // Vec<String> = vec![];
-    println!("tracked_addresses: {:?}", tracked_addresses);
+    debug!("tracked_addresses: {:?}", tracked_addresses);
 
     // create vector of strings named addresses_mongo
     let mut addresses_mongo: Vec<String> = vec![];
@@ -104,22 +104,22 @@ pub async fn get_tracked_abis(
         // Check if the key exists in the hash
         let key = format!("{}{}", &abi_prefix, &address);
 
-        print!("key: {:?} ", &key);
+        debug!("key: {:?} ", &key);
 
         // check if the key exists in redis
         let exists: bool = connection.exists(&key).await?;
 
         if exists {
-            println!("exists: {:?}", &address);
+            debug!("exists: {:?}", &address);
 
             // get abi from redis
             let abi: String = connection.get_ex(&key, PX(abi_ttl)).await?;
 
-            println!("abi: {:?}", abi);
+            debug!("abi: {:?}", abi);
 
             tracked_abis.insert(address, abi);
         } else {
-            println!("does not exist: {:?}. We get it from mongo", &address);
+            debug!("does not exist: {:?}. We get it from mongo", &address);
 
             // get abi from mongo
             addresses_mongo.push(address);
@@ -131,12 +131,12 @@ pub async fn get_tracked_abis(
         return Ok(tracked_abis);
     }
 
-    println!("addresses_mongo: {:?}", addresses_mongo);
+    debug!("addresses_mongo: {:?}", addresses_mongo);
 
     // if abi is not in redis, get it from mongo
     let tracked_abis_mongo = get_tracked_abi_from_mongo(addresses_mongo).await?;
 
-    println!("tracked_abis_mongo: {:?}", tracked_abis_mongo.len());
+    debug!("tracked_abis_mongo: {:?}", tracked_abis_mongo.len());
 
     // Add to the redis cache all tracked_abis_mongo
     for tracked_abi_mongo in tracked_abis_mongo {
@@ -153,7 +153,7 @@ pub async fn get_tracked_abis(
 
         let _: () = connection.pset_ex(&key, &serialized_value, abi_ttl).await?;
 
-        println!("key: {:?} added to redis with expiration", &key);
+        debug!("key: {:?} added to redis with expiration", &key);
 
         tracked_abis.insert(address, serialized_value);
     }
@@ -165,6 +165,7 @@ pub async fn get_tracked_abis(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use log::info;
 
     #[tokio::test]
     async fn test_get_tracked_abis() {
@@ -187,8 +188,8 @@ mod tests {
 
         let abis = get_tracked_abis(addresses).await.unwrap();
 
-        println!("abis len: {:?}", abis.len());
-        println!("abis: {:?}", abis);
+        info!("abis len: {:?}", abis.len());
+        info!("abis: {:?}", abis);
 
         assert!(abis.len() == 2);
 

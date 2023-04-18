@@ -1,4 +1,5 @@
 
+use log::{ info, debug };
 use tonic::{transport::Server, Request, Response, Status};
 
 use abi_discovery::helpers::{get_tracked_abis, add_factory_addresses};
@@ -13,6 +14,7 @@ use grpc_server::abi_discovery_proto::{
     AddFactoryAddressesResponse,
 };
 use shared_types::redis::abi::ContractWithAbiRedis;
+use shared_utils::logger::init_logging;
 
 
 #[derive(Default)]
@@ -26,6 +28,8 @@ impl AbiDiscoveryService for AbiDiscoveryServiceImpl {
     ) -> Result<Response<TrackedAddressesResponse>, Status> {
         let addresses = request.into_inner().addresses;
 
+        info!("check_tracked_addresses called: {:?}", addresses);
+
         let response = TrackedAddressesResponse { addresses };
         Ok(Response::new(response))
     }
@@ -36,13 +40,15 @@ impl AbiDiscoveryService for AbiDiscoveryServiceImpl {
     ) -> Result<Response<GetAddressesAbiResponse>, Status> {
         let addresses = request.into_inner().addresses;
 
+        info!("get_addresses_abi called: {:?}", addresses);
+
         let tracked_abis = get_tracked_abis(addresses).await.expect("Failed to get tracked abis");
 
         let mut contract_abis: Vec<AddressAbi> = Vec::new();
 
         // loop through keys and values
         for (key, value) in tracked_abis.iter() {
-            println!("key: {}, value: {}", key, value);
+            debug!("key: {}, value: {}", key, value);
 
             let deserialized_value: ContractWithAbiRedis = serde_json::from_str(value.as_str()).expect("Failed to deserialize value");
 
@@ -56,7 +62,7 @@ impl AbiDiscoveryService for AbiDiscoveryServiceImpl {
         };
 
         let response = GetAddressesAbiResponse {
-            addresses_abi: contract_abis, // vec![single_response]
+            addresses_abi: contract_abis,
         };
 
         Ok(Response::new(response))
@@ -69,8 +75,7 @@ impl AbiDiscoveryService for AbiDiscoveryServiceImpl {
         let factory_address = request.get_ref().factory_address.clone();
         let addresses = request.get_ref().addresses.clone();
 
-        println!("factory: {:?}", factory_address);
-        println!("addresses {:?}", addresses);
+        info!("add_factory_addresses called: {:?}, {:?}", factory_address, addresses);
 
         let response = add_factory_addresses(factory_address, addresses).await.expect("Failed to add factory addresses");
 
@@ -84,8 +89,12 @@ impl AbiDiscoveryService for AbiDiscoveryServiceImpl {
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    init_logging();
+
     // create tonic server
     let addr = "[::1]:50051".parse()?;
+
+    info!("Starting server on: {:?}", addr);
 
     let abi_discovery_service = AbiDiscoveryServiceImpl::default();
 
@@ -94,6 +103,8 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .serve(addr);
 
     server.await.expect("Failed to start server");
+
+    info!("Server started successfully");
 
     Ok(())
 }

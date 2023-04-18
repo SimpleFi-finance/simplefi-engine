@@ -10,6 +10,7 @@ bson = { workspace = true }
 http = { workspace = true }
 futures = { workspace = true }
 lapin = { workspace = true }
+log = { workspace = true }
 mongodb = { workspace = true }
 once_cell = { workspace = true }
 redis = { workspace = true, features = ["tokio-comp", "connection-manager"] }

@@ -1,5 +1,6 @@
-use mongodb::{ bson::{ doc }, error::Error as MongoError };
 use futures::stream::StreamExt;
+use log::{ debug, error };
+use mongodb::{ bson::{ doc }, error::Error as MongoError };
 use std::vec;
 
 use shared_types::mongo::abi::FactoryContractsCollection;
@@ -31,6 +32,8 @@ pub async fn check_contracts_from_factory(addresses: &Vec<String> ) -> Result<Ve
     // Create a new MongoDB client
     let mongo = Mongo::new(&mongo_config).await.expect("Failed to create mongo Client");
 
+    debug!("Mongo client created");
+
     let factory_address_collection = mongo.database.collection::<FactoryContractsCollection>("factory_contracts");
 
     let pipeline = vec![
@@ -59,10 +62,12 @@ pub async fn check_contracts_from_factory(addresses: &Vec<String> ) -> Result<Ve
         match result {
             Ok(document) => {
                 if let Some(value) = document.get("address").and_then(|v| v.as_str()) {
+                    debug!("value: {}", value.to_string());
+
                     results.push(value.to_string());
                 }
             }
-            Err(e) => eprintln!("Error: {}", e),
+            Err(e) => error!("Error: {}", e),
         }
     }
 
@@ -75,6 +80,7 @@ pub async fn check_contracts_from_factory(addresses: &Vec<String> ) -> Result<Ve
 #[cfg(test)]
 mod tests {
     use super::*;
+    use log::{ info };
 
     #[tokio::test]
     async fn test_check_contracts_from_factory() {
@@ -82,7 +88,7 @@ mod tests {
 
         let results = check_contracts_from_factory(&addresses).await.unwrap();
 
-        println!("output {:?}", results);
+        info!("output {:?}", results);
 
         assert_eq!(results.len(), 2);
     }

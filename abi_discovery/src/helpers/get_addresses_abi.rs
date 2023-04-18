@@ -8,4 +8,3 @@ pub async fn get_addresses_abi(
 
     Ok(tracked_address)
 }
-

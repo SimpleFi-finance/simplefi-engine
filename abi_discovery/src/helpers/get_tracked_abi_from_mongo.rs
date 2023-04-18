@@ -26,8 +26,8 @@ use third_parties::mongo::{MongoConfig, Mongo};
 /// let result = get_tracked_abi_from_mongo(addresses).await;
 ///
 /// match result {
-///    Ok(abis) => println!("abis: {:?}", abis),
-///   Err(e) => println!("error: {:?}", e),
+///    Ok(abis) => info!("abis: {:?}", abis),
+///   Err(e) => error!("error: {:?}", e),
 /// }
 /// ```
 ///
@@ -96,6 +96,7 @@ pub async fn get_tracked_abi_from_mongo(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use log::info;
 
     #[tokio::test]
     async fn test_get_tracked_abi_from_mongo() {
@@ -108,8 +109,8 @@ mod tests {
 
         let abis = get_tracked_abi_from_mongo(addresses).await.unwrap();
 
-        println!("abis len: {:?}", abis.len());
-        println!("abis: {:?}", abis);
+        info!("abis len: {:?}", abis.len());
+        info!("abis: {:?}", abis);
 
         assert!(abis.len() == 2);
         assert!(abis[0].address == "0x0000000000003f5e74c1ba8a66b48e6f3d71ae82");

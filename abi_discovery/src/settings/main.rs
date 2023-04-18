@@ -1,19 +1,25 @@
 use clap::Parser;
+use log::info;
+
 use abi_discovery::settings::{ AbiDiscoverySettings, MyAbiDiscoverySettings, store_settings};
+use shared_utils::logger::init_logging;
 
 fn main() {
-    println!("**** Running Abi Discovery Settings Generator ****");
-    println!("****");
-    println!(
+    // initialize logging
+    init_logging();
+
+    info!("**** Running Abi Discovery Settings Generator ****");
+    info!("****");
+    info!(
         "**** Settings Path: {:?} ****",
         confy::get_configuration_file_path("simplefi_engine", Some("abi_discovery_settings"))
     );
-    println!("****");
-    println!("**** Parsing Data...");
+    info!("****");
+    info!("**** Parsing Data...");
 
     let settings = AbiDiscoverySettings::parse();
 
-    println!("*** {:#?}", settings);
+    info!("*** {:#?}", settings);
 
     // load settings from a local file using confy
     let my_local_settings: MyAbiDiscoverySettings = {
@@ -44,12 +50,12 @@ fn main() {
     };
 
 
-    println!("*** Saving Settings...");
+    info!("*** Saving Settings...");
 
     // store settings to a local file using confy
     store_settings(&my_local_settings).expect("Failed to store settings");
 
-    println!("*** Settings saved successfully...");
+    info!("*** Settings saved successfully...");
 }
 
 

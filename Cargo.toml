@@ -2,16 +2,15 @@
 
 members = [
     "abi_discovery",
+    "blockchain_tracker", # listens to new blocks emitted and sends them to queue
+    "block_indexer", #listens to new blocks emitted and gets logs, data, txs
+    "daily_data_digest", #saves daily data into parquet in corresponding directory
     "grpc_server",
     "settings",
-    "solidity",
     "shared_types",
     "shared_utils",
     "solidity",
     "third_parties",
-    "blockchain_tracker", # listens to new blocks emitted and sends them to queue
-    "block_indexer", #listens to new blocks emitted and gets logs, data, txs
-    "daily_data_digest", #saves daily data into parquet in corresponding directory 
 ]
 
 [workspace.dependencies]
@@ -21,17 +20,22 @@ bson = "2.6"
 chrono = "0.4.24"
 clap = { version = "4.2", features = ["derive"] }
 confy = { version = "0.5.1" }
+ethers = { version = "1.0.2", features = ["ws", "rustls", "legacy"]}
+ethers-providers = "1.0.2"
+fern = "0.6"
 flate2 = "1.0"
 futures = "0.3"
 lapin = "2.1.1"
-once_cell = "1.17"
+log = "0.4"
 hex = "0.4"
 http = "0.2"
 mongodb = "2.4"
 mockito = "1.0"
+once_cell = "1.17"
 prost = "0.11"
 prost-build = "0.11"
 rand = "0.8"
+rayon = "1.7.0"
 redis = { version = "0.23", features = ["tokio-comp"] }
 reqwest = { version = "0.11", features = ["json"] }
 serde = "1.0"
@@ -41,6 +45,3 @@ tonic = "0.9"
 tonic-build = "0.9"
 tracing = "0.1"
 tungstenite = { version = "0.18.0", features = ["native-tls"] }
-ethers = { version = "1.0.2", features = ["ws", "rustls", "legacy"]}
-ethers-providers = "1.0.2"
-rayon = "1.7.0"
