@@ -1,10 +1,10 @@
-use crate::http::fetch::fetch;
-
-use std::collections::HashMap;
-use http::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
-use reqwest::{StatusCode, Error};
+use log::{ debug, error };
+use http::header::{ HeaderMap, HeaderValue, CONTENT_TYPE };
+use reqwest::{ StatusCode, Error };
 use serde::Deserialize;
+use std::collections::HashMap;
 
+use crate::http::fetch::fetch;
 
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
@@ -27,6 +27,11 @@ struct EtherscanResponse {
 /// * `None` if the contract ABI could not be fetched
 /// * `Some(Value)` if the contract ABI was fetched successfully
 /// * `Error` if there was an error fetching the contract ABI
+///
+/// # ToDo
+///
+/// Change hardcoded etherescan url to a config value
+///
 ///
 pub async fn get_abi(
     contract_address: &str,
@@ -56,16 +61,12 @@ pub async fn get_abi(
         StatusCode::OK => {
             let results: EtherscanResponse = result.json().await?;
 
-            // println!("ABI: {:?}", results.result);
-
-            // let abi = results.message.parse::<Value>().ok();
-
-            println!("result: {:?}", results.result.len());
+            debug!("result: {:?}", results.result.len());
 
             Ok(results.result) // .parse::<Value>().ok())
         },
         _ => {
-            println!("Error: {}", result.status());
+            error!("Error: {}", result.status());
 
             Ok("".to_string())
         }
@@ -75,6 +76,7 @@ pub async fn get_abi(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use log::info;
     use serde_json::Value;
     use settings::load_settings;
 
@@ -87,7 +89,7 @@ mod tests {
 
         let result = get_abi(contract_address, &api_key).await.unwrap();
 
-        println!("result: {:?}", result);
+        info!("result: {:?}", result);
 
         // if result is empty string, then assert false otherwise use serde_json to convert into a Value and do assertions
         if result == "" {
@@ -95,7 +97,7 @@ mod tests {
         } else {
             let abi = result.parse::<Value>().ok();
 
-            println!("ABI VALUE: {:?}", &abi);
+            info!("ABI VALUE: {:?}", &abi);
 
             match abi {
                 Some(abi) => {
@@ -110,12 +112,7 @@ mod tests {
                     assert!(false);
                 }
             }
-
         }
-
-        /* }
-
-        assert!(result.is_some()); */
     }
 }
 

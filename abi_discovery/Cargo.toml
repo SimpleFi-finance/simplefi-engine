@@ -5,22 +5,24 @@ edition = "2021"
 
 
 [dependencies]
-bincode = { workspace = true }
-bson = { workspace = true }
-clap = { workspace = true, features = ["derive"] }
-confy = { workspace = true }
-hex = { workspace = true }
-futures = { workspace = true }
-lapin = { workspace = true }
-mongodb = { workspace = true }
-rand = { workspace = true }
-redis = { workspace = true }
-serde = { workspace = true, default_features = false, features = ["derive"] }
-serde_json = { workspace = true }
-settings = { path = "../settings" }
-shared_types = { path = "../shared_types" }
+bincode =       { workspace = true }
+bson =          { workspace = true }
+clap =          { workspace = true, features = ["derive"] }
+confy =         { workspace = true }
+hex =           { workspace = true }
+futures =       { workspace = true }
+lapin =         { workspace = true }
+log =           { workspace = true }
+mongodb =       { workspace = true }
+rand =          { workspace = true }
+redis =         { workspace = true }
+serde =         { workspace = true, default_features = false, features = ["derive"] }
+serde_json =    { workspace = true }
+settings =      { path = "../settings" }
+shared_types =  { path = "../shared_types" }
+shared_utils =  { path = "../shared_utils" }
 third_parties = { path = "../third_parties" }
-tokio = { workspace = true, features = ["full"] }
+tokio =         { workspace = true, features = ["full"] }
 
 [[bin]]
 name = "create_queue"

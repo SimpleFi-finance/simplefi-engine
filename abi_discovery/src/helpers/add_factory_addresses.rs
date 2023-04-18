@@ -1,4 +1,4 @@
-
+use log::{ info, debug, error };
 use mongodb::{ bson::doc };
 
 use crate::settings::load_settings;
@@ -28,8 +28,8 @@ use third_parties::{mongo::{MongoConfig, Mongo}, redis::{connect, add_to_set}};
 /// let result = add_factory_addresses(factory_address, addresses).await;
 ///
 /// match result {
-///   Ok(abis) => println!("abis: {:?}", abis),
-///  Err(e) => println!("error: {:?}", e),
+///   Ok(abis) => info!("abis: {:?}", abis),
+///  Err(e) => error!("error: {:?}", e),
 /// }
 /// ```
 ///
@@ -58,9 +58,9 @@ pub async fn add_factory_addresses(
         database: mongo_engine_db.clone(),
     };
 
-    println!("Adding factory addresses to the factory_contracts collection... ");
-    println!("mongodb_uri: {}", mongo_uri);
-    println!("mongo_engine_db: {}", mongo_engine_db);
+    info!("Adding factory addresses to the factory_contracts collection... ");
+    info!("mongodb_uri: {}", mongo_uri);
+    info!("mongo_engine_db: {}", mongo_engine_db);
 
     let db = Mongo::new(&config).await?;
 
@@ -85,17 +85,17 @@ pub async fn add_factory_addresses(
     for document in &documents_to_insert {
         match contract_abi_collection.insert_one(document.clone(), None).await {
             Ok(result) => {
-                println!("Document inserted with _id: {:?}", result.inserted_id);
+                debug!("Document inserted with _id: {:?}", result.inserted_id);
                 inserted_documents = inserted_documents + 1;
 
                 let address = document.get("address").unwrap().as_str().unwrap();
-                println!("Adding address to redis: {}", address);
+                debug!("Adding address to redis: {}", address);
 
                 let result = add_to_set(&mut redis_con, "tracked_addresses", address).await;
 
                 match result {
-                    Ok(_) => println!("Added address to redis"),
-                    Err(e) => println!("Error adding address to redis: {:?}", e),
+                    Ok(_) => debug!("Added address to redis"),
+                    Err(e) => error!("Error adding address to redis: {:?}", e),
                 }
             }
             Err(_) => {
@@ -104,8 +104,8 @@ pub async fn add_factory_addresses(
         }
     }
 
-    println!("Skipped {} documents", skipped_documents);
-    println!("Inserted {} documents", inserted_documents);
+    info!("Inserted {} documents", inserted_documents);
+    info!("Skipped {} documents", skipped_documents);
 
     Ok(true)
 }

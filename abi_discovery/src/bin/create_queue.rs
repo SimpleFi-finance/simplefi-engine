@@ -1,12 +1,16 @@
 
 // create fn main that uses third_parties helper to create a queue
 use lapin;
+use log::info;
 
 use abi_discovery::settings::load_settings;
+use shared_utils::logger::init_logging;
 use third_parties::broker::{create_rmq_channel, declare_exchange, declare_rmq_queue, bind_queue_to_exchange};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    init_logging();
+
     // Load rabbit url from settings with load_settings helper
     let settings = load_settings().expect("Failed to load settings");
     let rabbit_uri = settings.rabbit_mq_url.to_string();
@@ -15,9 +19,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let exchange_name = format!("{}_exchange", queue_name);
     let routing_key = String::from("abi_discovery");
 
-    println!("Rabbit URI: {}", rabbit_uri);
-    println!("Rabbit Queue Name: {}", queue_name);
-    println!("Rabbit Exchange Name: {}", exchange_name);
+    info!("Rabbit URI: {}", rabbit_uri);
+    info!("Rabbit Queue Name: {}", queue_name);
+    info!("Rabbit Exchange Name: {}", exchange_name);
 
     let channel = create_rmq_channel(&rabbit_uri.as_str())
         .await

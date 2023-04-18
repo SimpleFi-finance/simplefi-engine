@@ -5,12 +5,14 @@ edition = "2021"
 
 [dependencies]
 abi_discovery = { path = "../abi_discovery" }
+log = { workspace = true }
 mongodb = { workspace = true }
 prost = { workspace = true }
 redis = { workspace = true }
 serde_json = { workspace = true }
-shared_types = { path = "../shared_types" }
 settings = { path = "../settings" }
+shared_types = { path = "../shared_types" }
+shared_utils = { path = "../shared_utils" }
 third_parties = { path = "../third_parties" }
 tokio = { workspace = true, features = ["full"] }
 tonic = { workspace = true }

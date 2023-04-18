@@ -2,6 +2,7 @@
 // call the etherscan api to get the contract abi and save it in the database.
 //
 use lapin::{ Error, message::Delivery };
+use log::{ info, debug, error };
 use std::sync::{Arc, Mutex};
 use tokio::time::{timeout, Duration};
 
@@ -54,13 +55,13 @@ async fn handle_message(
 ) -> Result<(), Error> {
     let message_data = String::from_utf8_lossy(&delivery.data);
 
-    println!("Message data: {}", message_data);
+    debug!("Message data: {}", message_data);
 
     let keys = key.split(',').collect::<Vec<&str>>();
 
     let etherscan_key = keys[counter % keys.len()];
 
-    println!("Key: {}", etherscan_key);
+    debug!("Key: {}", etherscan_key);
 
     let abi = timeout(
         Duration::from_secs(10),
@@ -68,16 +69,15 @@ async fn handle_message(
     ).await;
 
     if abi.is_err() {
-        println!("Error: {:?}", abi.err());
+        error!("Error: {:?}", abi.err());
     } else {
         let response = abi.unwrap().unwrap(); // .unwrap();
-        // println!("ABI: {:?}", abi);
 
-        // let abi = abi.unwrap();
+        debug!("ABI: {:?}", response);
 
-        println!("ABI: {:?}", response);
+        // TODO: Saved in mongo
 
-
+        // TODO: Add address to tracked addresses in redis set
     }
 
 
@@ -94,19 +94,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let etherscan_keys = settings.etherscan_api_keys;
 
 
-    println!("Rabbit URI: {}", rabbit_uri);
-    println!("Rabbit Queue Name: {}", queue_name);
-    println!("Rabbit Exchange Name: {}", exchange_name);
-    println!("Router key: {}", routing_key);
-    println!("Etherscan keys: {:?}", etherscan_keys);
+    info!("Rabbit URI: {}", rabbit_uri);
+    info!("Rabbit Queue Name: {}", queue_name);
+    info!("Rabbit Exchange Name: {}", exchange_name);
+    info!("Router key: {}", routing_key);
+    info!("Etherscan keys: {:?}", etherscan_keys);
 
     // max per second
     let max_reads_per_second = etherscan_keys.split(",").count() * 2;
-    println!("Max reads per second {:?}", max_reads_per_second);
+    info!("Max reads per second {:?}", max_reads_per_second);
 
     // It should be per second but we are going to give 2 seconds
     let rate_limit_duration = Duration::from_secs(10);
-    println!("Rate limit duration {:?}", rate_limit_duration);
+    info!("Rate limit duration {:?}", rate_limit_duration);
 
     let counter = Arc::new(Mutex::new(0));
 
@@ -115,8 +115,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let handler = move |delivery: Delivery, current_count: usize| {
         let message_data = String::from_utf8_lossy(&delivery.data);
 
-        println!("Message data: {}", message_data);
-        println!("Current count: {}", current_count);
+        debug!("Message data: {}", message_data);
+        debug!("Current count: {}", current_count);
 
         let cloned_keys: String = String::from(&etherscan_keys);
         let cloned_delivery = Arc::new(delivery);
@@ -133,13 +133,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .await
                 .expect("Failed to create channel");
 
-    println!("Channel created");
+    debug!("Channel created");
 
     produce_messages(&exchange_name, &routing_key, &channel)
         .await
         .expect("Failed to produce messages");
 
-    println!("Messages produced");
+    debug!("Messages produced");
 
     let result = process_queue_with_rate_limit(
         &channel,
@@ -150,7 +150,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         handler,
     ).await;
 
-    println!("Result: {:?}", result);
+    debug!("Result: {:?}", result);
 
     Ok(())
 }

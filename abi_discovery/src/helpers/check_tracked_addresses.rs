@@ -1,3 +1,4 @@
+use log::{ info, debug };
 use redis::RedisError;
 use third_parties::redis::{connect, is_in_set, add_to_set};
 
@@ -22,8 +23,8 @@ use crate::settings::load_settings;
 /// let result = check_tracked_addresses(addresses).await;
 ///
 /// match result {
-///  Ok(abis) => println!("abis: {:?}", abis),
-/// Err(e) => println!("error: {:?}", e),
+///  Ok(abis) => info!("abis: {:?}", abis),
+/// Err(e) => error!("error: {:?}", e),
 /// }
 ///
 /// ```
@@ -48,11 +49,17 @@ pub async fn check_tracked_addresses(addresses: &[String]) -> Result<Vec<String>
 
     let mut con = connect(redis_uri.as_str()).await.unwrap();
 
+    info!("Checking if the addresses are in the tracked_addresses set");
+
     for address in addresses {
         if is_in_set(&mut con, set_key, address).await? {
+
+            debug!("Address {} is in the tracked_addresses set", address);
             tracked_addresses.push(address.clone());
         } else {
             add_to_set(&mut con, set_verify_key, address).await?;
+
+            debug!("Address {} is not in the tracked_addresses set and it's been added", address);
         }
     }
 
