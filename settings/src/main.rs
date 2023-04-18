@@ -31,6 +31,8 @@ fn main() {
         let mongodb_uri = settings.mongodb_uri;
         let mongodb_engine_db = settings.mongodb_engine_db;
         let redis_uri = settings.redis_uri;
+        let log_level = settings.log_level;
+        let log_file = settings.log_file;
 
         MySettings {
             rabbit_mq_url,
@@ -47,6 +49,8 @@ fn main() {
             mongodb_uri,
             mongodb_engine_db,
             redis_uri,
+            log_level,
+            log_file,
         }
     };
 
