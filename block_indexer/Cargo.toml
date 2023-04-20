@@ -23,6 +23,7 @@ grpc_server = { path = "../grpc_server" }
 confy = { workspace = true }
 settings = { path = "../settings" }
 solidity = { path = "../solidity" }
+ethabi = { workspace = true }
 
 [[bin]]
 name = "generate_settings"

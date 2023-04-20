@@ -18,7 +18,7 @@ pub fn binary_to_abi(binary: &[u8]) -> Result<Value, Box<dyn std::error::Error>>
 }
 
 pub fn abi_to_bytecode(abi_string: &String) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    let mut abi: Vec<Abi> = serde_json::from_str(&abi_string).unwrap();
+    let abi: Vec<Abi> = serde_json::from_str(&abi_string).unwrap();
 
     let abi_bytecode = bincode::serialize(&abi).unwrap();
 
@@ -27,7 +27,6 @@ pub fn abi_to_bytecode(abi_string: &String) -> Result<Vec<u8>, Box<dyn std::erro
 
 pub fn bytecode_to_abi(abi_bytecode: &Vec<u8>) -> Result<String, Box<dyn std::error::Error>> {
     let abi: Vec<Abi> = bincode::deserialize(&abi_bytecode).unwrap();
-
     let abi_string = serde_json::to_string(&abi).unwrap();
 
     Ok(abi_string)

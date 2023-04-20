@@ -1,16 +1,15 @@
-use std::{collections::HashMap, time::Instant};
+use std::{collections::HashMap, time::Instant, io::Cursor};
 
 use block_indexer::{utils::{get_block_logs, get_block_with_txs}, settings::load_settings};
 use chrono::{Datelike, NaiveDateTime};
-use ethers::abi::Address;
+use ethabi::Contract;
 use futures::{StreamExt, TryStreamExt};
-use grpc_server::{client::AbiDiscoveryClient, abi_discovery_proto::AddressAbi};
+use grpc_server::{client::AbiDiscoveryClient};
 use lapin::{options::BasicConsumeOptions, types::FieldTable};
-use rayon::{iter::ParallelIterator, prelude::{IndexedParallelIterator, IntoParallelIterator}};
+use rayon::{iter::ParallelIterator};
 use rayon::prelude::IntoParallelRefIterator;
-use serde_json::json;
 use settings::load_settings as load_global_settings;
-use solidity::abi_to_binary::binary_to_abi;
+use solidity::abi_to_binary::bytecode_to_abi;
 use third_parties::{
     broker::create_rmq_channel,
     mongo::{
@@ -29,7 +28,7 @@ async fn main() {
 
     let global_settings = load_global_settings().unwrap();
     let local_settings = load_settings().unwrap();
-
+    
     let queue_name = local_settings.new_blocks_queue_name.clone();
     let consumer_name = format!("{}_{}", String::from("ethereum"), String::from("block_indexer"));
     let rmq_uri = local_settings.rabbit_mq_url.clone();
@@ -111,6 +110,20 @@ async fn main() {
         for i in abis_response.addresses_abi {
             let data = i;
             let abi = &data.abi;
+
+            let abi_decoded = bytecode_to_abi(abi).unwrap();
+            println!("abi_decoded: {:?}", abi_decoded);
+            
+            let file = Cursor::new(abi_decoded.clone());
+
+            // let c = serde_json::from_reader(file).unwrap();
+            let deserialized: Contract = serde_json::from_str(abi_decoded.as_str()).unwrap();
+            // let contract = Contract::load(file).unwrap();
+
+            println!("contract: {:?}", deserialized);
+
+
+
 
             // let interface = Interface::load(abi.as_bytes()).unwrap();
             // interface_hashmap.insert(address, interface);

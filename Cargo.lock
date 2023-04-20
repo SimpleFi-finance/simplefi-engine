@@ -546,6 +546,7 @@ dependencies = [
  "chrono",
  "clap 4.2.2",
  "confy",
+ "ethabi",
  "ethers",
  "ethers-providers",
  "futures",
