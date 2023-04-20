@@ -4,7 +4,7 @@ use tonic::{Request, Response};
 use crate::abi_discovery_proto::abi_discovery_service_client::AbiDiscoveryServiceClient;
 use crate::abi_discovery_proto::{
     GetAddressesAbiRequest, TrackedAddressesRequest, AddFactoryAddressesRequest,
-    AddFactoryAddressesResponse, GetAddressesAbiResponse, TrackedAddressesResponse,
+    AddFactoryAddressesResponse, GetAddressesAbiResponse, TrackedAddressesResponse, GetAddressesAbiJsonResponse,
 };
 
 
@@ -28,6 +28,13 @@ impl AbiDiscoveryClient {
     pub async fn get_addresses_abi(&mut self, addresses: Vec<String>) -> Response<GetAddressesAbiResponse> {
         let request = Request::new(GetAddressesAbiRequest { addresses });
         let response = self.client.get_addresses_abi(request).await.unwrap();
+
+        response
+    }
+
+    pub async fn get_addresses_abi_json(&mut self, addresses: Vec<String>) -> Response<GetAddressesAbiJsonResponse> {
+        let request = Request::new(GetAddressesAbiRequest { addresses });
+        let response = self.client.get_addresses_abi_json(request).await.unwrap();
 
         response
     }
