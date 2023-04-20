@@ -28,7 +28,7 @@ async fn main() {
 
     let global_settings = load_global_settings().unwrap();
     let local_settings = load_settings().unwrap();
-    
+
     let queue_name = local_settings.new_blocks_queue_name.clone();
     let consumer_name = format!("{}_{}", String::from("ethereum"), String::from("block_indexer"));
     let rmq_uri = local_settings.rabbit_mq_url.clone();
@@ -104,20 +104,19 @@ async fn main() {
         let unique_addresses = Vec::from_iter(logs_by_address.keys().cloned());
         // let abis = query grpc endpoint for abis
         let mut abi_discovery_client = AbiDiscoveryClient::new("http://[::1]:50051".to_string()).await;
-        let abis_addresses = abi_discovery_client.get_addresses_abi(unique_addresses).await;
+        let abis_addresses = abi_discovery_client.get_addresses_abi_json(unique_addresses).await;
         let abis_response = abis_addresses.into_inner();
 
         for i in abis_response.addresses_abi {
             let data = i;
             let abi = &data.abi;
 
-            let abi_decoded = bytecode_to_abi(abi).unwrap();
-            println!("abi_decoded: {:?}", abi_decoded);
+            // let abi_decoded = bytecode_to_abi(abi).unwrap();
 
-            let file = Cursor::new(abi_decoded.clone());
+            // let file = Cursor::new(abi.clone());
 
             // let c = serde_json::from_reader(file).unwrap();
-            let deserialized: Contract = serde_json::from_str(abi_decoded.as_str()).unwrap();
+            let deserialized: Contract = serde_json::from_str(abi.as_str()).unwrap();
             // let contract = Contract::load(file).unwrap();
 
             println!("contract: {:?}", deserialized);

@@ -118,8 +118,6 @@ mod tests {
             abi.sort_parameters();
         }
 
-        println!("{:?}", abi);
-
         let abi_ordered_string = serde_json::to_string(&abi).unwrap();
 
         let abi_bytecode = abi_to_bytecode(&abi_ordered_string).unwrap();
@@ -139,8 +137,6 @@ mod tests {
         );
 
         let abi_string2 = bytecode_to_abi(&abi_bytecode).unwrap();
-
-        println!("{}", abi_string2);
 
         assert!(abi_ordered_string == abi_string2);
     }
