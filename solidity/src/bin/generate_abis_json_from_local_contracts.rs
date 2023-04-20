@@ -1,7 +1,7 @@
-use bson::{doc, Binary};
+use bson::{doc };
 use mongodb::{ options::FindOneOptions };
-use shared_types::abi::Abi;
-use shared_types::mongo::abi::{AbiCollection, ContractAbiCollection, ContractAbiFlag, PartialIndexDoc };
+
+use shared_types::mongo::abi::{ ContractAbiCollection, ContractAbiFlag, PartialIndexDoc, AbiJSONCollection };
 use std::fs::read_dir;
 use third_parties::mongo::{Mongo, MongoConfig};
 use tokio;
@@ -25,12 +25,10 @@ async fn main() {
     // Create a new MongoDB client
     let mongo = Mongo::new(&mongo_config).await.unwrap();
 
-    let abi_collection = mongo.database.collection::<AbiCollection>("abis");
+    let abi_collection = mongo.database.collection::<AbiJSONCollection>("abis");
     let contract_abi_collection = mongo
         .database
         .collection::<ContractAbiCollection>("contract-abi");
-
-    // let abi_collection = mongo.collection::<AbiCollection>("abi");
 
     // Iterate over the directory entries
     for entry in dir {
@@ -39,9 +37,6 @@ async fn main() {
 
         // Check if the path is a directory
         if path.is_dir() {
-            // Print the path
-            /* println!("");
-            println!("PATH => {:?}", path); */
 
             // Get a list of files in the directory path
             let files = read_dir(path).expect("Failed to read directory");
@@ -53,9 +48,6 @@ async fn main() {
 
                 // Check if the file path is a file
                 if file_path.is_file() {
-                    // Print the file path
-                    /* println!("");
-                    println!("FILE => {:?}", file_path); */
 
                     // GEt the folder name from file_path
                     let folder_name = file_path
@@ -90,8 +82,6 @@ async fn main() {
                             }
                         }
 
-                        // convert path into PathBuff
-                        // let path_buff = path.as_path().to_path_buf();
 
                         // With serde_json, we can parse the metadata.json file
                         let metadata = std::fs::read_to_string(&file_path)
@@ -110,31 +100,7 @@ async fn main() {
                             .expect("No ABI definition in metadata.json")
                             .to_string();
 
-
-
-                        let mut abi: Vec<Abi> = serde_json::from_str(&abi_string).unwrap();
-
-                        // println!("abi: {:?}", abi);
-
-                        // sort abi
-                        Abi::sort_abi_elements(&mut abi);
-
-                        // sort parameters
-                        for abi in &mut abi {
-                            abi.sort_parameters();
-                        }
-
-                        /* println!("abi: {:?}", abi); */
-
-                        let abi_bytecode = bincode::serialize(&abi).unwrap();
-
-                        // Check if there's any document with the 'abi' field equal to the ABI bytecode.
-                        let abi_binary = Binary {
-                            subtype: bson::spec::BinarySubtype::Generic,
-                            bytes: abi_bytecode,
-                        };
-
-                        let filter = doc! { "abi": &abi_binary };
+                        let filter = doc! { "abi": &abi_string };
 
                         let result = abi_collection
                             .find_one(filter, None)
@@ -185,10 +151,10 @@ async fn main() {
 
                                         abi_collection
                                             .insert_one(
-                                                AbiCollection {
+                                                AbiJSONCollection {
                                                     timestamp: Utc::now().timestamp_millis() as i64,
                                                     index: new_index,
-                                                    abi: abi_binary,
+                                                    abi: abi_string,
                                                 },
                                                 None,
                                             )
@@ -213,10 +179,10 @@ async fn main() {
 
                                         abi_collection
                                             .insert_one(
-                                                AbiCollection {
+                                                AbiJSONCollection {
                                                     timestamp: Utc::now().timestamp_millis() as i64,
                                                     index: 0,
-                                                    abi: abi_binary,
+                                                    abi: abi_string,
                                                 },
                                                 None,
                                             )

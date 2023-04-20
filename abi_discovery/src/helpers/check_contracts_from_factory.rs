@@ -22,11 +22,11 @@ pub async fn check_contracts_from_factory(addresses: &Vec<String> ) -> Result<Ve
 
     let mysettings = load_settings().expect("Failed to load settings");
     let mongo_uri = mysettings.mongodb_uri;
-    let mongodb_engine_db = mysettings.mongodb_engine_db;
+    let mongodb_database_name = mysettings.mongodb_database_name;
 
     let mongo_config = MongoConfig {
         uri: mongo_uri,
-        database: mongodb_engine_db,
+        database: mongodb_database_name,
     };
 
     // Create a new MongoDB client

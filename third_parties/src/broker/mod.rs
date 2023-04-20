@@ -3,7 +3,8 @@ use lapin::{
     ConnectionProperties, Error, Queue,
     message::Delivery,
 };
-use tokio::time::{self, Duration};
+use log::{ debug, info, warn };
+use tokio::time::{self, Duration, sleep};
 use std::sync::{Arc, Mutex};
 use futures::StreamExt;
 pub mod queues;
@@ -106,6 +107,8 @@ pub async fn process_queue_with_rate_limit<F>(
 where
     F: Fn(Delivery, usize) + Send + Sync + 'static, // Define the type bound for the handler
 {
+    info!("process queue called: max_reads {:?}, rate_limit_duration: {:?}", max_reads, rate_limit_duration);
+
     let mut consumer = channel
         .basic_consume(
             queue_name,
@@ -114,7 +117,6 @@ where
             FieldTable::default(),
         )
         .await?;
-
 
     let mut interval = time::interval(rate_limit_duration);
 
@@ -125,7 +127,7 @@ where
 
         let message = String::from_utf8_lossy(&delivery.data);
 
-        println!("Received message: {}", message);
+        info!("Received message: {}", message);
 
         // Acknowledge the message
         channel
@@ -134,19 +136,23 @@ where
 
         let mut count = counter.lock().unwrap();
 
+        if *count >= max_reads {
+            interval.tick().await;
+
+            *count = 0;
+
+            warn!("Rate limit reached, waiting for next interval");
+
+             // Call the injected function
+        }
+
+        info!("Calling handler with count: {}", *count);
+
         handler(delivery, *count);
 
         *count += 1;
 
-        println!("Count: {}", *count);
-
-        if *count >= max_reads {
-            interval.tick().await;
-            *count = 0;
-            println!("Rate limit reached, waiting for next interval");
-
-             // Call the injected function
-        }
+        info!("Increasing Count: {}", *count);
     }
 
     Ok(())

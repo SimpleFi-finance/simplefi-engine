@@ -103,11 +103,11 @@ pub struct Settings {
     pub mongodb_uri: String,
 
     #[arg(
-        long = "mongodb_engine_db",
+        long = "mongodb_database_name",
         help = "MongoDB Engine DB",
         default_value = "engine"
     )]
-    pub mongodb_engine_db: String,
+    pub mongodb_database_name: String,
 
     #[arg(
         long = "log_level",
@@ -138,7 +138,7 @@ pub struct MySettings {
     pub local_mainnet_rpc: String,
     pub local_mainnet_ws: String,
     pub mongodb_uri: String,
-    pub mongodb_engine_db: String,
+    pub mongodb_database_name: String,
     pub redis_uri: String,
     pub log_level: String,
     pub log_file: String,
@@ -158,7 +158,7 @@ impl MySettings {
         local_mainnet_rpc: String,
         local_mainnet_ws: String,
         mongodb_uri: String,
-        mongodb_engine_db: String,
+        mongodb_database_name: String,
         redis_uri: String,
         log_level: String,
         log_file: String,
@@ -176,7 +176,7 @@ impl MySettings {
             local_mainnet_rpc,
             local_mainnet_ws,
             mongodb_uri,
-            mongodb_engine_db,
+            mongodb_database_name,
             redis_uri,
             log_level,
             log_file,
@@ -200,7 +200,7 @@ pub fn load_settings() -> Result<MySettings, ConfyError> {
         local_mainnet_rpc: String::from("http://localhost:8545"),
         local_mainnet_ws: String::from("wss://localhost:8545"),
         mongodb_uri: String::from("mongodb://localhost:27017/"),
-        mongodb_engine_db: String::from("engine"),
+        mongodb_database_name: String::from("engine"),
         redis_uri: String::from("redis://localhost:6379/"),
         log_level: String::from("INFO"),
         log_file: String::from(""),

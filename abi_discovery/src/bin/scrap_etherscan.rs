@@ -1,10 +1,12 @@
+use abi_discovery::helpers::process_abi;
 // This binary should be listening a rabbit queue and when a message is received, it should
 // call the etherscan api to get the contract abi and save it in the database.
 //
 use lapin::{ Error, message::Delivery };
 use log::{ info, debug, error };
+use shared_utils::logger::init_logging;
 use std::sync::{Arc, Mutex};
-use tokio::time::{timeout, Duration};
+use tokio::time::{timeout, Duration, sleep};
 
 use abi_discovery::settings::load_settings;
 use third_parties::broker::{create_rmq_channel, process_queue_with_rate_limit, publish_rmq_message};
@@ -28,9 +30,6 @@ async fn produce_messages(
         "0x0000000000A39bb272e79075ade125fd351887Ac",
         "0x000000000000Ad05Ccc4F10045630fb830B95127",
         "0x643388199C804c593cA2aaE56E2C150b8e7A5876",
-        "0x643388199C804c593cA2aaE56E2C150b8e7A5876",
-        "0x643388199C804c593cA2aaE56E2C150b8e7A5876",
-        "0x643388199C804c593cA2aaE56E2C150b8e7A5876",
         "0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B",
     ];
 
@@ -53,9 +52,9 @@ async fn handle_message(
     counter: usize,
     key: String,
 ) -> Result<(), Error> {
-    let message_data = String::from_utf8_lossy(&delivery.data);
+    let contract_address = String::from_utf8_lossy(&delivery.data).to_lowercase();
 
-    debug!("Message data: {}", message_data);
+    debug!("Message data: {}", contract_address);
 
     let keys = key.split(',').collect::<Vec<&str>>();
 
@@ -64,18 +63,18 @@ async fn handle_message(
     debug!("Key: {}", etherscan_key);
 
     let abi = timeout(
-        Duration::from_secs(10),
-        get_abi(&message_data, &etherscan_key),
-    ).await;
+        Duration::from_secs(30),
+        get_abi(&contract_address, &etherscan_key),
+    ).await.expect("Failed to get ABI from etherscan");
 
     if abi.is_err() {
         error!("Error: {:?}", abi.err());
     } else {
-        let response = abi.unwrap().unwrap(); // .unwrap();
-
-        debug!("ABI: {:?}", response);
+        let response = abi.unwrap(); // .unwrap();
 
         // TODO: Saved in mongo
+        process_abi(&contract_address, &response).await;
+
 
         // TODO: Add address to tracked addresses in redis set
     }
@@ -86,6 +85,8 @@ async fn handle_message(
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    init_logging();
+
     let settings = load_settings().expect("Failed to load settings");
     let rabbit_uri = settings.rabbit_mq_url.to_string();
     let queue_name = settings.rabbit_exchange_name.to_string();
@@ -101,7 +102,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Etherscan keys: {:?}", etherscan_keys);
 
     // max per second
-    let max_reads_per_second = etherscan_keys.split(",").count() * 2;
+    let max_reads_per_second = 1; // etherscan_keys.split(",").count() * 2;
     info!("Max reads per second {:?}", max_reads_per_second);
 
     // It should be per second but we are going to give 2 seconds

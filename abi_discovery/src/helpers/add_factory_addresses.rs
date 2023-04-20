@@ -51,16 +51,16 @@ pub async fn add_factory_addresses(
     let settings = load_settings()?;
 
     let mongo_uri = settings.mongodb_uri;
-    let mongo_engine_db = settings.mongodb_engine_db;
+    let mongodb_database_name = settings.mongodb_database_name;
 
     let config = MongoConfig {
         uri: mongo_uri.clone(),
-        database: mongo_engine_db.clone(),
+        database: mongodb_database_name.clone(),
     };
 
     info!("Adding factory addresses to the factory_contracts collection... ");
     info!("mongodb_uri: {}", mongo_uri);
-    info!("mongo_engine_db: {}", mongo_engine_db);
+    info!("mongodb_database_name: {}", mongodb_database_name);
 
     let db = Mongo::new(&config).await?;
 
@@ -79,8 +79,6 @@ pub async fn add_factory_addresses(
     let redis_uri = settings.redis_uri.to_string();
 
     let mut redis_con = connect(redis_uri.as_str()).await.unwrap();
-
-
 
     for document in &documents_to_insert {
         match contract_abi_collection.insert_one(document.clone(), None).await {

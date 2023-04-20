@@ -37,10 +37,6 @@ pub async fn get_abi(
     contract_address: &str,
     api_key: &str,
 ) -> Result<String, Error> {
-    /*
-    let local_settings = load_settings().unwrap();
-    let api_key = local_settings.etherscan_api_key; */
-
     // Base url
     let etherscan_api_url = "https://api.etherscan.io/api";
 
@@ -63,7 +59,7 @@ pub async fn get_abi(
 
             debug!("result: {:?}", results.result.len());
 
-            Ok(results.result) // .parse::<Value>().ok())
+            Ok(results.result)
         },
         _ => {
             error!("Error: {}", result.status());

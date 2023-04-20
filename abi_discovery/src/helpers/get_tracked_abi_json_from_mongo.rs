@@ -2,7 +2,7 @@ use mongodb::{ Collection, bson::doc };
 use futures::stream::StreamExt;
 
 use crate::settings::load_settings;
-use shared_types::mongo::abi::{ContractWithAbi, ContractAbiCollection, ContractWithAbiDocument};
+use shared_types::mongo::abi::{ContractWithAbi, ContractAbiCollection, ContractWithAbiDocument, ContractWithAbiJSON, ContractWithAbiJSONDocument};
 use third_parties::mongo::{MongoConfig, Mongo};
 
 ///
@@ -35,9 +35,9 @@ use third_parties::mongo::{MongoConfig, Mongo};
 ///
 /// This function will panic if the mongodb_uri is not set in the settings file
 ///
-pub async fn get_tracked_abi_from_mongo(
+pub async fn get_tracked_abi_json_from_mongo(
     addresses: Vec<String>,
-) -> Result<Vec<ContractWithAbi>, Box<dyn std::error::Error>> {
+) -> Result<Vec<ContractWithAbiJSON>, Box<dyn std::error::Error>> {
     let settings = load_settings()?;
 
     let mongo_uri = settings.mongodb_uri;
@@ -76,15 +76,15 @@ pub async fn get_tracked_abi_from_mongo(
     ];
 
     let mut cursor = contract_abi_collection.aggregate(pipeline, None).await?;
-    let mut results: Vec<ContractWithAbi> = vec![];
+    let mut results: Vec<ContractWithAbiJSON> = vec![];
 
     while let Some(doc) = cursor.next().await {
-        let document = bson::from_document::<ContractWithAbiDocument>(doc?)?;
+        let document = bson::from_document::<ContractWithAbiJSONDocument>(doc?)?;
 
-        let result = ContractWithAbi {
+        let result = ContractWithAbiJSON {
             timestamp: document.timestamp,
             address: document.address,
-            abi: document.abi.bytes.to_vec(),
+            abi: document.abi,
         };
 
         results.push(result);
@@ -99,7 +99,7 @@ mod tests {
     use log::info;
 
     #[tokio::test]
-    async fn test_get_tracked_abi_from_mongo() {
+    async fn test_get_tracked_abi_json_from_mongo() {
         // TODO: implement tear up and down for these fixtures
         let addresses = vec![
             "0x6b175474e89094c44da98b954eedeac495271d0f".to_string(),
@@ -107,7 +107,7 @@ mod tests {
             "0x00000000009726632680fb29d3f7a9734e3010e2".to_string(),
         ];
 
-        let abis = get_tracked_abi_from_mongo(addresses).await.unwrap();
+        let abis = get_tracked_abi_json_from_mongo(addresses).await.unwrap();
 
         info!("abis len: {:?}", abis.len());
         info!("abis: {:?}", abis);

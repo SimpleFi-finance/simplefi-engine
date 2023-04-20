@@ -29,7 +29,7 @@ fn main() {
         let local_mainnet_rpc = settings.local_mainnet_rpc;
         let local_mainnet_ws = settings.local_mainnet_ws;
         let mongodb_uri = settings.mongodb_uri;
-        let mongodb_engine_db = settings.mongodb_engine_db;
+        let mongodb_database_name = settings.mongodb_database_name;
         let redis_uri = settings.redis_uri;
         let log_level = settings.log_level;
         let log_file = settings.log_file;
@@ -47,7 +47,7 @@ fn main() {
             local_mainnet_rpc,
             local_mainnet_ws,
             mongodb_uri,
-            mongodb_engine_db,
+            mongodb_database_name,
             redis_uri,
             log_level,
             log_file,
