@@ -1,3 +1,4 @@
+use abi_discovery::helpers::process_abi;
 // This binary should be listening a rabbit queue and when a message is received, it should
 // call the etherscan api to get the contract abi and save it in the database.
 //
