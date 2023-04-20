@@ -113,7 +113,7 @@ async fn main() {
 
             let abi_decoded = bytecode_to_abi(abi).unwrap();
             println!("abi_decoded: {:?}", abi_decoded);
-            
+
             let file = Cursor::new(abi_decoded.clone());
 
             // let c = serde_json::from_reader(file).unwrap();
