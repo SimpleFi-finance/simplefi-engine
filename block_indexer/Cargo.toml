@@ -7,7 +7,8 @@ edition = "2021"
 
 [dependencies]
 lapin = {workspace = true}
-tokio = {workspace = true}
+tokio = {workspace = true, features = ["full"]}
+clap = { workspace = true, features = ["derive"] }
 third_parties = {path = "../third_parties"}
 futures = {workspace = true}
 serde_json = {workspace = true}
@@ -16,3 +17,17 @@ ethers-providers = {workspace = true}
 reqwest = {workspace = true}
 rayon = {workspace = true}
 chrono = {workspace = true}
+serde = {workspace = true}
+abi_discovery = { path = "../abi_discovery" }
+grpc_server = { path = "../grpc_server" }
+confy = { workspace = true }
+settings = { path = "../settings" }
+solidity = { path = "../solidity" }
+
+[[bin]]
+name = "generate_settings"
+path = "src/settings/main.rs"
+
+[[bin]]
+name = "chain_indexer"
+path = "src/bin/chain_indexer.rs"

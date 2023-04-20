@@ -9,7 +9,7 @@ pub struct Log {
     #[serde(default, rename = "blockNumber", deserialize_with="hex_to_i64")]
     pub block_number: i64,
     #[serde(default, rename = "blockHash")]
-    pub block_hash: Option<String>,
+    pub block_hash: String,
     #[serde(default, rename = "transactionHash")]
     pub transaction_hash: Option<String>,
     #[serde(default, rename = "transactionIndex", deserialize_with="hex_to_i64")]
@@ -19,6 +19,7 @@ pub struct Log {
 
     pub data: Option<String>,
 
+    pub decoded_data: Option<Vec<DecodedData>>,
     pub topics: Vec<String>,
     #[serde(default, rename = "logIndex", deserialize_with="hex_to_i64")]
     pub log_index: i64,
@@ -38,4 +39,14 @@ where
     // do better hex decoding than this
     let u64 = u64::from_str_radix(&s[2..], 16).map_err(D::Error::custom);
     Ok(u64.unwrap() as i64)
+}
+
+#[derive(Debug,PartialEq, Clone, Serialize, Deserialize)]
+pub struct DecodedData {
+    pub name: String,
+    pub value: String,
+    pub indexed: bool,
+    pub decoded: bool,
+    pub hash_signature: String,
+    pub signature: String,
 }

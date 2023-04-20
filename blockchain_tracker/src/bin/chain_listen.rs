@@ -1,17 +1,23 @@
-use chrono::{NaiveDateTime, Datelike};
-use lapin::{options::{BasicQosOptions, BasicConsumeOptions}, types::FieldTable};
+use blockchain_tracker::{types::NewHeadsEvent, settings::load_settings};
+use chrono::{Datelike, NaiveDateTime};
+use lapin::options::BasicQosOptions;
 use serde_json::json;
-use third_parties::{mongo::{lib::bronze::blocks::setters::save_blocks, MongoConfig, Mongo}, broker::{create_rmq_channel, declare_rmq_queue, bind_queue_to_exchange, publish_rmq_message, declare_exchange}};
+use settings::load_settings as load_global_settings;
+use third_parties::{
+    broker::{
+        bind_queue_to_exchange, create_rmq_channel, declare_exchange, declare_rmq_queue,
+        publish_rmq_message,
+    },
+    mongo::{lib::bronze::blocks::setters::save_blocks, Mongo, MongoConfig},
+};
 use tungstenite::{connect, Message};
-
-use crate::types::NewHeadsEvent;
-mod types;
 
 #[tokio::main]
 async fn main() {
     // connects to node wss endpoint and listens to new blocks (can store block data as it comes in)
     // todo load settings and select chain
-
+    let glob_settings = load_global_settings().unwrap();
+    let local_settings = load_settings().unwrap();
     // load wss from chain and start syncing
 
     let request = json!({
@@ -22,14 +28,17 @@ async fn main() {
     });
 
     let request_str = serde_json::to_string(&request).unwrap();
+    
+    //todo load global settings
 
-    let wss_url = String::from("wss://mainnet.infura.io/ws/v3/__infura_key__");
+    let wss_url = String::from(format!("{}{}",glob_settings.infura_mainnet_ws, glob_settings.infura_token ));
 
     let (mut socket, _response) = connect(&wss_url).expect("Can't connect");
     socket.write_message(Message::Text(request_str)).unwrap();
+
     let mongo_config = MongoConfig {
-        uri: String::from("mongodb://localhost:27017"),
-        database: String::from("blocks_bronze"),
+        uri: local_settings.mongodb_uri,
+        database: local_settings.mongodb_database_name,
     };
 
     let db = Mongo::new(&mongo_config).await.unwrap();
@@ -37,14 +46,13 @@ async fn main() {
     loop {
         let msg = socket.read_message().expect("Error reading message");
         let msg = msg.into_text().unwrap();
-        // println!("{}", msg);
         let result: NewHeadsEvent = serde_json::from_str(&msg).unwrap();
 
+        // load from localsettings
+        let queue_name = local_settings.new_blocks_queue_name.clone();
+        let exchange_name = format!("{}_{}", String::from("ethereum"), local_settings.new_block_exchange_name.clone());
 
-        let queue_name = String::from("ethereum_blocks");
-        let exchange_name = String::from("ethereum_blocks_exchange");
-
-        let rmq_uri = String::from("amqp://guest:guest@localhost:5672");
+        let rmq_uri = local_settings.rabbit_mq_url.clone();
 
         let channel = create_rmq_channel(&rmq_uri).await.unwrap();
 
@@ -54,22 +62,22 @@ async fn main() {
             .await
             .expect("Failed to declare exchange");
 
-        channel.basic_qos(1, BasicQosOptions{global:true}).await.unwrap();
+        channel
+            .basic_qos(1, BasicQosOptions { global: true })
+            .await
+            .unwrap();
         declare_rmq_queue(&queue_name, &channel)
             .await
             .expect("Failed to declare queue");
 
-        let routing_key = String::from("ethereum_blocks");
+        let routing_key = format!("{}_{}", String::from("ethereum"), String::from("blocks"));
 
         bind_queue_to_exchange(&queue_name, &exchange_name, &routing_key, &channel)
             .await
             .expect("Failed to bind queue");
 
-        // either save and push number to queue or push data to queue
         if result.params.is_some() {
             let mut block = result.params.unwrap().result.unwrap();
-
-            // todo push to queue
 
             let bytes_serde = serde_json::to_vec(&block.number).unwrap();
 
@@ -87,5 +95,4 @@ async fn main() {
             );
         }
     }
-
 }
