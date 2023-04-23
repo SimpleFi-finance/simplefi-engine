@@ -23,6 +23,8 @@ bson = { workspace = true }
 chrono = { workspace = true }
 ethabi = { workspace = true }
 flate2 = { workspace = true }
+futures = { workspace = true }
+log = { workspace = true }
 mongodb = { workspace = true }
 serde_json = { workspace = true }
 shared_types = { path = "../shared_types" }

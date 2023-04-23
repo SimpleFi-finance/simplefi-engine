@@ -1,7 +1,9 @@
 use bson::{doc };
-use mongodb::{ options::FindOneOptions };
+use futures::stream::StreamExt;
+use mongodb::{ options::FindOneOptions, Cursor };
 
-use shared_types::mongo::abi::{ ContractAbiCollection, ContractAbiFlag, PartialIndexDoc, AbiJSONCollection };
+use shared_types::mongo::abi::{ ContractAbiCollection, ContractAbiFlag, PartialIndexDoc, AbiJSONCollection, FactoryContractsCollection };
+use solidity::default_abis::{get_factory_abis, get_default_market_abis, get_factory_market_index};
 use std::fs::read_dir;
 use third_parties::mongo::{Mongo, MongoConfig};
 use tokio;
@@ -10,25 +12,119 @@ use chrono::Utc;
 // create main function
 #[tokio::main]
 async fn main() {
-    // We need to get the list of folders in a directory
-    let dir = read_dir("E:\\solidity\\QmdDJpWUxK3abZ2NMxdAGNTsMQZRJCuAWtXVCeakac4zZr")
-        .expect("Failed to read directory");
 
     // Create a mongo connection with Mongo helper from shared_types
     let mongo_config = MongoConfig {
         uri: "mongodb://localhost:27017".to_string(),
-        database: "abi_discovery_json".to_string(),
+        database: "abi_discovery_v5".to_string(),
     };
-
-    // print!("mongoConfig: {:?}", mongo_config);
 
     // Create a new MongoDB client
     let mongo = Mongo::new(&mongo_config).await.unwrap();
 
     let abi_collection = mongo.database.collection::<AbiJSONCollection>("abis");
-    let contract_abi_collection = mongo
-        .database
-        .collection::<ContractAbiCollection>("contract-abi");
+    let contract_abi_collection = mongo.database.collection::<ContractAbiCollection>("contract-abi");
+    let factory_contracts_collection = mongo.database.collection::<FactoryContractsCollection>("factory-contracts");
+
+    // Before starting the scraping, we are going to add the default abis to the database
+    // We are going to add the default abis to the database
+    let default_factory_abis =  get_factory_abis().await;
+    let default_market_abis = get_default_market_abis().await;
+
+    let timestamp = Utc::now().timestamp_millis() as i64;
+
+    for (index, value) in default_factory_abis {
+        abi_collection
+            .insert_one(
+                AbiJSONCollection {
+                    timestamp,
+                    index,
+                    abi: value.abi,
+                },
+                None,
+            )
+            .await
+            .expect("Failed to insert document in abi collection");
+
+        contract_abi_collection.insert_one(
+            ContractAbiCollection {
+                timestamp,
+                index,
+                address: value.address.to_lowercase(),
+                flag: ContractAbiFlag::Verified,
+            }, None)
+            .await
+            .expect("Failed to insert document in contract-abi collection");
+    }
+
+    // Lets save the default market abis
+    for (index, abi) in default_market_abis {
+        abi_collection
+            .insert_one(
+                AbiJSONCollection {
+                    timestamp,
+                    index,
+                    abi,
+                },
+                None,
+            )
+            .await
+            .expect("Failed to insert document in abi collection");
+    }
+
+    let mut skip = 0;
+
+    loop {
+        let options= mongodb::options::FindOptions::builder()
+        .limit(500)
+        .skip(skip)
+        .build();
+
+        // options.clone().skip(skip);
+        let cursor = factory_contracts_collection.find(None, options).await.expect("Failed to execute find");
+        let results = cursor.collect::<Vec<_>>().await;
+
+        if results.is_empty() {
+            break;
+        }
+
+        let mut contract_indexed: Vec<ContractAbiCollection> = Vec::new();
+
+        for result in results {
+            let result = result.expect("Failed to get next from server");
+
+            let factory_address = result.factory_address;
+            let address = result.address;
+
+            let index = get_factory_market_index(&factory_address);
+
+            if index == 0 {
+                print!("Found not tracked factory_address: {}", factory_address);
+
+                continue;
+            }
+
+            contract_indexed.push(ContractAbiCollection {
+                timestamp,
+                address: address.to_lowercase(),
+                index,
+                flag: ContractAbiFlag::Verified,
+            });
+        }
+
+        println!("Found {} contract indexes. Skipping {}", contract_indexed.len(), skip);
+
+        contract_abi_collection.insert_many(contract_indexed, None).await.expect("Failed to insert many cotract_indexes");
+
+        skip += 500;
+    }
+
+    let starting_index = 100;
+
+    // Let's start the folder scraping
+    // We need to get the list of folders in a directory
+    let dir = read_dir("E:\\solidity\\QmdDJpWUxK3abZ2NMxdAGNTsMQZRJCuAWtXVCeakac4zZr")
+        .expect("Failed to read directory");
 
     // Iterate over the directory entries
     for entry in dir {
@@ -145,14 +241,18 @@ async fn main() {
                                         // get index property from document
                                         let index = document.index;
 
-                                        // print!("Latest index: {:?}", index);
+                                        let mut new_index = index + 1;
 
-                                        let new_index = index + 1;
+                                        if index == 51 {
+                                            println!("Found index 51. Pushing to 100");
+
+                                            new_index = starting_index;
+                                        }
 
                                         abi_collection
                                             .insert_one(
                                                 AbiJSONCollection {
-                                                    timestamp: Utc::now().timestamp_millis() as i64,
+                                                    timestamp,
                                                     index: new_index,
                                                     abi: abi_string,
                                                 },
@@ -164,7 +264,7 @@ async fn main() {
                                         contract_abi_collection
                                             .insert_one(
                                                 ContractAbiCollection {
-                                                    timestamp: Utc::now().timestamp_millis() as i64,
+                                                    timestamp,
                                                     address: folder_name.to_lowercase(),
                                                     index: new_index,
                                                     flag: ContractAbiFlag::Verified,
@@ -175,13 +275,13 @@ async fn main() {
                                             .expect("Failed to insert document");
                                     }
                                     None => {
-                                        // println!("No document found. First insert!");
+                                        panic!("Error. no documents found!");
 
-                                        abi_collection
+                                        /* abi_collection
                                             .insert_one(
                                                 AbiJSONCollection {
                                                     timestamp: Utc::now().timestamp_millis() as i64,
-                                                    index: 0,
+                                                    index: 100,
                                                     abi: abi_string,
                                                 },
                                                 None,
@@ -200,7 +300,7 @@ async fn main() {
                                                 None,
                                             )
                                             .await
-                                            .expect("Failed to insert document");
+                                            .expect("Failed to insert document"); */
                                     }
                                 }
                             }
@@ -211,5 +311,4 @@ async fn main() {
         }
     }
 
-    /* mongo.close().await.unwrap(); */
 }
