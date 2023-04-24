@@ -42,6 +42,7 @@ pub async fn get_tracked_abi_json_from_mongo(
 
     let mongo_uri = settings.mongodb_uri;
     let mongodb_database_name = settings.mongodb_database_name;
+    let contract_abi_collection_name = settings.mongodb_contract_abi_collection;
 
     let config = MongoConfig {
         uri: mongo_uri,
@@ -50,7 +51,7 @@ pub async fn get_tracked_abi_json_from_mongo(
 
     let db = Mongo::new(&config).await?;
 
-    let contract_abi_collection: Collection<ContractAbiCollection> = db.collection("contract-abi");
+    let contract_abi_collection: Collection<ContractAbiCollection> = db.collection(&contract_abi_collection_name);
     let query = doc! { "address": { "$in": addresses }};
 
     let pipeline = vec![

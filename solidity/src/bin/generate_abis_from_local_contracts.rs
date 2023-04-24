@@ -1,4 +1,5 @@
 use bson::{doc, Binary};
+use log::{ info, debug };
 use mongodb::{ options::FindOneOptions };
 use shared_types::abi::Abi;
 use shared_types::mongo::abi::{AbiCollection, ContractAbiCollection, ContractAbiFlag, PartialIndexDoc };
@@ -10,6 +11,8 @@ use chrono::Utc;
 // create main function
 #[tokio::main]
 async fn main() {
+    info!("Starting to load contract indexes from MongoDB to Redis Set (verify_addresses) ...");
+
     // We need to get the list of folders in a directory
     let dir = read_dir("E:\\solidity\\QmdDJpWUxK3abZ2NMxdAGNTsMQZRJCuAWtXVCeakac4zZr")
         .expect("Failed to read directory");
@@ -20,7 +23,7 @@ async fn main() {
         database: "abi_discovery_json".to_string(),
     };
 
-    // print!("mongoConfig: {:?}", mongo_config);
+    debug!("mongoConfig: {:?}", mongo_config);
 
     // Create a new MongoDB client
     let mongo = Mongo::new(&mongo_config).await.unwrap();
@@ -30,8 +33,6 @@ async fn main() {
         .database
         .collection::<ContractAbiCollection>("contract-abi");
 
-    // let abi_collection = mongo.collection::<AbiCollection>("abi");
-
     // Iterate over the directory entries
     for entry in dir {
         // Get the entry path
@@ -40,8 +41,7 @@ async fn main() {
         // Check if the path is a directory
         if path.is_dir() {
             // Print the path
-            /* println!("");
-            println!("PATH => {:?}", path); */
+            debug!("PATH => {:?}", path);
 
             // Get a list of files in the directory path
             let files = read_dir(path).expect("Failed to read directory");
@@ -54,8 +54,7 @@ async fn main() {
                 // Check if the file path is a file
                 if file_path.is_file() {
                     // Print the file path
-                    /* println!("");
-                    println!("FILE => {:?}", file_path); */
+                    debug!("FILE => {:?}", file_path);
 
                     // GEt the folder name from file_path
                     let folder_name = file_path
@@ -66,10 +65,10 @@ async fn main() {
                         .to_str()
                         .unwrap();
 
-                    // println!("Folder_name: {:?}", folder_name);
+                    debug!("Folder_name: {:?}", folder_name);
 
                     if file_path.file_name().unwrap() == "metadata.json" {
-                        // println!("Found metadata.json file");
+                        debug!("Found metadata.json file");
 
                         // check if already exist contract with the folder name in contract-abi collection
                         let filter = doc! { "address": folder_name.to_lowercase() };
@@ -81,17 +80,14 @@ async fn main() {
 
                         match result {
                             Some(_) => {
-                                // println!("Found a document: {:?}", document);
+                                debug!("Found a document: {:?}", document);
 
                                 continue;
                             }
                             None => {
-                                // println!("Contract not tracked. Saving ABI or getting index from ABI collection");
+                                debug!("Contract not tracked. Saving ABI or getting index from ABI collection");
                             }
                         }
-
-                        // convert path into PathBuff
-                        // let path_buff = path.as_path().to_path_buf();
 
                         // With serde_json, we can parse the metadata.json file
                         let metadata = std::fs::read_to_string(&file_path)
@@ -110,11 +106,9 @@ async fn main() {
                             .expect("No ABI definition in metadata.json")
                             .to_string();
 
-
-
                         let mut abi: Vec<Abi> = serde_json::from_str(&abi_string).unwrap();
 
-                        // println!("abi: {:?}", abi);
+                        debug!("abi length: {:?}", abi.len());
 
                         // sort abi
                         Abi::sort_abi_elements(&mut abi);
@@ -123,8 +117,6 @@ async fn main() {
                         for abi in &mut abi {
                             abi.sort_parameters();
                         }
-
-                        /* println!("abi: {:?}", abi); */
 
                         let abi_bytecode = bincode::serialize(&abi).unwrap();
 
