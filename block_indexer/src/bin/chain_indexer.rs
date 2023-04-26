@@ -1,15 +1,14 @@
-use std::{collections::HashMap, time::Instant, io::Cursor};
+use std::{collections::HashMap, time::Instant, str::FromStr};
 
 use block_indexer::{utils::{get_block_logs, get_block_with_txs}, settings::load_settings};
 use chrono::{Datelike, NaiveDateTime};
-use ethabi::Contract;
+use ethabi::{Contract, Event, RawLog, ethereum_types::H256, Bytes};
 use futures::{StreamExt, TryStreamExt};
 use grpc_server::{client::AbiDiscoveryClient};
 use lapin::{options::BasicConsumeOptions, types::FieldTable};
 use rayon::{iter::ParallelIterator};
 use rayon::prelude::IntoParallelRefIterator;
 use settings::load_settings as load_global_settings;
-use solidity::abi_to_binary::bytecode_to_abi;
 use third_parties::{
     broker::create_rmq_channel,
     mongo::{
@@ -102,7 +101,8 @@ async fn main() {
             });
         
         let unique_addresses = Vec::from_iter(logs_by_address.keys().cloned());
-        // let abis = query grpc endpoint for abis
+
+        // todo set client dtnamically
         let mut abi_discovery_client = AbiDiscoveryClient::new("http://[::1]:50051".to_string()).await;
         let abis_addresses = abi_discovery_client.get_addresses_abi_json(unique_addresses).await;
         let abis_response = abis_addresses.into_inner();
@@ -110,44 +110,49 @@ async fn main() {
         for i in abis_response.addresses_abi {
             let data = i;
             let abi = &data.abi;
+            let contract: Contract = serde_json::from_str(abi.as_str()).unwrap();
 
-            // let abi_decoded = bytecode_to_abi(abi).unwrap();
+            let mut eventhm = HashMap::new();
+            for event in &contract.events {
+                println!("event: {:?}", event);
+                let e = event.1[0].clone();
 
-            // let file = Cursor::new(abi.clone());
-
-            // let c = serde_json::from_reader(file).unwrap();
-            let deserialized: Contract = serde_json::from_str(abi.as_str()).unwrap();
-            // let contract = Contract::load(file).unwrap();
-
-            println!("contract: {:?}", deserialized);
-
+                eventhm.insert(e.signature(), e);
+            }
 
 
+            println!("address: {:?}", &data.address);
+            let logs_of_address = logs_by_address.get(&data.address).unwrap();
 
-            // let interface = Interface::load(abi.as_bytes()).unwrap();
-            // interface_hashmap.insert(address, interface);
+            logs_of_address.par_iter().for_each(|log| {
+                let log = log.clone();
+                let h256_topics = log.topics.iter().map(|t| H256::from_str(t).unwrap()).collect::<Vec<H256>>();
+                let bytes = hex::decode(log.data.clone().unwrap().strip_prefix("0x").unwrap()).unwrap();
+                let raw_log = RawLog {
+                    topics: h256_topics.clone(),
+                    data: bytes,
+                };
+
+                let event = eventhm.get(&h256_topics[0]);
+                match event {
+                    Some(event) => {
+                        let decoded_log = event.parse_log(raw_log);
+                        match decoded_log {
+                            Ok(decoded_log) => {
+                                // todo push to array to save logs in mongo
+                                println!("decoded_log: {:?}", decoded_log);
+                            },
+                            Err(e) => {
+                                println!("error: {:?}", e);
+                            }
+                        }
+                    },
+                    None => {
+                        println!("event not found");
+                    }
+                }
+            });
         }
-
-        for (address, logs_hash) in logs_by_address {
-            // if interface_hashmap.contains_key(&address) {
-            //     // let interface = interface_hashmap.get(&address).unwrap();
-            //     let decoded_logs = logs_hash
-            //         .par_iter()
-            //         .map(|log| {
-            //             // let decoded_log = interface.decode_log(log.clone());
-            //             // decoded_logs.push(decoded_log.clone());
-            //             // decoded_log
-            //             log
-            //         })
-            //         .collect::<Vec<_>>();
-            // } else {
-            //     // query abi tracker for abi
-            //     // if exists decode else skip
-
-            // }
-
-        }
-        // search for address in hashmap of interfaces
 
         println!("Time elapsed is: {:?}ms", now.elapsed().as_millis());
 

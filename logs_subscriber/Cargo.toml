@@ -1,5 +1,5 @@
 [package]
-name = "block_indexer"
+name = "logs_subscriber"
 version = "0.1.0"
 edition = "2021"
 
@@ -25,11 +25,12 @@ settings = { path = "../settings" }
 solidity = { path = "../solidity" }
 ethabi = { workspace = true }
 hex = {workspace = true}
+tungstenite = { workspace = true }
 
 [[bin]]
 name = "generate_settings"
 path = "src/settings/main.rs"
 
 [[bin]]
-name = "chain_indexer"
-path = "src/bin/chain_indexer.rs"
+name = "logs_subscriber"
+path = "src/bin/logs_subscribe.rs"

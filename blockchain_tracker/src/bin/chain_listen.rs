@@ -36,6 +36,8 @@ async fn main() {
     let (mut socket, _response) = connect(&wss_url).expect("Can't connect");
     socket.write_message(Message::Text(request_str)).unwrap();
 
+
+
     let mongo_config = MongoConfig {
         uri: local_settings.mongodb_uri,
         database: local_settings.mongodb_database_name,

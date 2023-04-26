@@ -551,6 +551,7 @@ dependencies = [
  "ethers-providers",
  "futures",
  "grpc_server",
+ "hex",
  "lapin",
  "rayon",
  "reqwest",
@@ -2668,6 +2669,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "abb12e687cfb44aa40f41fc3978ef76448f9b6038cad6aef4259d3c095a2382e"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "logs_subscriber"
+version = "0.1.0"
+dependencies = [
+ "abi_discovery",
+ "chrono",
+ "clap 4.2.2",
+ "confy",
+ "ethabi",
+ "ethers",
+ "ethers-providers",
+ "futures",
+ "grpc_server",
+ "hex",
+ "lapin",
+ "rayon",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "settings",
+ "solidity",
+ "third_parties",
+ "tokio",
+ "tungstenite 0.19.0",
 ]
 
 [[package]]

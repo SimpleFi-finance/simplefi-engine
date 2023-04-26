@@ -1,6 +1,6 @@
 use serde::{de::Error, Serialize, Deserialize, Deserializer};
 
-#[derive(Debug,PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug,Default, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Log {
     pub timestamp: Option<i64>,
     pub year: Option<i16>,
