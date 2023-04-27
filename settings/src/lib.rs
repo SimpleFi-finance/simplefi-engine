@@ -196,7 +196,7 @@ pub fn load_settings() -> Result<MySettings, ConfyError> {
         cloud_bucket: String::from("default_cloud_bucket"),
         local_storage: std::path::PathBuf::from("default_local_storage"),
         infura_mainnet_rpc: String::from("https://mainnet.infura.io/v3/"),
-        infura_mainnet_ws: String::from("https://mainnet.infura.io/ws/v3/"),
+        infura_mainnet_ws: String::from("wss://mainnet.infura.io/ws/v3/"),
         local_mainnet_rpc: String::from("http://localhost:8545"),
         local_mainnet_ws: String::from("wss://localhost:8545"),
         mongodb_uri: String::from("mongodb://localhost:27017/"),

@@ -1,5 +1,6 @@
 use futures::StreamExt;
 use log::{ info, debug };
+use shared_utils::logger::init_logging;
 use tokio;
 
 use abi_discovery::settings::load_settings;
@@ -11,7 +12,7 @@ use third_parties::{mongo::{MongoConfig, Mongo}, redis::{add_to_set, connect}};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mysettings = load_settings().expect("Failed to load settings");
-
+    init_logging();
     // Redis connector
     let redis_uri = mysettings.redis_uri.to_string();
 
@@ -53,7 +54,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         for result in results {
             match result {
                 Ok(address) => {
-                    let _: () = add_to_set(&mut con, "verify_addresses", &address.address).await.expect("Failed to add to set");
+                    let _: () = add_to_set(&mut con, "tracked_addresses", &address.address).await.expect("Failed to add to set");
                 }
                 Err(error_msg) => {
                     println!("Error: {}", error_msg);
@@ -61,7 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
 
-        debug!("Finished adding contract indexes to Redis Set (verify_addresses)");
+        debug!("Finished adding contract indexes to Redis Set (tracked_addresses)");
 
         skip += 500;
 

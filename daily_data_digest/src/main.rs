@@ -15,9 +15,5 @@ async fn main() {
     };
 
     // Create a new MongoDB client
-
     let client_db = Mongo::new(&mongo_config).await.expect("Failed to create mongo Client");
-
-
-    
 }

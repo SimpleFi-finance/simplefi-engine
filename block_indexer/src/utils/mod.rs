@@ -20,13 +20,16 @@ pub async fn get_block_with_txs(provider_uri: String, block_number: &u64 ) -> (O
     let string = request.to_string();
 
     let request = client
-        .post(provider_uri)
+        .post(provider_uri.clone())
         .body(string)
         .send()
         .await
         .unwrap();
 
-    let response = request.json::<serde_json::Value>().await.unwrap();
+    let response = request.text().await.unwrap();
+
+    let response: serde_json::Value = serde_json::from_str(&response).unwrap();
+    // let response = request.json::<serde_json::Value>().await.unwrap();
     let block: Block = serde_json::from_value(response["result"].clone()).unwrap();
     let txs: Vec<Tx> = serde_json::from_value(response["result"]["transactions"].clone()).unwrap();
 
@@ -72,7 +75,8 @@ pub async fn get_block_logs(uri: String, from_block: &u64, to_block: &u64) -> Op
         .await
         .unwrap();
 
-    let response = request.json::<serde_json::Value>().await.unwrap();
+    let response = request.text().await.unwrap();
+    let response: serde_json::Value = serde_json::from_str(&response).unwrap();
 
     let logs: Vec<Log> = serde_json::from_value(response["result"].clone()).unwrap();
 

@@ -66,8 +66,6 @@ mod tests {
             },
         };
 
-        println!("filter: {:?}", filter);
-
         let tx_filter = txs_collection.find_one(filter, None).await?;
         assert_eq!(tx_filter.unwrap(), tx_1);
 

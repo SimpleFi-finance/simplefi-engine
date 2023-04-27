@@ -106,6 +106,8 @@ async fn main() {
                             .expect("No ABI definition in metadata.json")
                             .to_string();
 
+
+
                         let mut abi: Vec<Abi> = serde_json::from_str(&abi_string).unwrap();
 
                         debug!("abi length: {:?}", abi.len());

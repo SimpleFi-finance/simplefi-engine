@@ -39,7 +39,6 @@ pub async fn get_logs(
         
         filter.insert("timestamp", timestamp_filter);
     }
-    println!("filter: {:?}", &filter);
 
     let mut cursor = logs_collection.find(filter, find_options.clone()).await?;
 
