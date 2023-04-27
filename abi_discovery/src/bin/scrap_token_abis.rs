@@ -15,6 +15,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let mysettings = load_settings().expect("Failed to load settings");
 
     let mongodb_uri = mysettings.mongodb_uri;
+    let mongodb_database_name = mysettings.mongodb_database_name;
     let rabbit_uri = mysettings.rabbit_mq_url.to_string();
     let queue_name = mysettings.rabbit_exchange_name.to_string();
     let exchange_name = format!("{}_exchange", queue_name);
@@ -36,7 +37,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let mongo_config = MongoConfig {
         uri: mongodb_uri.clone(),
-        database: "abi_discovery_v7".to_string(),
+        database: mongodb_database_name.to_string(),
     };
 
     let mongo = Mongo::new(&mongo_config)
