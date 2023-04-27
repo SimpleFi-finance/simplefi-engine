@@ -47,6 +47,8 @@ pub async fn get_abi(
     query_params.insert("address".to_string(), contract_address.to_string());
     query_params.insert("apikey".to_string(), api_key.to_string());
 
+    debug!("query_params: {:?}", query_params);
+
     // Add custom headers
     let mut headers = HeaderMap::new();
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));

@@ -8,6 +8,7 @@ pub mod get_tracked_abis_json;
 pub mod get_tracked_abi_from_mongo;
 pub mod get_tracked_abi_json_from_mongo;
 pub mod process_abi;
+pub mod process_abi_json;
 
 
 pub use add_factory_addresses::add_factory_addresses;
@@ -20,3 +21,4 @@ pub use get_tracked_abis_json::get_tracked_abis_json;
 pub use get_tracked_abi_from_mongo::get_tracked_abi_from_mongo;
 pub use get_tracked_abi_json_from_mongo::get_tracked_abi_json_from_mongo;
 pub use process_abi::process_abi;
+pub use process_abi_json::process_abi_json;

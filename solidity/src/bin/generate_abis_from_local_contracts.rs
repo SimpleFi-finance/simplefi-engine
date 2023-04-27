@@ -80,7 +80,7 @@ async fn main() {
 
                         match result {
                             Some(_) => {
-                                debug!("Found a document: {:?}", document);
+                                debug!("Found a document: {:?}", result);
 
                                 continue;
                             }

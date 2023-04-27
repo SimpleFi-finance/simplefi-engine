@@ -59,11 +59,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("Error: {}", error_msg);
                 }
             }
-
-
         }
 
-        debug!("Finished adding {} contract indexes to Redis Set (verify_addresses)", results.len());
+        debug!("Finished adding contract indexes to Redis Set (verify_addresses)");
 
         skip += 500;
 

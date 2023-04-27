@@ -4,7 +4,7 @@ use lapin::{
     message::Delivery,
 };
 use log::{ debug, info, warn };
-use tokio::time::{self, Duration, sleep};
+use tokio::time::{self, Duration };
 use std::sync::{Arc, Mutex};
 use futures::StreamExt;
 pub mod queues;
@@ -146,13 +146,13 @@ where
              // Call the injected function
         }
 
-        info!("Calling handler with count: {}", *count);
+        debug!("Calling handler with count: {}", *count);
 
         handler(delivery, *count);
 
         *count += 1;
 
-        info!("Increasing Count: {}", *count);
+        debug!("Increasing Count: {}", *count);
     }
 
     Ok(())

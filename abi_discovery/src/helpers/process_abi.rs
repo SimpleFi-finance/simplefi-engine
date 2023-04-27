@@ -3,10 +3,10 @@ use mongodb::{ options::FindOneOptions };
 use log::info;
 
 use crate::settings::load_settings;
-use shared_types::{abi::Abi, mongo::abi::{AbiCollection, ContractAbiCollection, ContractAbiFlag}};
+use shared_types::{abi::Abi, mongo::abi::{AbiCollection, ContractAbiCollection }};
 // use solidity::abi_to_bytecode;
 use third_parties::mongo::{
-    lib::abi_discovery::{get_index, save_abi},
+    lib::abi_discovery::{ save_abi },
     Mongo, MongoConfig,
 };
 
@@ -18,6 +18,7 @@ pub async fn process_abi(
 
     let mongo_uri = settings.mongodb_uri;
     let mongodb_database_name = settings.mongodb_database_name;
+    let abis_collection_name = settings.mongodb_abi_collection;
 
     let config = MongoConfig {
         uri: mongo_uri.clone(),
@@ -32,7 +33,7 @@ pub async fn process_abi(
         .await
         .expect("Failed to connect to mongo");
 
-    let abi_collection = db.collection::<AbiCollection>("abis");
+    let abi_collection = db.collection::<AbiCollection>(&abis_collection_name);
 
     let mut abi: Vec<Abi> = serde_json::from_str(&abi_string).unwrap();
 
@@ -74,7 +75,7 @@ pub async fn process_abi(
             info!("No document found. finding index on last document");
 
             let options = FindOneOptions::builder()
-            .sort(doc! { "_id": -1 })
+            .sort(doc! { "index": -1 })
             .build();
 
             let last_document_result = abi_collection
@@ -105,8 +106,8 @@ pub async fn process_abi(
 
     /* debug!("new_index: {:?}", new_index); */
 
-    // First we check if the contract is not already in contracts_abi
-    let contract_abi_collection = db.collection::<ContractAbiCollection>("contracts_abi");
+    // First we check if the contract is not already in contracts-abi
+    let contract_abi_collection = db.collection::<ContractAbiCollection>("contracts-abi");
 
     let filter = doc! { "address": address };
 

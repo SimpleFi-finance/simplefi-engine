@@ -2,7 +2,7 @@ use mongodb::{ Collection, bson::doc };
 use futures::stream::StreamExt;
 
 use crate::settings::load_settings;
-use shared_types::mongo::abi::{ContractWithAbi, ContractAbiCollection, ContractWithAbiDocument, ContractWithAbiJSON, ContractWithAbiJSONDocument};
+use shared_types::mongo::abi::{ ContractAbiCollection,  ContractWithAbiJSON, ContractWithAbiJSONDocument};
 use third_parties::mongo::{MongoConfig, Mongo};
 
 ///
