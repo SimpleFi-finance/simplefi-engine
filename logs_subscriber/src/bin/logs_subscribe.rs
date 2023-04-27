@@ -1,29 +1,22 @@
-use std::{collections::HashMap, thread};
-use futures::TryFutureExt;
+use std::{collections::HashMap};
 use logs_subscriber::{settings::load_settings, utils::decode_logs::decode_logs};
-use rayon::slice::ParallelSliceMut;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use settings::load_settings as load_global_settings;
-
-use grpc_server::{client::AbiDiscoveryClient};
+use shared_utils::logger::init_logging;
+use log::{ info, debug, error };
 use third_parties::mongo::{lib::bronze::logs::{types::Log, setters::save_logs}, MongoConfig, Mongo};
-use tungstenite::{connect, Message, protocol::frame::coding::Data};
+use tungstenite::{connect, Message};
 
 #[tokio::main]
 async fn main() {
     let global_settings = load_global_settings().unwrap();
     let local_settings = load_settings().unwrap();
-    // load glob settings
-    // load local settings
-    // subscribe to logs reading
-    // decode logs
-    // store in mongodb
+    init_logging();
+
     let mut logs_hm: HashMap<i64, Vec<Log>> = HashMap::new();
 
     let wss_url = format!("{}{}", global_settings.infura_mainnet_ws, global_settings.infura_token);
-
-    // let abi_discovery_client = AbiDiscoveryClient::new("http://[::1]:50051".to_string()).await.unwrap();
 
     let request_method = json!({
         "jsonrpc": "2.0",
@@ -56,7 +49,7 @@ async fn main() {
                     Some(data) => {
                         if data.block_number > last_bn {
                             // trigger reading of previous block and decoding
-                            println!(); 
+                            debug!("");
                             let prev_block_data = logs_hm.get(&last_bn);
                             match prev_block_data {
                                 Some(prev_block_data) => {
@@ -71,21 +64,21 @@ async fn main() {
                                         let decoded = decode_logs(logs).await.unwrap();
                                         // save to mongodb
                                         save_logs(&db, decoded).await.unwrap();
-                                        println!("Prev block {:?} data decoded", &last_bn);
-                                        println!("Decoding took {:?}", now.elapsed());
+                                        debug!("Prev block {:?} data decoded", &last_bn);
+                                        debug!("Decoding took {:?}", now.elapsed());
                                     });
                                 }
-                                None => {println!("No prev block data")}
+                                None => {error!("No prev block data")}
                             }
                             
                             last_bn = data.block_number;
                         }
                         logs_hm.entry(data.block_number).or_insert(Vec::new()).push(data.clone());
                     }
-                    None => {println!("No log data")}
+                    None => {error!("No log data")}
                 }
             }
-            None => {println!("No result data")}
+            None => {error!("No result data")}
         }
     }
 }

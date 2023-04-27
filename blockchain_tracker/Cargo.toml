@@ -17,6 +17,8 @@ lapin = { workspace = true }
 futures = {workspace = true}
 confy = { workspace = true }
 settings = { path = "../settings" }
+log = { workspace = true }
+shared_utils =  { path = "../shared_utils" }
 
 [[bin]]
 name = "generate_settings"

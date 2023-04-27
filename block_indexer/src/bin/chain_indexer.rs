@@ -6,9 +6,11 @@ use ethabi::{Contract, RawLog, ethereum_types::H256};
 use futures::{StreamExt, TryStreamExt};
 use grpc_server::{client::AbiDiscoveryClient};
 use lapin::{options::{BasicConsumeOptions, BasicAckOptions}, types::FieldTable};
+use log::{debug, info, error};
 use rayon::{iter::ParallelIterator};
 use rayon::prelude::IntoParallelRefIterator;
 use settings::load_settings as load_global_settings;
+use shared_utils::logger::init_logging;
 use third_parties::{
     broker::create_rmq_channel,
     mongo::{
@@ -24,6 +26,7 @@ use third_parties::{
 async fn main() {
     let global_settings = load_global_settings().unwrap();
     let local_settings = load_settings().unwrap();
+    init_logging();
 
     let queue_name = local_settings.new_blocks_queue_name.clone();
     let consumer_name = format!("{}_{}", String::from("ethereum"), String::from("block_indexer"));
@@ -40,7 +43,7 @@ async fn main() {
         .await
         .expect("Failed to start consumer");
 
-    println!("Waiting for messages...");
+    info!("Waiting for messages...");
     let mut consumer_stream = consumer.into_stream();
 
     let provider_url = format!("{}{}", global_settings.infura_mainnet_rpc, global_settings.infura_token);
@@ -55,7 +58,7 @@ async fn main() {
     while let Some(delivery) = consumer_stream.next().await {
         let delivery_data = delivery.unwrap();
         let block: i64 = serde_json::from_slice(&delivery_data.data).unwrap();
-        println!("Got message: {:?}", block);
+        info!("Got message: {:?}", block);
 
         let now = Instant::now();
         
@@ -158,19 +161,19 @@ async fn main() {
                             },
                             Err(e) => {
                                 decoded_logs.push(log);
-                                println!("error: {:?}", e);
+                                error!("error: {:?}", e);
                             }
                         }
                     },
                     None => {
                         decoded_logs.push(log.clone());
-                        println!("event not found for address: {:?}", log.address.unwrap());
+                        error!("event not found for address: {:?}", log.address.unwrap());
                     }
                 }
             });
         }
 
-        println!("Time elapsed is: {:?}ms", now.elapsed().as_millis());
+        debug!("Time elapsed is: {:?}ms", now.elapsed().as_millis());
 
         let (_, _) = tokio::join!(
             save_logs(&db, decoded_logs),

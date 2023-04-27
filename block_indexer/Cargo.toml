@@ -25,6 +25,8 @@ settings = { path = "../settings" }
 solidity = { path = "../solidity" }
 ethabi = { workspace = true }
 hex = {workspace = true}
+log = { workspace = true }
+shared_utils =  { path = "../shared_utils" }
 
 [[bin]]
 name = "generate_settings"

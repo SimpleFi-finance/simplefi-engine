@@ -3,6 +3,7 @@ use chrono::{Datelike, NaiveDateTime};
 use lapin::options::BasicQosOptions;
 use serde_json::json;
 use settings::load_settings as load_global_settings;
+use shared_utils::logger::init_logging;
 use third_parties::{
     broker::{
         bind_queue_to_exchange, create_rmq_channel, declare_exchange, declare_rmq_queue,
@@ -18,6 +19,7 @@ async fn main() {
     // todo load settings and select chain
     let glob_settings = load_global_settings().unwrap();
     let local_settings = load_settings().unwrap();
+    init_logging();
     // load wss from chain and start syncing
 
     let request = json!({
@@ -28,15 +30,11 @@ async fn main() {
     });
 
     let request_str = serde_json::to_string(&request).unwrap();
-    
-    //todo load global settings
 
     let wss_url = String::from(format!("{}{}",glob_settings.infura_mainnet_ws, glob_settings.infura_token ));
 
     let (mut socket, _response) = connect(&wss_url).expect("Can't connect");
     socket.write_message(Message::Text(request_str)).unwrap();
-
-
 
     let mongo_config = MongoConfig {
         uri: local_settings.mongodb_uri,

@@ -45,13 +45,6 @@ impl AbiDiscoveryClient {
 
         response
     }
-
-    pub async fn get_addresses_abi_json(&mut self, addresses: Vec<String>) -> Response<GetAddressesAbiJsonResponse> {
-        let request = Request::new(GetAddressesAbiRequest { addresses });
-        let response = self.client.get_addresses_abi_json(request).await.unwrap();
-
-        response
-    }
 }
 
 #[cfg(test)]

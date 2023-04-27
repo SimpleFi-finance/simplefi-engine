@@ -23,6 +23,8 @@ grpc_server = { path = "../grpc_server" }
 confy = { workspace = true }
 settings = { path = "../settings" }
 solidity = { path = "../solidity" }
+log = { workspace = true }
+shared_utils =  { path = "../shared_utils" }
 ethabi = { workspace = true }
 hex = {workspace = true}
 tungstenite = { workspace = true }
