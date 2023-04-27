@@ -2,10 +2,10 @@ use std::{collections::HashMap, time::Instant, str::FromStr};
 
 use block_indexer::{utils::{get_block_logs, get_block_with_txs}, settings::load_settings};
 use chrono::{Datelike, NaiveDateTime};
-use ethabi::{Contract, Event, RawLog, ethereum_types::H256, Bytes};
+use ethabi::{Contract, RawLog, ethereum_types::H256};
 use futures::{StreamExt, TryStreamExt};
 use grpc_server::{client::AbiDiscoveryClient};
-use lapin::{options::BasicConsumeOptions, types::FieldTable};
+use lapin::{options::{BasicConsumeOptions, BasicAckOptions}, types::FieldTable};
 use rayon::{iter::ParallelIterator};
 use rayon::prelude::IntoParallelRefIterator;
 use settings::load_settings as load_global_settings;
@@ -22,9 +22,6 @@ use third_parties::{
 
 #[tokio::main]
 async fn main() {
-    // listens to the queue of blocks minted and gets logs and txs and saves in mongo
-    // let mut interface_hashmap = HashMap::new();
-
     let global_settings = load_global_settings().unwrap();
     let local_settings = load_settings().unwrap();
 
@@ -61,13 +58,15 @@ async fn main() {
         println!("Got message: {:?}", block);
 
         let now = Instant::now();
-        // channel.basic_ack(delivery_data.delivery_tag, BasicAckOptions::default()).await?;
+        
         // get logs and txs and save in mongo
         let u64_block = block as u64;
+
         let (logs, block) = tokio::join!(
             get_block_logs(provider_url.clone(), &u64_block, &u64_block),
             get_block_with_txs(provider_url.clone(), &u64_block)
         );
+        let mut decoded_logs = vec![];
 
         let logs_by_address = logs
             .unwrap()
@@ -114,17 +113,13 @@ async fn main() {
 
             let mut eventhm = HashMap::new();
             for event in &contract.events {
-                println!("event: {:?}", event);
                 let e = event.1[0].clone();
-
                 eventhm.insert(e.signature(), e);
             }
 
-
-            println!("address: {:?}", &data.address);
             let logs_of_address = logs_by_address.get(&data.address).unwrap();
 
-            logs_of_address.par_iter().for_each(|log| {
+            logs_of_address.iter().for_each(|log| {
                 let log = log.clone();
                 let h256_topics = log.topics.iter().map(|t| H256::from_str(t).unwrap()).collect::<Vec<H256>>();
                 let bytes = hex::decode(log.data.clone().unwrap().strip_prefix("0x").unwrap()).unwrap();
@@ -140,15 +135,36 @@ async fn main() {
                         match decoded_log {
                             Ok(decoded_log) => {
                                 // todo push to array to save logs in mongo
-                                println!("decoded_log: {:?}", decoded_log);
+                                let decoded = Log {
+                                    address: log.address,
+                                    block_hash: log.block_hash,
+                                    block_number: log.block_number,
+                                    data: log.data,
+                                    log_index: log.log_index,
+                                    removed: log.removed,
+                                    topics: log.topics,
+                                    transaction_hash: log.transaction_hash,
+                                    transaction_index: log.transaction_index,
+                                    timestamp: log.timestamp,
+                                    year: log.year,
+                                    month: log.month,
+                                    day: log.day,
+                                    log_type: log.log_type,
+                                    transaction_log_index: log.transaction_log_index,
+                                    //todo decoded_data: Some(decoded_log.clone()),
+                                    decoded_data: None,
+                                };
+                                decoded_logs.push(decoded);
                             },
                             Err(e) => {
+                                decoded_logs.push(log);
                                 println!("error: {:?}", e);
                             }
                         }
                     },
                     None => {
-                        println!("event not found");
+                        decoded_logs.push(log.clone());
+                        println!("event not found for address: {:?}", log.address.unwrap());
                     }
                 }
             });
@@ -156,9 +172,10 @@ async fn main() {
 
         println!("Time elapsed is: {:?}ms", now.elapsed().as_millis());
 
-        // let (_, _) = tokio::join!(
-        //     save_logs(&db, logs),
-        //     save_txs(&db, block.1.unwrap())
-        // );
+        let (_, _) = tokio::join!(
+            save_logs(&db, decoded_logs),
+            save_txs(&db, block.1.unwrap())
+        );
+        channel.basic_ack(delivery_data.delivery_tag, BasicAckOptions::default()).await.unwrap();
     }
 }
