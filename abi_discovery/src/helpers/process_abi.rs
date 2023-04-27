@@ -5,11 +5,16 @@ use log::info;
 use crate::settings::load_settings;
 use shared_types::{abi::Abi, mongo::abi::{AbiCollection, ContractAbiCollection }};
 // use solidity::abi_to_bytecode;
-use third_parties::mongo::{
-    lib::abi_discovery::{ save_abi },
-    Mongo, MongoConfig,
-};
+use third_parties::mongo::{Mongo, MongoConfig};
+use third_parties::mongo::lib::save_abi;
 
+
+
+/* {
+    lib::abi_discovery::{ save_abi },
+
+};
+ */
 pub async fn process_abi(
     address: &String,
     abi_string: &String,

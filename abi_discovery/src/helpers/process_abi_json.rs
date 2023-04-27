@@ -5,7 +5,8 @@ use mongodb::{ options::FindOneOptions, bson::doc };
 use crate::settings::load_settings;
 use shared_types::mongo::abi::{ ContractAbiCollection, AbiJSONCollection, ContractAbiFlag };
 use third_parties::mongo::{
-    Mongo, MongoConfig, lib::abi_discovery::save_abi_json,
+    lib::{ save_abi_json },
+    Mongo, MongoConfig,
 };
 
 pub async fn process_abi_json(
