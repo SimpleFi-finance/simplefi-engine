@@ -52,11 +52,11 @@ pub struct AbiDiscoverySettings {
     pub mongodb_uri: String,
 
     #[arg(
-        long = "mongodb_engine_db",
+        long = "mongodb_database_name",
         help = "MongoDB Engine DB",
         default_value = "simplefi_engine"
     )]
-    pub mongodb_engine_db: String,
+    pub mongodb_database_name: String,
 
     #[arg(
         long = "mongodb_abi_collection",
@@ -105,7 +105,7 @@ pub struct MyAbiDiscoverySettings {
     pub etherscan_api_keys: String,
     // MongoDB Settings
     pub mongodb_uri: String,
-    pub mongodb_engine_db: String,
+    pub mongodb_database_name: String,
     pub mongodb_abi_collection: String,
     pub mongodb_contract_abi_collection: String,
     pub mongodb_factory_contracts_collection: String,
@@ -123,7 +123,7 @@ impl MyAbiDiscoverySettings {
         redis_key_ttl_expire_ms: usize,
         etherscan_api_keys: String,
         mongodb_uri: String,
-        mongodb_engine_db: String,
+        mongodb_database_name: String,
         mongodb_abi_collection: String,
         mongodb_contract_abi_collection: String,
         mongodb_factory_contracts_collection: String,
@@ -136,7 +136,7 @@ impl MyAbiDiscoverySettings {
             redis_key_ttl_expire_ms,
             etherscan_api_keys,
             mongodb_uri,
-            mongodb_engine_db,
+            mongodb_database_name,
             mongodb_abi_collection,
             mongodb_contract_abi_collection,
             mongodb_factory_contracts_collection,
@@ -154,7 +154,7 @@ pub fn load_settings() -> Result<MyAbiDiscoverySettings, ConfyError> {
         redis_key_ttl_expire_ms: 300000,
         etherscan_api_keys: String::from("change_etherscan_api_key_1,change_etherscan_api_key_2"),
         mongodb_uri: String::from("mongodb://localhost:27017/"),
-        mongodb_engine_db: String::from("simplefi_engine"),
+        mongodb_database_name: String::from("simplefi_engine"),
         mongodb_abi_collection: String::from("abis"),
         mongodb_contract_abi_collection: String::from("contract-abi"),
         mongodb_factory_contracts_collection: String::from("factory-contracts"),

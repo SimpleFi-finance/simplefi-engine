@@ -35,6 +35,7 @@ pub fn bytecode_to_abi(abi_bytecode: &Vec<u8>) -> Result<String, Box<dyn std::er
 
 #[cfg(test)]
 mod tests {
+    use bson::Binary;
     use serde_json::json;
 
     use super::*;

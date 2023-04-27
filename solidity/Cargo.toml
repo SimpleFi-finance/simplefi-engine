@@ -10,13 +10,21 @@ name = "generate_abis_from_local_contracts"
 path = "src/bin/generate_abis_from_local_contracts.rs"
 test = false
 
+[[bin]]
+name = "generate_abis_json_from_local_contracts"
+path = "src/bin/generate_abis_json_from_local_contracts.rs"
+test = false
+
 
 
 [dependencies]
 bincode = { workspace = true }
 bson = { workspace = true }
 chrono = { workspace = true }
+ethabi = { workspace = true }
 flate2 = { workspace = true }
+futures = { workspace = true }
+log = { workspace = true }
 mongodb = { workspace = true }
 serde_json = { workspace = true }
 shared_types = { path = "../shared_types" }

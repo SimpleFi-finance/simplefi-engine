@@ -9,6 +9,13 @@ pub struct AbiCollection {
     pub abi: Binary,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AbiJSONCollection {
+    pub timestamp: i64,
+    pub index: u32,
+    pub abi: String,
+}
+
 #[derive(Deserialize, Serialize)]
 pub struct PartialIndexDoc {
     pub index: u32,
@@ -35,11 +42,25 @@ pub struct ContractWithAbi {
     pub abi: Vec<u8>,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub struct ContractWithAbiJSON {
+    pub timestamp: u64,
+    pub address: String,
+    pub abi: String,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct ContractWithAbiDocument {
     pub timestamp: u64,
     pub address: String,
     pub abi: Binary,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ContractWithAbiJSONDocument {
+    pub timestamp: u64,
+    pub address: String,
+    pub abi: String,
 }
 
 

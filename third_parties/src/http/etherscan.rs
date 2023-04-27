@@ -37,10 +37,6 @@ pub async fn get_abi(
     contract_address: &str,
     api_key: &str,
 ) -> Result<String, Error> {
-    /*
-    let local_settings = load_settings().unwrap();
-    let api_key = local_settings.etherscan_api_key; */
-
     // Base url
     let etherscan_api_url = "https://api.etherscan.io/api";
 
@@ -50,6 +46,8 @@ pub async fn get_abi(
     query_params.insert("action".to_string(), "getabi".to_string());
     query_params.insert("address".to_string(), contract_address.to_string());
     query_params.insert("apikey".to_string(), api_key.to_string());
+
+    debug!("query_params: {:?}", query_params);
 
     // Add custom headers
     let mut headers = HeaderMap::new();
@@ -63,7 +61,7 @@ pub async fn get_abi(
 
             debug!("result: {:?}", results.result.len());
 
-            Ok(results.result) // .parse::<Value>().ok())
+            Ok(results.result)
         },
         _ => {
             error!("Error: {}", result.status());

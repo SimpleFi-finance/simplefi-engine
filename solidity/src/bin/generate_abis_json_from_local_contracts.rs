@@ -1,8 +1,9 @@
-use bson::{doc, Binary};
-use log::{ info, debug };
-use mongodb::{ options::FindOneOptions };
-use shared_types::abi::Abi;
-use shared_types::mongo::abi::{AbiCollection, ContractAbiCollection, ContractAbiFlag, PartialIndexDoc };
+use bson::{doc };
+use futures::stream::StreamExt;
+use mongodb::{ options::FindOneOptions, Cursor };
+
+use shared_types::mongo::abi::{ ContractAbiCollection, ContractAbiFlag, PartialIndexDoc, AbiJSONCollection, FactoryContractsCollection };
+use solidity::default_abis::{get_factory_abis, get_default_market_abis, get_factory_market_index};
 use std::fs::read_dir;
 use third_parties::mongo::{Mongo, MongoConfig};
 use tokio;
@@ -11,27 +12,119 @@ use chrono::Utc;
 // create main function
 #[tokio::main]
 async fn main() {
-    info!("Starting to load contract indexes from MongoDB to Redis Set (verify_addresses) ...");
-
-    // We need to get the list of folders in a directory
-    let dir = read_dir("E:\\solidity\\QmdDJpWUxK3abZ2NMxdAGNTsMQZRJCuAWtXVCeakac4zZr")
-        .expect("Failed to read directory");
 
     // Create a mongo connection with Mongo helper from shared_types
     let mongo_config = MongoConfig {
         uri: "mongodb://localhost:27017".to_string(),
-        database: "abi_discovery_json".to_string(),
+        database: "abi_discovery_v5".to_string(),
     };
-
-    debug!("mongoConfig: {:?}", mongo_config);
 
     // Create a new MongoDB client
     let mongo = Mongo::new(&mongo_config).await.unwrap();
 
-    let abi_collection = mongo.database.collection::<AbiCollection>("abis");
-    let contract_abi_collection = mongo
-        .database
-        .collection::<ContractAbiCollection>("contract-abi");
+    let abi_collection = mongo.database.collection::<AbiJSONCollection>("abis");
+    let contract_abi_collection = mongo.database.collection::<ContractAbiCollection>("contract-abi");
+    let factory_contracts_collection = mongo.database.collection::<FactoryContractsCollection>("factory-contracts");
+
+    // Before starting the scraping, we are going to add the default abis to the database
+    // We are going to add the default abis to the database
+    let default_factory_abis =  get_factory_abis().await;
+    let default_market_abis = get_default_market_abis().await;
+
+    let timestamp = Utc::now().timestamp_millis() as i64;
+
+    for (index, value) in default_factory_abis {
+        abi_collection
+            .insert_one(
+                AbiJSONCollection {
+                    timestamp,
+                    index,
+                    abi: value.abi,
+                },
+                None,
+            )
+            .await
+            .expect("Failed to insert document in abi collection");
+
+        contract_abi_collection.insert_one(
+            ContractAbiCollection {
+                timestamp,
+                index,
+                address: value.address.to_lowercase(),
+                flag: ContractAbiFlag::Verified,
+            }, None)
+            .await
+            .expect("Failed to insert document in contract-abi collection");
+    }
+
+    // Lets save the default market abis
+    for (index, abi) in default_market_abis {
+        abi_collection
+            .insert_one(
+                AbiJSONCollection {
+                    timestamp,
+                    index,
+                    abi,
+                },
+                None,
+            )
+            .await
+            .expect("Failed to insert document in abi collection");
+    }
+
+    let mut skip = 0;
+
+    loop {
+        let options= mongodb::options::FindOptions::builder()
+        .limit(500)
+        .skip(skip)
+        .build();
+
+        // options.clone().skip(skip);
+        let cursor = factory_contracts_collection.find(None, options).await.expect("Failed to execute find");
+        let results = cursor.collect::<Vec<_>>().await;
+
+        if results.is_empty() {
+            break;
+        }
+
+        let mut contract_indexed: Vec<ContractAbiCollection> = Vec::new();
+
+        for result in results {
+            let result = result.expect("Failed to get next from server");
+
+            let factory_address = result.factory_address;
+            let address = result.address;
+
+            let index = get_factory_market_index(&factory_address);
+
+            if index == 0 {
+                print!("Found not tracked factory_address: {}", factory_address);
+
+                continue;
+            }
+
+            contract_indexed.push(ContractAbiCollection {
+                timestamp,
+                address: address.to_lowercase(),
+                index,
+                flag: ContractAbiFlag::Verified,
+            });
+        }
+
+        println!("Found {} contract indexes. Skipping {}", contract_indexed.len(), skip);
+
+        contract_abi_collection.insert_many(contract_indexed, None).await.expect("Failed to insert many cotract_indexes");
+
+        skip += 500;
+    }
+
+    let starting_index = 100;
+
+    // Let's start the folder scraping
+    // We need to get the list of folders in a directory
+    let dir = read_dir("E:\\solidity\\QmdDJpWUxK3abZ2NMxdAGNTsMQZRJCuAWtXVCeakac4zZr")
+        .expect("Failed to read directory");
 
     // Iterate over the directory entries
     for entry in dir {
@@ -40,8 +133,6 @@ async fn main() {
 
         // Check if the path is a directory
         if path.is_dir() {
-            // Print the path
-            debug!("PATH => {:?}", path);
 
             // Get a list of files in the directory path
             let files = read_dir(path).expect("Failed to read directory");
@@ -53,8 +144,6 @@ async fn main() {
 
                 // Check if the file path is a file
                 if file_path.is_file() {
-                    // Print the file path
-                    debug!("FILE => {:?}", file_path);
 
                     // GEt the folder name from file_path
                     let folder_name = file_path
@@ -65,10 +154,10 @@ async fn main() {
                         .to_str()
                         .unwrap();
 
-                    debug!("Folder_name: {:?}", folder_name);
+                    // println!("Folder_name: {:?}", folder_name);
 
                     if file_path.file_name().unwrap() == "metadata.json" {
-                        debug!("Found metadata.json file");
+                        // println!("Found metadata.json file");
 
                         // check if already exist contract with the folder name in contract-abi collection
                         let filter = doc! { "address": folder_name.to_lowercase() };
@@ -80,14 +169,15 @@ async fn main() {
 
                         match result {
                             Some(_) => {
-                                debug!("Found a document: {:?}", result);
+                                // println!("Found a document: {:?}", document);
 
                                 continue;
                             }
                             None => {
-                                debug!("Contract not tracked. Saving ABI or getting index from ABI collection");
+                                // println!("Contract not tracked. Saving ABI or getting index from ABI collection");
                             }
                         }
+
 
                         // With serde_json, we can parse the metadata.json file
                         let metadata = std::fs::read_to_string(&file_path)
@@ -106,27 +196,7 @@ async fn main() {
                             .expect("No ABI definition in metadata.json")
                             .to_string();
 
-                        let mut abi: Vec<Abi> = serde_json::from_str(&abi_string).unwrap();
-
-                        debug!("abi length: {:?}", abi.len());
-
-                        // sort abi
-                        Abi::sort_abi_elements(&mut abi);
-
-                        // sort parameters
-                        for abi in &mut abi {
-                            abi.sort_parameters();
-                        }
-
-                        let abi_bytecode = bincode::serialize(&abi).unwrap();
-
-                        // Check if there's any document with the 'abi' field equal to the ABI bytecode.
-                        let abi_binary = Binary {
-                            subtype: bson::spec::BinarySubtype::Generic,
-                            bytes: abi_bytecode,
-                        };
-
-                        let filter = doc! { "abi": &abi_binary };
+                        let filter = doc! { "abi": &abi_string };
 
                         let result = abi_collection
                             .find_one(filter, None)
@@ -171,16 +241,20 @@ async fn main() {
                                         // get index property from document
                                         let index = document.index;
 
-                                        // print!("Latest index: {:?}", index);
+                                        let mut new_index = index + 1;
 
-                                        let new_index = index + 1;
+                                        if index == 51 {
+                                            println!("Found index 51. Pushing to 100");
+
+                                            new_index = starting_index;
+                                        }
 
                                         abi_collection
                                             .insert_one(
-                                                AbiCollection {
-                                                    timestamp: Utc::now().timestamp_millis() as i64,
+                                                AbiJSONCollection {
+                                                    timestamp,
                                                     index: new_index,
-                                                    abi: abi_binary,
+                                                    abi: abi_string,
                                                 },
                                                 None,
                                             )
@@ -190,7 +264,7 @@ async fn main() {
                                         contract_abi_collection
                                             .insert_one(
                                                 ContractAbiCollection {
-                                                    timestamp: Utc::now().timestamp_millis() as i64,
+                                                    timestamp,
                                                     address: folder_name.to_lowercase(),
                                                     index: new_index,
                                                     flag: ContractAbiFlag::Verified,
@@ -201,14 +275,14 @@ async fn main() {
                                             .expect("Failed to insert document");
                                     }
                                     None => {
-                                        // println!("No document found. First insert!");
+                                        panic!("Error. no documents found!");
 
-                                        abi_collection
+                                        /* abi_collection
                                             .insert_one(
-                                                AbiCollection {
+                                                AbiJSONCollection {
                                                     timestamp: Utc::now().timestamp_millis() as i64,
-                                                    index: 0,
-                                                    abi: abi_binary,
+                                                    index: 100,
+                                                    abi: abi_string,
                                                 },
                                                 None,
                                             )
@@ -226,7 +300,7 @@ async fn main() {
                                                 None,
                                             )
                                             .await
-                                            .expect("Failed to insert document");
+                                            .expect("Failed to insert document"); */
                                     }
                                 }
                             }
@@ -237,5 +311,4 @@ async fn main() {
         }
     }
 
-    /* mongo.close().await.unwrap(); */
 }

@@ -7,6 +7,8 @@ service AbiDiscoveryService {
 
   rpc GetAddressesAbi(GetAddressesAbiRequest) returns (GetAddressesAbiResponse) {}
 
+  rpc GetAddressesAbiJSON(GetAddressesAbiRequest) returns (GetAddressesAbiJSONResponse) {}
+
   rpc AddFactoryAddresses(AddFactoryAddressesRequest) returns (AddFactoryAddressesResponse) {}
 }
 
@@ -39,4 +41,14 @@ message AddFactoryAddressesRequest {
 
 message AddFactoryAddressesResponse {
     bool success = 1;
+}
+
+message AddressAbiJSON {
+    uint64 timestamp = 1;
+    string address = 2;
+    string abi = 3;
+}
+
+message GetAddressesAbiJSONResponse {
+    repeated AddressAbiJSON addresses_abi = 1;
 }

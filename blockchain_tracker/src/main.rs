@@ -33,6 +33,7 @@ async fn main() {
     };
 
     let db = Mongo::new(&mongo_config).await.unwrap();
+
     loop {
         let msg = socket.read_message().expect("Error reading message");
         let msg = msg.into_text().unwrap();
@@ -83,7 +84,7 @@ async fn main() {
                     block.day = Some(date.day() as i8);
                     save_blocks(&db, vec![block]).await.unwrap();
                 }
-            );            
+            );
         }
     }
 

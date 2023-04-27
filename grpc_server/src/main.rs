@@ -2,7 +2,7 @@
 use log::{ info, debug };
 use tonic::{transport::Server, Request, Response, Status};
 
-use abi_discovery::helpers::{get_tracked_abis, add_factory_addresses};
+use abi_discovery::helpers::{get_tracked_abis, get_tracked_abis_json, add_factory_addresses};
 use grpc_server::abi_discovery_proto::abi_discovery_service_server::{ AbiDiscoveryService, AbiDiscoveryServiceServer };
 use grpc_server::abi_discovery_proto::{
     TrackedAddressesRequest,
@@ -12,8 +12,10 @@ use grpc_server::abi_discovery_proto::{
     GetAddressesAbiResponse,
     AddFactoryAddressesRequest,
     AddFactoryAddressesResponse,
+    AddressAbiJson,
+    GetAddressesAbiJsonResponse,
 };
-use shared_types::redis::abi::ContractWithAbiRedis;
+use shared_types::redis::abi::{ContractWithAbiRedis, ContractWithAbiJSONRedis};
 use shared_utils::logger::init_logging;
 
 
@@ -81,6 +83,42 @@ impl AbiDiscoveryService for AbiDiscoveryServiceImpl {
 
         let response = AddFactoryAddressesResponse {
             success: response
+        };
+
+        Ok(Response::new(response))
+    }
+
+    async fn get_addresses_abi_json(
+        &self,
+        request: Request<GetAddressesAbiRequest>,
+    ) -> Result<Response<GetAddressesAbiJsonResponse>, Status> {
+        let addresses = request.into_inner().addresses;
+
+        info!("get_addresses_abi_json called: {:?}", addresses);
+
+        let tracked_abis = get_tracked_abis_json(addresses).await.expect("Failed to get tracked abis");
+
+        info!("tracked_abis: {:?}", tracked_abis);
+
+        let mut contract_abis: Vec<AddressAbiJson> = Vec::new();
+
+        // loop through keys and values
+        for (key, value) in tracked_abis.iter() {
+            debug!("key: {}, value: {}", key, value);
+
+            let deserialized_value: ContractWithAbiJSONRedis = serde_json::from_str(value.as_str()).expect("Failed to deserialize value");
+
+            let single_response = AddressAbiJson {
+                timestamp: deserialized_value.timestamp,
+                address: key.to_string(),
+                abi: deserialized_value.abi,
+            };
+
+            contract_abis.push(single_response);
+        };
+
+        let response = GetAddressesAbiJsonResponse {
+            addresses_abi: contract_abis,
         };
 
         Ok(Response::new(response))

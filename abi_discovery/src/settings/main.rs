@@ -28,7 +28,7 @@ fn main() {
         let redis_key_ttl_expire_ms = settings.redis_key_ttl_expire_ms;
         let etherscan_api_keys = settings.etherscan_api_keys;
         let mongodb_uri = settings.mongodb_uri;
-        let mongodb_engine_db = settings.mongodb_engine_db;
+        let mongodb_database_name = settings.mongodb_database_name;
         let mongodb_abi_collection = settings.mongodb_abi_collection;
         let mongodb_contract_abi_collection = settings.mongodb_contract_abi_collection;
         let mongodb_factory_contracts_collection = settings.mongodb_factory_contracts_collection;
@@ -40,7 +40,7 @@ fn main() {
             redis_key_ttl_expire_ms,
             etherscan_api_keys,
             mongodb_uri,
-            mongodb_engine_db,
+            mongodb_database_name,
             mongodb_abi_collection,
             mongodb_contract_abi_collection,
             mongodb_factory_contracts_collection,

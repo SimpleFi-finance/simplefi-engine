@@ -9,6 +9,7 @@ bincode =       { workspace = true }
 bson =          { workspace = true }
 clap =          { workspace = true, features = ["derive"] }
 confy =         { workspace = true }
+chrono =        { workspace = true }
 hex =           { workspace = true }
 futures =       { workspace = true }
 lapin =         { workspace = true }
@@ -16,11 +17,13 @@ log =           { workspace = true }
 mongodb =       { workspace = true }
 rand =          { workspace = true }
 redis =         { workspace = true }
+reqwest =       { workspace = true }
 serde =         { workspace = true, default_features = false, features = ["derive"] }
 serde_json =    { workspace = true }
 settings =      { path = "../settings" }
 shared_types =  { path = "../shared_types" }
 shared_utils =  { path = "../shared_utils" }
+solidity =      { path = "../solidity" }
 third_parties = { path = "../third_parties" }
 tokio =         { workspace = true, features = ["full"] }
 
@@ -35,3 +38,7 @@ path = "src/bin/scrap_etherscan.rs"
 [[bin]]
 name = "generate_settings"
 path = "src/settings/main.rs"
+
+[[bin]]
+name = "scrap_token_abis"
+path = "src/bin/scrap_token_abis.rs"
