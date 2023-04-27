@@ -53,13 +53,9 @@ async fn handle_message(
 ) -> Result<(), Error> {
     let contract_address = String::from_utf8_lossy(&delivery.data).to_lowercase();
 
-    // debug!("Message data: {}", contract_address);
-
     let keys = key.split(',').collect::<Vec<&str>>();
 
     let etherscan_key = keys[counter % keys.len()];
-
-    // debug!("Key: {}", etherscan_key);
 
     let abi = timeout(
         Duration::from_secs(30),

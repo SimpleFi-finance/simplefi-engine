@@ -5,7 +5,7 @@ use mongodb::{ options::FindOneOptions, bson::doc };
 use crate::settings::load_settings;
 use shared_types::mongo::abi::{ ContractAbiCollection, AbiJSONCollection, ContractAbiFlag };
 use third_parties::mongo::{
-    lib::{ save_abi_json },
+    lib::abi_discovery::save_abi_json,
     Mongo, MongoConfig,
 };
 
@@ -18,8 +18,8 @@ pub async fn process_abi_json(
     let settings = load_settings().expect("Failed to load settings");
 
     let mongo_uri = settings.mongodb_uri;
-    let mongodb_database_name = settings.mongodb_database_name;
-    // let mongodb_database_name = "abi_discovery_v7".to_string();
+    // let mongodb_database_name = settings.mongodb_database_name;
+    let mongodb_database_name = "abi_discovery_v10".to_string();
     let abis_collection_name = settings.mongodb_abi_collection;
     let contract_abi_collection_name = settings.mongodb_contract_abi_collection;
 
@@ -33,13 +33,6 @@ pub async fn process_abi_json(
         .expect("Failed to connect to mongo");
 
     let abi_collection = db.collection::<AbiJSONCollection>(&abis_collection_name);
-
-    // info!("Connected to MongoDB!");
-
-    // debug!("mongodb_uri: {}", mongo_uri);
-    // debug!("mongodb_database_name: {}", mongodb_database_name);
-
-    // In first instance, we check if that contract address has already been added to contract-abi
     let contract_abi_collection = db.collection::<ContractAbiCollection>(&contract_abi_collection_name);
 
     let filter = doc! { "address": address };
@@ -56,11 +49,10 @@ pub async fn process_abi_json(
             return false;
         }
         None => {
-            info!("No contract found. Looking for ABI in etherscan");
+            debug!("No contract found. Looking for ABI in etherscan");
         }
     }
 
-    //
     let filter = doc! { "abi": &abi_string };
 
     let result = abi_collection
