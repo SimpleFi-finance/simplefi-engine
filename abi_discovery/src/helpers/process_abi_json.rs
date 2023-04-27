@@ -5,8 +5,7 @@ use mongodb::{ options::FindOneOptions, bson::doc };
 use crate::settings::load_settings;
 use shared_types::mongo::abi::{ ContractAbiCollection, AbiJSONCollection, ContractAbiFlag };
 use third_parties::mongo::{
-    lib::abi_discovery::{ save_abi_json },
-    Mongo, MongoConfig,
+    Mongo, MongoConfig, lib::abi_discovery::save_abi_json,
 };
 
 pub async fn process_abi_json(
@@ -18,8 +17,8 @@ pub async fn process_abi_json(
     let settings = load_settings().expect("Failed to load settings");
 
     let mongo_uri = settings.mongodb_uri;
-    // let mongodb_database_name = settings.mongodb_database_name;
-    let mongodb_database_name = "abi_discovery_v7".to_string();
+    let mongodb_database_name = settings.mongodb_database_name;
+    // let mongodb_database_name = "abi_discovery_v7".to_string();
     let abis_collection_name = settings.mongodb_abi_collection;
     let contract_abi_collection_name = settings.mongodb_contract_abi_collection;
 
