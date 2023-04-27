@@ -91,7 +91,7 @@ async fn handle_message(
                 .expect("Failed to connect to redis");
 
             // Add address to tracked addresses in redis set
-            add_to_set(&mut con, &"tracked_addresses_v7", &contract_address).await.expect("Failed to add to redis set");
+            add_to_set(&mut con, &"tracked_addresses", &contract_address).await.expect("Failed to add to redis set");
 
             info!("ABI added to redis set successfully")
         }
