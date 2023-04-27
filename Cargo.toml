@@ -22,7 +22,7 @@ clap = { version = "4.2", features = ["derive"] }
 confy = { version = "0.5.1" }
 ethabi = { version = "18" }
 ethers = { version = "1.0.2", features = ["ws", "rustls", "legacy"]}
-ethers-providers = "1.0.2"
+ethers-providers = "2.0.3"
 fern = "0.6"
 flate2 = "1.0"
 futures = "0.3"
