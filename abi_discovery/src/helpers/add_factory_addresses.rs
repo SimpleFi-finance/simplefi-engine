@@ -78,6 +78,7 @@ pub async fn add_factory_addresses(
 
     // Connect to redis
     let redis_uri = mysettings.redis_uri.to_string();
+    let redis_tracked_addresses_set = mysettings.redis_tracked_addresses_set.to_string();
 
     let mut redis_con = connect(redis_uri.as_str()).await.unwrap();
 
@@ -90,7 +91,7 @@ pub async fn add_factory_addresses(
                 let address = document.get("address").unwrap().as_str().unwrap();
                 debug!("Adding address to redis: {}", address);
 
-                let result = add_to_set(&mut redis_con, "tracked_addresses", address).await;
+                let result = add_to_set(&mut redis_con, &redis_tracked_addresses_set, address).await;
 
                 match result {
                     Ok(_) => debug!("Added address to redis"),

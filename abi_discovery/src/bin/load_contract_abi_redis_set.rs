@@ -15,6 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_logging();
     // Redis connector
     let redis_uri = mysettings.redis_uri.to_string();
+    let redis_tracked_addresses_set = mysettings.redis_tracked_addresses_set.to_string();
 
     let mut con = connect(redis_uri.as_str()).await.unwrap();
 
@@ -54,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         for result in results {
             match result {
                 Ok(address) => {
-                    let _: () = add_to_set(&mut con, "tracked_addresses", &address.address).await.expect("Failed to add to set");
+                    let _: () = add_to_set(&mut con, &redis_tracked_addresses_set, &address.address).await.expect("Failed to add to set");
                 }
                 Err(error_msg) => {
                     println!("Error: {}", error_msg);
@@ -62,7 +63,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
 
-        debug!("Finished adding contract indexes to Redis Set (tracked_addresses)");
+        debug!("Finished adding contract indexes to Redis Set (redis_tracked_addresses_set setting)");
 
         skip += 500;
 

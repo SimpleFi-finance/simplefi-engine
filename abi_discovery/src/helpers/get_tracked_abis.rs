@@ -60,6 +60,8 @@ pub async fn get_tracked_abis(
     // get redis_url from settings
     let redis_uri = mysettings.redis_uri;
 
+    let redis_tracked_addresses_set = mysettings.redis_tracked_addresses_set;
+
     info!("redis url: {:?}", redis_uri);
 
     // connect to redis with third_parties::redis::connect
@@ -74,7 +76,7 @@ pub async fn get_tracked_abis(
 
     // check if addresses are in redis
     for address in addresses {
-        let is_in_set = is_in_set(&mut connection, "tracked_addresses", &address).await?;
+        let is_in_set = is_in_set(&mut connection, &redis_tracked_addresses_set, &address).await?;
         debug!("address: {:?} is_in_set: {:?}", address, is_in_set);
 
         if is_in_set {

@@ -1,9 +1,7 @@
-
-use log::{ info, debug };
+use log::{ info, debug, warn };
 use tonic::{transport::Server, Request, Response, Status};
 
-use abi_discovery::helpers::{get_tracked_abis, get_tracked_abis_json, add_factory_addresses};
-use grpc_server::abi_discovery_proto::abi_discovery_service_server::{ AbiDiscoveryService, AbiDiscoveryServiceServer };
+use abi_discovery::helpers::{get_tracked_abis, get_tracked_abis_json, add_factory_addresses, get_signatures_event };
 use grpc_server::abi_discovery_proto::{
     TrackedAddressesRequest,
     TrackedAddressesResponse,
@@ -14,10 +12,13 @@ use grpc_server::abi_discovery_proto::{
     AddFactoryAddressesResponse,
     AddressAbiJson,
     GetAddressesAbiJsonResponse,
+    GetAbiEventsRequest,
+    GetAbiEventsResponse,
+    AbiEvent,
+    abi_discovery_service_server::{ AbiDiscoveryService, AbiDiscoveryServiceServer }
 };
 use shared_types::redis::abi::{ContractWithAbiRedis, ContractWithAbiJSONRedis};
 use shared_utils::logger::init_logging;
-
 
 #[derive(Default)]
 pub struct AbiDiscoveryServiceImpl {}
@@ -123,7 +124,42 @@ impl AbiDiscoveryService for AbiDiscoveryServiceImpl {
 
         Ok(Response::new(response))
     }
+
+    async fn get_signatures_event(
+        &self,
+        request: Request<GetAbiEventsRequest>,
+    ) -> Result<Response<GetAbiEventsResponse>, Status> {
+        let signatures = request.into_inner().signatures;
+
+        warn!("get_signatures_event called: {:?}", signatures);
+
+        let signatures_event = get_signatures_event(&signatures).await.expect("Failed to get signature events");
+
+        debug!("signature events: {:?}", signatures_event);
+
+        let mut signatures: Vec<AbiEvent> = Vec::new();
+
+        for event in signatures_event.iter() {
+            debug!("event: {:?}", event);
+
+            let single_response = AbiEvent {
+                timestamp: event.timestamp,
+                name: event.name.clone(),
+                signature: event.signature.clone(),
+                event: event.event.clone(),
+            };
+
+            signatures.push(single_response);
+        };
+
+        let response = GetAbiEventsResponse {
+            signatures_event: signatures,
+        };
+
+        Ok(Response::new(response))
+    }
 }
+
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {

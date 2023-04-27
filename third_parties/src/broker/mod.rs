@@ -122,12 +122,11 @@ where
 
     // process messages from the queue until the queue is empty or we've reached the max_reads
     while let Some(delivery) = consumer.next().await {
-        /* let (channel, delivery) = delivery.expect("error caught in consumer"); */
         let delivery = delivery?;
 
         let message = String::from_utf8_lossy(&delivery.data);
 
-        info!("Received message: {}", message);
+        debug!("Received message: {}", message);
 
         // Acknowledge the message
         channel

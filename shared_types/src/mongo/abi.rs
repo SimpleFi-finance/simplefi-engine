@@ -81,3 +81,20 @@ pub struct FactoryContractsCollection {
 pub struct AddressResult {
     pub address: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AbiEvent {
+    pub timestamp: u64,
+    pub signature: String,
+    pub event: String,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AbiEventDocument {
+    pub timestamp: u64,
+    pub index: u32,
+    pub signature: String,
+    pub sorted: String,
+    pub name: String,
+}

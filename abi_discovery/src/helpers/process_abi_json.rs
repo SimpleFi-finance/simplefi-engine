@@ -53,7 +53,13 @@ pub async fn process_abi_json(
         }
     }
 
-    let filter = doc! { "abi": &abi_string };
+    if &abi_string.trim().replace(" ", "").len() < &10 {
+        debug!("ABI is too short. skipping");
+
+        return false;
+    }
+
+    let filter = doc! { "abi": &abi_string.trim().replace(" ", "") };
 
     let result = abi_collection
         .find_one(filter, None)

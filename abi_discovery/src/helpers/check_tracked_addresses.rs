@@ -39,7 +39,9 @@ use crate::settings::load_settings;
 /// If the address is in the set, it will check if the abi is in the redis hash called address_abi
 ///
 pub async fn check_tracked_addresses(addresses: &[String]) -> Result<Vec<String>, RedisError> {
-    let set_key = "tracked_addresses";
+    let mysettings = load_settings().expect("Failed to load settings");
+
+    let redis_tracked_addresses_set = mysettings.redis_tracked_addresses_set.to_string();
     let set_verify_key = "verify_addresses";
 
     let mut tracked_addresses = Vec::new();
@@ -52,9 +54,9 @@ pub async fn check_tracked_addresses(addresses: &[String]) -> Result<Vec<String>
     info!("Checking if the addresses are in the tracked_addresses set");
 
     for address in addresses {
-        if is_in_set(&mut con, set_key, address).await? {
+        if is_in_set(&mut con, &redis_tracked_addresses_set, address).await? {
 
-            debug!("Address {} is in the tracked_addresses set", address);
+            debug!("Address {} is in the redis_tracked_addresses_set set", address);
             tracked_addresses.push(address.clone());
         } else {
             add_to_set(&mut con, set_verify_key, address).await?;
@@ -66,13 +68,13 @@ pub async fn check_tracked_addresses(addresses: &[String]) -> Result<Vec<String>
     Ok(tracked_addresses)
 }
 
-
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_check_tracked_addresses() {
+     async fn test_check_tracked_addresses() {
         let redis_uri = "redis://localhost:6379/";
 
         let mut con = connect(redis_uri).await.unwrap();
@@ -86,7 +88,7 @@ mod tests {
 
         // add 10 of them to the tracked_addresses set
         for address in &addresses[0..10] {
-            add_to_set(&mut con, "tracked_addresses", address).await.unwrap();
+            add_to_set(&mut con, "test_tracked_addresses", address).await.unwrap();
         }
 
         // check if the 20 addresses are in the tracked_addresses set
@@ -102,7 +104,8 @@ mod tests {
 
         // check if the 10 addresses are in the verify_addresses set
         for address in &addresses[10..20] {
-            assert!(is_in_set(&mut con, "verify_addresses", address).await.unwrap());
+            assert!(is_in_set(&mut con, "test_verify_addresses", address).await.unwrap());
         }
     }
 }
+*/

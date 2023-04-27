@@ -10,6 +10,8 @@ service AbiDiscoveryService {
   rpc GetAddressesAbiJSON(GetAddressesAbiRequest) returns (GetAddressesAbiJSONResponse) {}
 
   rpc AddFactoryAddresses(AddFactoryAddressesRequest) returns (AddFactoryAddressesResponse) {}
+
+  rpc GetSignaturesEvent(GetAbiEventsRequest) returns (GetAbiEventsResponse) {}
 }
 
 message TrackedAddressesRequest {
@@ -52,3 +54,19 @@ message AddressAbiJSON {
 message GetAddressesAbiJSONResponse {
     repeated AddressAbiJSON addresses_abi = 1;
 }
+
+message GetAbiEventsResponse {
+    repeated AbiEvent signatures_event = 1;
+}
+
+message GetAbiEventsRequest {
+    repeated string signatures = 1;
+}
+
+message AbiEvent {
+    uint64 timestamp = 1;
+    string signature = 2;
+    string event = 3;
+    string name = 4;
+}
+

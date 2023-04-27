@@ -35,6 +35,13 @@ pub struct AbiDiscoverySettings {
     )]
     pub redis_key_ttl_expire_ms: usize,
 
+    #[arg(
+        long = "redis_tracked_addresses_set",
+        help = "Redis set name to save all tracked addresses",
+        default_value = "tracked_addresses"
+    )]
+    pub redis_tracked_addresses_set: String,
+
     // Etherscan API Key. For more than 1 key, separate them with a comma
     #[arg(
         long = "etherscan_api_keys",
@@ -73,6 +80,13 @@ pub struct AbiDiscoverySettings {
     pub mongodb_contract_abi_collection: String,
 
     #[arg(
+        long = "mongodb_abi_events_collection",
+        help = "MongoDB ABI events Collection withg name and signature",
+        default_value = "abi-events"
+    )]
+    pub mongodb_abi_events_collection: String,
+
+    #[arg(
         long = "mongodb_factory_contracts_collection",
         help = "MongoDB Factory Contracts Collection",
         default_value = "factory-contracts"
@@ -101,6 +115,7 @@ pub struct MyAbiDiscoverySettings {
     pub redis_uri: String,
     pub redis_abi_key_prefix: String,
     pub redis_key_ttl_expire_ms: usize,
+    pub redis_tracked_addresses_set: String,
     // Etherscan API Key. For more than 1 key, separate them with a comma
     pub etherscan_api_keys: String,
     // MongoDB Settings
@@ -108,13 +123,12 @@ pub struct MyAbiDiscoverySettings {
     pub mongodb_database_name: String,
     pub mongodb_abi_collection: String,
     pub mongodb_contract_abi_collection: String,
+    pub mongodb_abi_events_collection: String,
     pub mongodb_factory_contracts_collection: String,
     // RabbitMQ Settings
     pub rabbit_mq_url: String,
     pub rabbit_exchange_name: String,
 }
-
-
 
 impl MyAbiDiscoverySettings {
     pub fn new(
@@ -122,10 +136,12 @@ impl MyAbiDiscoverySettings {
         redis_abi_key_prefix: String,
         redis_key_ttl_expire_ms: usize,
         etherscan_api_keys: String,
+        redis_tracked_addresses_set: String,
         mongodb_uri: String,
         mongodb_database_name: String,
         mongodb_abi_collection: String,
         mongodb_contract_abi_collection: String,
+        mongodb_abi_events_collection: String,
         mongodb_factory_contracts_collection: String,
         rabbit_mq_url: String,
         rabbit_exchange_name: String,
@@ -134,11 +150,13 @@ impl MyAbiDiscoverySettings {
             redis_uri,
             redis_abi_key_prefix,
             redis_key_ttl_expire_ms,
+            redis_tracked_addresses_set,
             etherscan_api_keys,
             mongodb_uri,
             mongodb_database_name,
             mongodb_abi_collection,
             mongodb_contract_abi_collection,
+            mongodb_abi_events_collection,
             mongodb_factory_contracts_collection,
             rabbit_mq_url,
             rabbit_exchange_name,
@@ -152,11 +170,13 @@ pub fn load_settings() -> Result<MyAbiDiscoverySettings, ConfyError> {
         redis_uri: String::from("redis://localhost:6379/"),
         redis_abi_key_prefix: String::from("abis:"),
         redis_key_ttl_expire_ms: 300000,
+        redis_tracked_addresses_set: String::from("tracked_addresses"),
         etherscan_api_keys: String::from("change_etherscan_api_key_1,change_etherscan_api_key_2"),
         mongodb_uri: String::from("mongodb://localhost:27017/"),
         mongodb_database_name: String::from("simplefi_engine"),
         mongodb_abi_collection: String::from("abis"),
         mongodb_contract_abi_collection: String::from("contract-abi"),
+        mongodb_abi_events_collection: String::from("abi-events"),
         mongodb_factory_contracts_collection: String::from("factory-contracts"),
         rabbit_mq_url: String::from("amqp://guest:guest@localhost:5672"),
         rabbit_exchange_name: String::from("abi_discovery"),
