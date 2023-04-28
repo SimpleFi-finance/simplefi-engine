@@ -1,4 +1,5 @@
 mod known_chains;
+pub mod evm;
 
 use std::{fmt, collections::HashMap};
 use super::providers::SupportedProviders;

@@ -3,9 +3,10 @@ use logs_subscriber::{settings::load_settings, utils::decode_logs::decode_logs};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use settings::load_settings as load_global_settings;
+use shared_types::chains::evm::log::Log;
 use shared_utils::logger::init_logging;
 use log::{ info, debug, error };
-use third_parties::mongo::{lib::bronze::logs::{types::Log, setters::save_logs}, MongoConfig, Mongo};
+use third_parties::mongo::{lib::bronze::logs::setters::save_logs, MongoConfig, Mongo};
 use tungstenite::{connect, Message};
 
 #[tokio::main]
@@ -61,7 +62,7 @@ async fn main() {
                                     tokio::spawn(async move {
                                         let now = std::time::Instant::now();
                                         let last_bn = bn.clone();
-                                        let decoded = decode_logs(logs).await.unwrap();
+                                        let decoded = decode_logs(logs, &db).await.unwrap();
                                         // save to mongodb
                                         save_logs(&db, decoded).await.unwrap();
                                         debug!("Prev block {:?} data decoded", &last_bn);

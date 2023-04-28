@@ -19,10 +19,10 @@ pub fn get_mock_tx (ts: &Option<i64>, bn: &Option<i64>, n: Option<i16>) -> Vec<T
         let bn = bn.unwrap_or(rng.gen_range(first_bn..=18_000_000));
     
         let tx = Tx {
-            timestamp: Some(ts),
-            year: Some(2018),
-            month: Some(1),
-            day: Some(1),
+            timestamp: ts,
+            year: 2018,
+            month: 1,
+            day: 1,
             block_number: bn,
             block_hash: Some(String::from("testhash")),
             transaction_index: i as i32,

@@ -28,6 +28,7 @@ shared_utils =  { path = "../shared_utils" }
 ethabi = { workspace = true }
 hex = {workspace = true}
 tungstenite = { workspace = true }
+shared_types = { path = "../shared_types" }
 
 [[bin]]
 name = "generate_settings"

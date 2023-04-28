@@ -109,7 +109,7 @@ mod tests {
         let txs = get_txs(
             &mongo, 
             None,
-            Some(tx_1.timestamp.unwrap()), 
+            Some(tx_1.timestamp), 
             None, 
             None, 
             None

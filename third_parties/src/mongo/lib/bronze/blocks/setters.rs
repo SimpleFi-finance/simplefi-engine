@@ -36,9 +36,9 @@ mod tests {
         let blocks_collection = db.collection::<Block>("blocks_bronze");
         let mock_block = Block {
             timestamp: 150000000,
-            year: Some(2018),
-            month: Some(1),
-            day: Some(1),
+            year: 2018,
+            month: 1,
+            day: 1,
             number: 12345,
             hash: Some(String::from("testhash")),
             parent_hash: Some(String::from("parenthash")),

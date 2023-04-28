@@ -561,6 +561,7 @@ dependencies = [
  "serde",
  "serde_json",
  "settings",
+ "shared_types",
  "shared_utils",
  "solidity",
  "third_parties",
@@ -580,6 +581,7 @@ dependencies = [
  "serde",
  "serde_json",
  "settings",
+ "shared_types",
  "shared_utils",
  "third_parties",
  "tokio",
@@ -2698,6 +2700,7 @@ dependencies = [
  "serde",
  "serde_json",
  "settings",
+ "shared_types",
  "shared_utils",
  "solidity",
  "third_parties",
@@ -4186,9 +4189,14 @@ name = "shared_utils"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "ethabi",
  "fern",
+ "hex",
  "log",
+ "rayon",
+ "serde_json",
  "settings",
+ "third_parties",
  "tracing",
  "tracing-subscriber",
 ]

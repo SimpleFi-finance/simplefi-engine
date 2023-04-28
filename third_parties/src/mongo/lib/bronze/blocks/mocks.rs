@@ -20,9 +20,9 @@ pub fn get_mock_block (ts: &Option<i64>, bn: &Option<i64>, n: Option<i16>) -> Ve
     
         let block = Block {
             timestamp: ts,
-            year: Some(2018),
-            month: Some(1),
-            day: Some(1),
+            year: 2018,
+            month: 1,
+            day: 1,
             number: bn,
             hash: Some(String::from("testhash")),
             parent_hash: Some(String::from("parenthash")),

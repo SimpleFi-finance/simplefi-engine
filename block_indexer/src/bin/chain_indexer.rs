@@ -16,7 +16,7 @@ use third_parties::{
     mongo::{
         lib::bronze::{
             logs::{setters::save_logs, types::Log},
-            txs::setters::save_txs,
+            txs::{setters::save_txs, types::Tx},
         },
         Mongo, MongoConfig,
     },
@@ -75,24 +75,29 @@ async fn main() {
             .unwrap()
             .par_iter()
             .fold(||HashMap::new(), |mut acc, log| {
-                let mut log = log.clone();
                 let ts = block.0.clone().unwrap().timestamp.clone();
                 let date = NaiveDateTime::from_timestamp_opt(ts, 0).unwrap();
+                let log = Log {
+                    address: log.address.clone(),
+                    block_hash: log.block_hash.clone(),
+                    block_number: log.block_number,
+                    data: log.data.clone(),
+                    log_index: log.log_index,
+                    removed: log.removed,
+                    topics: log.topics.clone(),
+                    transaction_hash: log.transaction_hash.clone(),
+                    transaction_index: log.transaction_index,
+                    transaction_log_index: log.transaction_log_index,
+                    year: date.year() as i16,
+                    month: date.month() as i8,
+                    day: date.day() as i8,
+                    timestamp: date.timestamp_micros(),
+                    decoded_data: None,
+                    log_type: log.log_type.clone(),
+                };
 
-                log.timestamp = Some(date.timestamp_micros());
-                log.year = Some(date.year() as i16);
-                log.month = Some(date.month() as i8);
-                log.day = Some(date.day() as i8);
-                // acc.entry(log.address.clone()).or_insert(vec![]).push(log.clone());
-                if acc.contains_key(&log.address.clone().unwrap()) {
-                    let logs: &Vec<Log> = acc.get(&log.address.clone().unwrap()).unwrap();
-                    let mut logs = logs.clone();
-                    logs.push(log.clone());
-                    acc.insert(log.address.clone().unwrap(), logs);
-                } else {
+                acc.entry(log.address.clone().unwrap()).or_insert(vec![]).push(log);
 
-                    acc.insert(log.address.clone().unwrap(), vec![log]);
-                }
                 acc
             })
             .reduce(||HashMap::new(), |mut acc, hm| {
@@ -154,7 +159,6 @@ async fn main() {
                                     day: log.day,
                                     log_type: log.log_type,
                                     transaction_log_index: log.transaction_log_index,
-                                    //todo decoded_data: Some(decoded_log.clone()),
                                     decoded_data: None,
                                 };
                                 decoded_logs.push(decoded);
@@ -175,9 +179,35 @@ async fn main() {
 
         debug!("Time elapsed is: {:?}ms", now.elapsed().as_millis());
 
+        let mongo_txs = block.1.unwrap().par_iter().map(|tx| {
+            let ts = block.0.clone().unwrap().timestamp.clone();
+            let date = NaiveDateTime::from_timestamp_opt(ts, 0).unwrap();
+            
+            Tx {
+                timestamp: date.timestamp_micros(),
+                year: date.year() as i16,
+                month: date.month() as i8,
+                day: date.day() as i8,
+                block_hash: tx.block_hash.clone(),
+                block_number: tx.block_number,
+                from: tx.from.clone(),
+                gas: tx.gas,
+                gas_price: tx.gas_price,
+                hash: tx.hash.clone(),
+                input: tx.input.clone(),
+                nonce: tx.nonce.clone(),
+                to: tx.to.clone(),
+                transaction_index: tx.transaction_index,
+                value: tx.value.clone(),
+                v: tx.v,
+                r: tx.r.clone(),
+                s: tx.s.clone(),
+            }
+        }).collect::<Vec<Tx>>();
+
         let (_, _) = tokio::join!(
             save_logs(&db, decoded_logs),
-            save_txs(&db, block.1.unwrap())
+            save_txs(&db, mongo_txs)
         );
         channel.basic_ack(delivery_data.delivery_tag, BasicAckOptions::default()).await.unwrap();
     }

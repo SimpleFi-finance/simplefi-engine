@@ -27,6 +27,7 @@ ethabi = { workspace = true }
 hex = {workspace = true}
 log = { workspace = true }
 shared_utils =  { path = "../shared_utils" }
+shared_types =  { path = "../shared_types" }
 
 [[bin]]
 name = "generate_settings"
