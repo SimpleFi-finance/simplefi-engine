@@ -5,7 +5,7 @@ use serde_json::json;
 use settings::load_settings as load_global_settings;
 use shared_types::chains::evm::log::Log;
 use shared_utils::logger::init_logging;
-use log::{ info, debug, error };
+use log::{ debug, error };
 use third_parties::mongo::{lib::bronze::logs::setters::save_logs, MongoConfig, Mongo};
 use tungstenite::{connect, Message};
 

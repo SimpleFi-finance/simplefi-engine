@@ -1,5 +1,3 @@
-use std::vec;
-
 use crate::mongo::{Mongo};
 use mongodb::{bson::doc, options::{FindOptions, FindOneOptions}};
 use super::types::Block;

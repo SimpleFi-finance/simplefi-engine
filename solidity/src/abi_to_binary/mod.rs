@@ -34,6 +34,7 @@ pub fn bytecode_to_abi(abi_bytecode: &Vec<u8>) -> Result<String, Box<dyn std::er
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused)]
     use bson::Binary;
     use serde_json::json;
 
@@ -140,7 +141,7 @@ mod tests {
 
         assert!(abi_ordered_string == abi_string2);
     }
-
+    #[allow(unused)]
     fn test_decode() {
         /* let bin = Binary {
 

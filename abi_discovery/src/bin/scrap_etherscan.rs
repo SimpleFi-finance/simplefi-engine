@@ -1,3 +1,4 @@
+#[allow(unused)]
 use abi_discovery::helpers::process_abi;
 // This binary should be listening a rabbit queue and when a message is received, it should
 // call the etherscan api to get the contract abi and save it in the database.
@@ -14,7 +15,7 @@ use third_parties::broker::{
     create_rmq_channel, process_queue_with_rate_limit, publish_rmq_message,
 };
 use third_parties::http::etherscan::get_abi;
-
+#[allow(unused)]
 async fn produce_messages(
     exchange: &String,
     routing_key: &String,

@@ -1,6 +1,6 @@
 use bson::{doc };
 use futures::stream::StreamExt;
-use mongodb::{ options::FindOneOptions, Cursor };
+use mongodb::{ options::FindOneOptions };
 
 use shared_types::mongo::abi::{ ContractAbiCollection, ContractAbiFlag, PartialIndexDoc, AbiJSONCollection, FactoryContractsCollection };
 use solidity::default_abis::{get_factory_abis, get_default_market_abis, get_factory_market_index};

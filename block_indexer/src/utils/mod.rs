@@ -1,8 +1,5 @@
-use chrono::{NaiveDateTime, Datelike};
 use ethers::types::*;
-use rayon::prelude::IntoParallelRefIterator;
 use serde_json::json;
-use rayon::iter::ParallelIterator;
 use shared_types::chains::evm::{tx::Tx, block::Block, log::Log};
 
 pub async fn get_block_with_txs(provider_uri: String, block_number: &u64 ) -> (Option<Block>, Option<Vec<Tx>>) {

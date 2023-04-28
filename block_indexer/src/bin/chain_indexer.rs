@@ -27,6 +27,7 @@ async fn main() {
     let global_settings = load_global_settings().unwrap();
     let local_settings = load_settings().unwrap();
     init_logging();
+    // todo selector to get txs and logs or just txs or just logs
 
     let queue_name = local_settings.new_blocks_queue_name.clone();
     let consumer_name = format!("{}_{}", String::from("ethereum"), String::from("block_indexer"));
@@ -54,6 +55,7 @@ async fn main() {
     };
 
     let db = Mongo::new(&db_config).await.unwrap();
+    // todo migrate the log decoding to new function
 
     while let Some(delivery) = consumer_stream.next().await {
         let delivery_data = delivery.unwrap();
@@ -141,6 +143,7 @@ async fn main() {
                     Some(event) => {
                         let decoded_log = event.parse_log(raw_log);
                         match decoded_log {
+                            #[allow(unused)]
                             Ok(decoded_log) => {
                                 // todo push to array to save logs in mongo
                                 let decoded = Log {

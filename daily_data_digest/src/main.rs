@@ -1,6 +1,6 @@
 use settings::load_settings;
 use third_parties::mongo::{MongoConfig, Mongo};
-
+#[allow(unused)]
 #[tokio::main]
 async fn main() {
     // connects to mongo instance, gets all data type for the day and saves into parquet and saves to given bucket/storage
