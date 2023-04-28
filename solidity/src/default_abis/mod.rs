@@ -7,7 +7,7 @@ pub struct FactoryAbi {
     pub abi: String,
     pub address: String,
 }
-
+#[allow(unused)]
 #[derive(Debug, Clone)]
 struct FactoryInfo {
     factory_address: String,
@@ -77,6 +77,7 @@ pub fn get_factory_market_index(address: &String) -> u32 {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused)]
     use super::*;
 
     /* #[test] */

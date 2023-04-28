@@ -1,11 +1,6 @@
-use chrono::{NaiveDateTime, Datelike};
 use ethers::types::*;
-use rayon::prelude::IntoParallelRefIterator;
 use serde_json::json;
-use third_parties::mongo::lib::bronze::blocks::types::Block;
-use third_parties::mongo::lib::bronze::logs::types::Log;
-use third_parties::mongo::lib::bronze::txs::types::Tx;
-use rayon::iter::ParallelIterator;
+use shared_types::chains::evm::{tx::Tx, block::Block, log::Log};
 
 pub async fn get_block_with_txs(provider_uri: String, block_number: &u64 ) -> (Option<Block>, Option<Vec<Tx>>) {
      let client = reqwest::Client::new();
@@ -32,18 +27,6 @@ pub async fn get_block_with_txs(provider_uri: String, block_number: &u64 ) -> (O
     // let response = request.json::<serde_json::Value>().await.unwrap();
     let block: Block = serde_json::from_value(response["result"].clone()).unwrap();
     let txs: Vec<Tx> = serde_json::from_value(response["result"]["transactions"].clone()).unwrap();
-
-    let txs = txs.par_iter().map(|tx| {
-        let mut tx = tx.clone();
-        let ts = block.timestamp.clone();
-        let datetime = NaiveDateTime::from_timestamp_opt(ts, 0).unwrap();
-
-        tx.timestamp = Some(datetime.timestamp_micros());
-        tx.year = Some(datetime.year() as i16);
-        tx.month = Some(datetime.month() as i8);
-        tx.day = Some(datetime.day() as i8);
-        tx
-    }).collect::<Vec<Tx>>();
 
     return (Some(block), Some(txs));
 }

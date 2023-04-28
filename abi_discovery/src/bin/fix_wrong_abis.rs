@@ -1,16 +1,18 @@
 use bson::Bson;
 use mongodb::{bson::doc, options::AggregateOptions};
 use futures::StreamExt;
+#[allow(unused)]
 use log::{debug, info, error};
 
 use abi_discovery::settings::load_settings;
 use shared_types::mongo::abi::{ContractAbiCollection, AbiJSONCollection};
 use shared_utils::logger::init_logging;
+#[allow(unused)]
 use third_parties::{redis::connect, mongo::{MongoConfig, Mongo}, broker::{publish_rmq_message, create_rmq_channel}};
 
 
 
-
+#[allow(unused)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_logging();

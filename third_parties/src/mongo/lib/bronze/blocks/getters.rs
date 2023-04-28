@@ -21,11 +21,12 @@ pub async fn get_blocks(
     }
 
     let find_options = FindOptions::builder()
-        .sort(doc! { "timestamp": 1 })
+        .sort(doc! { "timestamp": -1 })
         .projection(doc!{"_id": 0})
         .build();
 
-    let blocks_collection = db.collection::<Block>("blocks");
+    // todo load settings
+    let blocks_collection = db.collection::<Block>("blocks_bronze");
     
     if timestamp_from.is_some() {
         let ts_now = Utc::now().timestamp_micros();
@@ -67,6 +68,24 @@ pub async fn get_blocks(
 
         while let Some(block) = cursor.try_next().await? {
             blocks.push(block);
+        }
+    }
+
+    if blocknumber_from.is_none() && timestamp_from.is_none() {
+
+        let find_options = FindOneOptions::builder()
+            .sort(doc! { "timestamp": -1 })
+            .projection(doc!{"_id": 0})
+            .build();
+
+        let block = blocks_collection.find_one(None, find_options.clone()).await.unwrap();
+        match block {
+            Some(block) => {
+                blocks.push(block);
+            }
+            None => {
+                println!("No blocks found");
+            }
         }
     }
 

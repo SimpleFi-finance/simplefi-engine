@@ -9,7 +9,7 @@ use third_parties::{
         bind_queue_to_exchange, create_rmq_channel, declare_exchange, declare_rmq_queue,
         publish_rmq_message,
     },
-    mongo::{lib::bronze::blocks::setters::save_blocks, Mongo, MongoConfig},
+    mongo::{lib::bronze::blocks::{setters::save_blocks, types::Block}, Mongo, MongoConfig},
 };
 use tungstenite::{connect, Message};
 
@@ -77,7 +77,7 @@ async fn main() {
             .expect("Failed to bind queue");
 
         if result.params.is_some() {
-            let mut block = result.params.unwrap().result.unwrap();
+            let block = result.params.unwrap().result.unwrap();
 
             let bytes_serde = serde_json::to_vec(&block.number).unwrap();
 
@@ -86,10 +86,31 @@ async fn main() {
                 async {
                     let date = NaiveDateTime::from_timestamp_opt(block.timestamp, 0).unwrap();
                     let ts = date.timestamp_micros();
-                    block.timestamp = ts;
-                    block.year = Some(date.year() as i16);
-                    block.month = Some(date.month() as i8);
-                    block.day = Some(date.day() as i8);
+                    
+                    let block = Block {
+                        timestamp: ts,
+                        year: date.year() as i16,
+                        month: date.month() as i8,
+                        day: date.day() as i8,
+                        number: block.number,
+                        hash: block.hash,
+                        parent_hash: block.parent_hash,
+                        nonce: block.nonce,
+                        transactions_root: block.transactions_root,
+                        state_root: block.state_root,
+                        receipts_root: block.receipts_root,
+                        miner: block.miner,
+                        difficulty: block.difficulty,
+                        mix_hash: block.mix_hash,
+                        extra_data: block.extra_data,
+                        logs_bloom: block.logs_bloom,
+                        gas_limit: block.gas_limit,
+                        gas_used: block.gas_used,
+                        uncles_hash: block.uncles_hash,
+                        base_fee_per_gas: block.base_fee_per_gas,
+                        withdrawals_root: block.withdrawals_root,
+                    };
+
                     save_blocks(&db, vec![block]).await.unwrap();
                 }
             );

@@ -1,5 +1,4 @@
-use ethabi::{  Contract };
-
+#[allow(unused)]
 pub fn decode_abi(log_data: &Vec<i32>, ) {
     println!("Hello, world!");
 
@@ -15,8 +14,9 @@ pub fn decode_abi(log_data: &Vec<i32>, ) {
 
 #[cfg(test)]
 mod tests {
+    #[allow(unused)]
     use ethabi::Event;
-
+    #[allow(unused)]
     use super::*;
 
     #[test]

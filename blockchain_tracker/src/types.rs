@@ -1,5 +1,5 @@
-use third_parties::mongo::lib::bronze::blocks::types::Block;
 use serde::{Deserialize, Serialize};
+use shared_types::chains::evm::block::Block;
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct NewHeadsEvent {

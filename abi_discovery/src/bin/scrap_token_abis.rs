@@ -7,7 +7,7 @@ use abi_discovery::{
     types::{ResponseBody, TokensCollection},
 };
 use third_parties::{mongo::{Mongo, MongoConfig}, broker::{publish_rmq_message, create_rmq_channel}};
-
+#[allow(unused)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     println!("Hello, world!");
@@ -95,7 +95,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     continue;
 
                     // address = "0x6b175474e89094c44da98b954eedeac495271d0f".to_string();
-
                     let url =
                         "https://simple-web3-api.herokuapp.com/contracts/get-etherscan-importable";
 
