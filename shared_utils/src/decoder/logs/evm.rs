@@ -1,6 +1,6 @@
 use std::{error::Error, collections::HashMap};
 use log::info;
-use third_parties::mongo::lib::bronze::decoding_error::types::DecodingError;
+use third_parties::mongo::lib::bronze::decoding_error::types::{DecodingError, ErrorType};
 use std::str::FromStr;
 use rayon::{iter::ParallelIterator};
 use rayon::prelude::{IntoParallelRefIterator};
@@ -144,7 +144,7 @@ pub fn evm_logs_decoder(logs: Vec<Log>, abis: Vec<ContractAbi>) -> Result<(Vec<L
                                             // push error to mongo
                                             let error = DecodingError {
                                                 timestamp: log.timestamp,
-                                                error: "unsupported_data_type".to_string(),
+                                                error: ErrorType::UnsupportedDataType,
                                                 contract_address: log.address.clone().unwrap(),
                                                 log: format!("{}|{}|{}", tx_hash, log.transaction_index, log.log_index),
                                             };
@@ -187,7 +187,7 @@ pub fn evm_logs_decoder(logs: Vec<Log>, abis: Vec<ContractAbi>) -> Result<(Vec<L
                                 info!("error invalid data: {:?}", e);
                                 let error = DecodingError {
                                     timestamp: log.timestamp,
-                                    error: "invalid_data".to_string(),
+                                    error: ErrorType::InvalidData,
                                     contract_address: log.address.clone().unwrap(),
                                     log: format!("{}|{}|{}", tx_hash, log.transaction_index, log.log_index),
                                 };
@@ -200,7 +200,7 @@ pub fn evm_logs_decoder(logs: Vec<Log>, abis: Vec<ContractAbi>) -> Result<(Vec<L
                         info!("event not found for address {:?}", &log.address);
                         let error = DecodingError {
                             timestamp: log.timestamp,
-                            error: "event_not_found".to_string(),
+                            error: ErrorType::EventNotFound,
                             contract_address: log.address.clone().unwrap(),
                             log: format!("{}|{}|{}", tx_hash, log.transaction_index, log.log_index),
                         };
