@@ -1,16 +1,18 @@
 // command to init collection in database with indexes
 
 use mongodb::{options::IndexOptions, IndexModel, bson::doc};
+use settings::load_settings;
 
 use crate::mongo::{MongoConfig, Mongo};
 
 use super::types::Block;
 
 pub async fn blocks_db () -> Result<Mongo, Box<dyn std::error::Error>> {
-    // todo get mongo settings from config file
+    let global_settings = load_settings().unwrap();
+
     let blocks_db_config = MongoConfig {
-        uri: String::from("mongodb://localhost:27017"),
-        database: "blocks_bronze".to_string(),
+        uri: global_settings.mongodb_uri,
+        database: global_settings.mongodb_database_name,
     };
 
     let blocks_db = Mongo::new(&blocks_db_config)
@@ -21,6 +23,8 @@ pub async fn blocks_db () -> Result<Mongo, Box<dyn std::error::Error>> {
 }
 
 pub async fn init_blocks_bronze(db: &Mongo) -> Result<(), Box<dyn std::error::Error>> {
+    let global_settings = load_settings().unwrap();
+   
     let blocks_db = db;
 
     let unique_options = IndexOptions::builder().unique(true).build();
@@ -35,13 +39,13 @@ pub async fn init_blocks_bronze(db: &Mongo) -> Result<(), Box<dyn std::error::Er
         .build();
 
     blocks_db
-        .collection::<Block>("blocks_bronze")
+        .collection::<Block>(&global_settings.blocks_bronze_collection_name)
         .create_index(unique_number, None)
         .await
         .expect("error creating block unique index!");
 
     blocks_db
-        .collection::<Block>("blocks_bronze")
+        .collection::<Block>(&global_settings.blocks_bronze_collection_name)
         .create_index(indexes_generic, None)
         .await
         .expect("error creating ts index!");

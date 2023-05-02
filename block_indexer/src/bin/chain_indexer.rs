@@ -1,6 +1,6 @@
 use std::{collections::{HashSet}, time::Instant};
 
-use block_indexer::{utils::{get_block_logs, get_block_with_txs}, settings::load_settings};
+use block_indexer::utils::{get_block_logs, get_block_with_txs};
 use chrono::{Datelike, NaiveDateTime};
 use futures::{StreamExt, TryStreamExt};
 use grpc_server::{client::AbiDiscoveryClient};
@@ -24,13 +24,12 @@ use third_parties::{
 #[tokio::main]
 async fn main() {
     let global_settings = load_global_settings().unwrap();
-    let local_settings = load_settings().unwrap();
     init_logging();
     // todo selector to get txs and logs or just txs or just logs
 
-    let queue_name = local_settings.new_blocks_queue_name.clone();
+    let queue_name = global_settings.new_blocks_queue_name.clone();
     let consumer_name = format!("{}_{}", String::from("ethereum"), String::from("block_indexer"));
-    let rmq_uri = local_settings.rabbit_mq_url.clone();
+    let rmq_uri = global_settings.rabbit_mq_url.clone();
     let channel = create_rmq_channel(&rmq_uri).await.unwrap();
 
     let consumer = channel
@@ -49,8 +48,8 @@ async fn main() {
     let provider_url = format!("{}{}", global_settings.infura_mainnet_rpc, global_settings.infura_token);
 
     let db_config = MongoConfig {
-        uri: local_settings.mongodb_uri.clone(),
-        database: local_settings.mongodb_database_name.clone(),
+        uri: global_settings.mongodb_uri.clone(),
+        database: global_settings.mongodb_database_name.clone(),
     };
 
     let db = Mongo::new(&db_config).await.unwrap();

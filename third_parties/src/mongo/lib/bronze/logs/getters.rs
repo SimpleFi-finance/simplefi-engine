@@ -3,6 +3,7 @@ use mongodb::{
     bson::doc,
     options::FindOptions
 };
+use settings::load_settings;
 
 use crate::mongo::Mongo;
 
@@ -14,8 +15,10 @@ pub async fn get_logs(
     timestamp_from: Option<i64>,
     timestamp_to: Option<i64>,
 ) -> Result<Vec<Log>, Box<dyn std::error::Error>> {
+
+    let global_settings = load_settings().unwrap();
     let mut logs = Vec::new();
-    let logs_collection = db.collection::<Log>("logs_bronze");
+    let logs_collection = db.collection::<Log>(&global_settings.logs_bronze_collection_name);
     let find_options = FindOptions::builder()
         .sort(doc! { "timestamp": 1 })
         .projection(doc!{"_id": 0})

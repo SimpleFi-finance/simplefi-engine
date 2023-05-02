@@ -1,9 +1,13 @@
+use settings::load_settings;
+
 use crate::mongo::Mongo;
 
 use super::types::Block;
 
 pub async fn save_blocks (db: &Mongo, blocks: Vec<Block>) -> Result<(), Box<dyn std::error::Error>> {
-    let blocks_collection = db.collection::<Block>("blocks_bronze");
+    let global_settings = load_settings().unwrap();
+    
+    let blocks_collection = db.collection::<Block>(&global_settings.blocks_bronze_collection_name);
     blocks_collection.insert_many(blocks, None).await?;
 
     Ok(())

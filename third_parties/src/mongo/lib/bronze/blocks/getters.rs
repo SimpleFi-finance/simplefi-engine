@@ -1,5 +1,6 @@
 use crate::mongo::{Mongo};
 use mongodb::{bson::doc, options::{FindOptions, FindOneOptions}};
+use settings::load_settings;
 use super::types::Block;
 use futures::stream::TryStreamExt;
 use chrono::Utc;
@@ -11,7 +12,7 @@ pub async fn get_blocks(
     blocknumber_from: Option<i64>,
     blocknumber_to: Option<i64>,
 ) -> Result<Vec<Block>, Box<dyn std::error::Error>> {
-
+    let global_settings = load_settings().unwrap();
     // todo implement pagination
 
     let mut blocks = Vec::new();
@@ -26,7 +27,7 @@ pub async fn get_blocks(
         .build();
 
     // todo load settings
-    let blocks_collection = db.collection::<Block>("blocks_bronze");
+    let blocks_collection = db.collection::<Block>(&global_settings.blocks_bronze_collection_name);
     
     if timestamp_from.is_some() {
         let ts_now = Utc::now().timestamp_micros();
@@ -97,6 +98,8 @@ pub async fn get_block(
     block_number: Option<i64>,
     timestamp: Option<i64>,
 ) -> Result<Option<Block>, Box<dyn std::error::Error>> {
+    
+    let global_settings = load_settings().unwrap();
     // todo implement filter logic
 
     if block_number.is_some() && timestamp.is_some() {
@@ -107,7 +110,7 @@ pub async fn get_block(
         panic!("One bteween block_number and timestamp must be set");
     }
 
-    let blocks_collection = db.collection::<Block>("blocks_bronze");
+    let blocks_collection = db.collection::<Block>(&global_settings.blocks_bronze_collection_name);
     let find_options = FindOneOptions::builder()
         .sort(doc!{ "timestamp": 1 })
         .projection(doc!{"_id": 0})

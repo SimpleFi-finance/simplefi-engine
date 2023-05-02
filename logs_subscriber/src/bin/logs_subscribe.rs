@@ -12,7 +12,8 @@ use tungstenite::{connect, Message};
 #[tokio::main]
 async fn main() {
     let global_settings = load_global_settings().unwrap();
-    let local_settings = load_settings().unwrap();
+    // let local_settings = load_settings().unwrap();
+    
     init_logging();
 
     let mut logs_hm: HashMap<i64, Vec<Log>> = HashMap::new();
@@ -32,8 +33,8 @@ async fn main() {
     socket2.write_message(Message::Text(request_str)).unwrap();
     let mut last_bn = 0;
     let db_config = MongoConfig {
-        uri: local_settings.mongodb_uri.clone(),
-        database: local_settings.mongodb_database_name.clone(),
+        uri: global_settings.mongodb_uri.clone(),
+        database: global_settings.mongodb_database_name.clone(),
     };
 
     let db = Mongo::new(&db_config).await.unwrap();

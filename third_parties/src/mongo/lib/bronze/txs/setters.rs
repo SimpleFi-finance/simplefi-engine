@@ -1,9 +1,13 @@
+use settings::load_settings;
+
 use crate::mongo::Mongo;
 
 use super::types::Tx;
 
 pub async fn save_txs(db: &Mongo, txs: Vec<Tx>) -> Result<(), Box<dyn std::error::Error>> {
-    let txs_collection = db.collection::<Tx>("txs_bronze");
+    let global_settings = load_settings().unwrap();
+    
+    let txs_collection = db.collection::<Tx>(&global_settings.txs_bronze_collection_name);
 
     txs_collection.insert_many(txs, None).await?;
 

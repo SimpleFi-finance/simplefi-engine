@@ -51,11 +51,7 @@ pub struct LogsSubscriberSettings {
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct MyLogsSubscriberSettings {
-    // MongoDB Settings
-    pub mongodb_uri: String,
-    pub mongodb_engine_db: String,
-    pub mongodb_database_name: String,
-    pub logs_bronze_collection_name: String,
+
     pub chain: String,
 }
 
@@ -63,17 +59,9 @@ pub struct MyLogsSubscriberSettings {
 
 impl MyLogsSubscriberSettings {
     pub fn new(
-        mongodb_uri: String,
-        mongodb_engine_db: String,
-        mongodb_database_name: String,
-        logs_bronze_collection_name: String,
         chain: String,
     ) -> Self {
         MyLogsSubscriberSettings {
-            mongodb_uri,
-            mongodb_engine_db,
-            mongodb_database_name,
-            logs_bronze_collection_name,
             chain
         }
     }
@@ -82,10 +70,6 @@ impl MyLogsSubscriberSettings {
 
 pub fn load_settings() -> Result<MyLogsSubscriberSettings, ConfyError> {
     let default_settings = MyLogsSubscriberSettings {
-        mongodb_uri: String::from("mongodb://localhost:27017/"),
-        mongodb_engine_db: String::from("simplefi_engine"),
-        mongodb_database_name: String::from("simplefi_data"),
-        logs_bronze_collection_name: String::from("logs_bronze"),
         chain: String::from("ethereum"),
     };
 
