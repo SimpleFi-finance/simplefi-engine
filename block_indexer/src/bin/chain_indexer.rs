@@ -15,7 +15,7 @@ use third_parties::{
     mongo::{
         lib::bronze::{
             logs::{setters::save_logs, types::Log},
-            txs::{setters::save_txs, types::Tx},
+            txs::{setters::save_txs, types::Tx}, decoding_error::setters::save_decoding_error,
         },
         Mongo, MongoConfig,
     },
@@ -144,8 +144,9 @@ async fn main() {
             }
         }).collect::<Vec<Tx>>();
 
-        let (_, _) = tokio::join!(
-            save_logs(&db, decoded_logs),
+        let (_, _, _) = tokio::join!(
+            save_logs(&db, decoded_logs.0),
+            save_decoding_error(&db, decoded_logs.1),
             save_txs(&db, mongo_txs)
         );
 

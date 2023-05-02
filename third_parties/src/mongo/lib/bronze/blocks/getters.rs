@@ -1,6 +1,7 @@
 use crate::mongo::{Mongo};
 use mongodb::{bson::doc, options::{FindOptions, FindOneOptions}};
 use settings::load_settings;
+use log::debug;
 use super::types::Block;
 use futures::stream::TryStreamExt;
 use chrono::Utc;
@@ -48,7 +49,6 @@ pub async fn get_blocks(
 
     if blocknumber_from.is_some() {
         
-        println!("blocknumber_from: {:?}", &blocknumber_from);
         let filter = if blocknumber_to.is_some() {
             doc! {
                 "number": {
@@ -84,7 +84,7 @@ pub async fn get_blocks(
                 blocks.push(block);
             }
             None => {
-                println!("No blocks found");
+                debug!("No blocks found");
             }
         }
     }

@@ -1,4 +1,5 @@
 use std::collections::{HashSet};
+use std::time::Instant;
 use grpc_server::client::AbiDiscoveryClient;
 use rayon::{iter::ParallelIterator};
 use rayon::prelude::{IntoParallelRefIterator, IntoParallelIterator};
@@ -7,18 +8,17 @@ use shared_utils::decoder::logs::evm::evm_logs_decoder;
 use shared_utils::decoder::types::ContractAbi;
 use third_parties::mongo::Mongo;
 use third_parties::mongo::lib::bronze::blocks::getters::get_blocks;
+use third_parties::mongo::lib::bronze::decoding_error::types::DecodingError;
 use third_parties::mongo::lib::bronze::logs::types::Log as MongoLog;
 
 // returns logs with extra info such as timestamp, year, month, day, decoded_data. if a log does not have an abi available the decoded_data field will be empty
-pub async fn decode_logs(logs: Vec<Log>, db: &Mongo) -> Result<Vec<MongoLog>, Box<dyn std::error::Error>> {
-
+pub async fn decode_logs(logs: Vec<Log>, db: &Mongo) -> Result<(Vec<MongoLog>, Vec<DecodingError>), Box<dyn std::error::Error>> {
     // todo remove hardcode of the service url
     let mut abi_discovery_client = AbiDiscoveryClient::new("http://[::1]:50051".to_string()).await;
 
     let block_data = get_blocks(db, None, None, None, None).await.unwrap();
-    println!("block data: {:?}", block_data);
+
     let block = block_data.first();
-    println!("block: {:?}", block);
 
     let block_time = match block {
         Some(block) => (block.timestamp, block.year, block.month, block.day),
@@ -38,8 +38,8 @@ pub async fn decode_logs(logs: Vec<Log>, db: &Mongo) -> Result<Vec<MongoLog>, Bo
 
     let abis_response = abis_addresses.into_inner();
 
-    // todo add ts and date to logs
     let logs = logs.par_iter().map(|log| {
+
         MongoLog {
             address: log.address.clone(),
             topics: log.topics.clone(),

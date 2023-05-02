@@ -1,5 +1,6 @@
 use std::{error::Error, collections::HashMap};
-use log::{error};
+use log::info;
+use third_parties::mongo::lib::bronze::decoding_error::types::DecodingError;
 use std::str::FromStr;
 use rayon::{iter::ParallelIterator};
 use rayon::prelude::{IntoParallelRefIterator};
@@ -48,7 +49,9 @@ fn get_token_type(token: Token) -> Result<TokenWType, Box<dyn Error>> {
     })
 }
 
-pub fn evm_logs_decoder(logs: Vec<Log>, abis: Vec<ContractAbi>) -> Result<Vec<Log>, Box<dyn Error>>{
+pub fn evm_logs_decoder(logs: Vec<Log>, abis: Vec<ContractAbi>) -> Result<(Vec<Log>, Vec<DecodingError>), Box<dyn Error>>{
+
+
     let logs_by_address = logs
         .par_iter()
         .fold(||HashMap::new(), |mut acc, log| {
@@ -93,15 +96,20 @@ pub fn evm_logs_decoder(logs: Vec<Log>, abis: Vec<ContractAbi>) -> Result<Vec<Lo
         .filter(|a| !contracts_with_abi.contains(a))
         .collect::<Vec<&String>>();
 
-    let decoded = contracts_with_abi
+    let decoded_logs = contracts_with_abi
         .par_iter()
         .map(|address| {
             let logs_of_address = logs_by_address.get(address).unwrap();
+            
+            let mut errors = vec![];
 
             let decoded = logs_of_address
-            .par_iter()
+            .iter()
             .map(|log| {
+
                 let log = log.clone();
+                let tx_hash = log.transaction_hash.clone().unwrap();
+
                 let h256_topics = log.topics.iter().map(|t| H256::from_str(t).unwrap()).collect::<Vec<H256>>();
                 let bytes = hex::decode(log.data.clone().unwrap().strip_prefix("0x").unwrap()).unwrap();
                 let raw_log = RawLog {
@@ -132,7 +140,17 @@ pub fn evm_logs_decoder(logs: Vec<Log>, abis: Vec<ContractAbi>) -> Result<Vec<Lo
                                             decoded_data
                                         },
                                         Err(e) => {
-                                            error!("error: {:?}", e);
+                                            info!("unsupported_data_type: {:?}", e);
+                                            // push error to mongo
+                                            let error = DecodingError {
+                                                timestamp: log.timestamp,
+                                                error: "unsupported_data_type".to_string(),
+                                                contract_address: log.address.clone().unwrap(),
+                                                log: format!("{}|{}|{}", tx_hash, log.transaction_index, log.log_index),
+                                            };
+
+                                            errors.push(error);
+
                                             DecodedData {
                                                 name: d.name.clone(),
                                                 value: d.value.to_string(),
@@ -166,22 +184,44 @@ pub fn evm_logs_decoder(logs: Vec<Log>, abis: Vec<ContractAbi>) -> Result<Vec<Lo
                                 decoded_log
                             },
                             Err(e) => {
-                                error!("error: {:?}", e);
+                                info!("error invalid data: {:?}", e);
+                                let error = DecodingError {
+                                    timestamp: log.timestamp,
+                                    error: "invalid_data".to_string(),
+                                    contract_address: log.address.clone().unwrap(),
+                                    log: format!("{}|{}|{}", tx_hash, log.transaction_index, log.log_index),
+                                };
+                                errors.push(error);
                                 log.clone()
                             }
                         }
                     },
                     None => {
-                        error!("event not found for address {:?}", &log.address);
+                        info!("event not found for address {:?}", &log.address);
+                        let error = DecodingError {
+                            timestamp: log.timestamp,
+                            error: "event_not_found".to_string(),
+                            contract_address: log.address.clone().unwrap(),
+                            log: format!("{}|{}|{}", tx_hash, log.transaction_index, log.log_index),
+                        };
+                        errors.push(error);
                         log.clone()
                     }
                 }
-            });
+            })
+            .collect::<Vec<Log>>();
 
-            decoded
+            (decoded, errors)
         })
-        .flatten()
-        .collect::<Vec<Log>>();
+        .collect::<Vec<(Vec<Log>, Vec<DecodingError>)>>();
+    
+    let mut decoding_errors = vec![];
+    let mut decoded = vec![];
+
+    for (d, e) in decoded_logs {
+        decoded.extend(d);
+        decoding_errors.extend(e);
+    }
 
     let undecoded = contract_no_abi
         .par_iter()
@@ -195,5 +235,5 @@ pub fn evm_logs_decoder(logs: Vec<Log>, abis: Vec<ContractAbi>) -> Result<Vec<Lo
 
     let decoded_logs: Vec<Log> = [decoded, undecoded].concat();
 
-    Ok(decoded_logs)
+    Ok((decoded_logs, decoding_errors))
 }

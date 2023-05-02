@@ -8,6 +8,11 @@ pub async fn save_blocks (db: &Mongo, blocks: Vec<Block>) -> Result<(), Box<dyn 
     let global_settings = load_settings().unwrap();
     
     let blocks_collection = db.collection::<Block>(&global_settings.blocks_bronze_collection_name);
+
+    if blocks.len() == 0 {
+        return Ok(())
+    }
+
     blocks_collection.insert_many(blocks, None).await?;
 
     Ok(())

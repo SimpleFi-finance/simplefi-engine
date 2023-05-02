@@ -5,8 +5,8 @@ use serde_json::json;
 use settings::load_settings as load_global_settings;
 use shared_types::chains::evm::log::Log;
 use shared_utils::logger::init_logging;
-use log::{ debug, error };
-use third_parties::mongo::{lib::bronze::logs::setters::save_logs, MongoConfig, Mongo};
+use log::{ debug, info };
+use third_parties::mongo::{lib::bronze::{logs::setters::save_logs, decoding_error::setters::save_decoding_error}, MongoConfig, Mongo};
 use tungstenite::{connect, Message};
 
 #[tokio::main]
@@ -18,7 +18,7 @@ async fn main() {
     let mut logs_hm: HashMap<i64, Vec<Log>> = HashMap::new();
 
     let wss_url = format!("{}{}", global_settings.infura_mainnet_ws, global_settings.infura_token);
-
+    println!("{}", wss_url);
     let request_method = json!({
         "jsonrpc": "2.0",
         "id": 1,
@@ -30,6 +30,7 @@ async fn main() {
 
     let (mut socket2, _response) = connect(&wss_url).expect("Can't connect");
     socket2.write_message(Message::Text(request_str)).unwrap();
+
     let mut last_bn = 0;
     let db_config = MongoConfig {
         uri: global_settings.mongodb_uri.clone(),
@@ -50,7 +51,7 @@ async fn main() {
                     Some(data) => {
                         if data.block_number > last_bn {
                             // trigger reading of previous block and decoding
-                            debug!("");
+                            info!("");
                             let prev_block_data = logs_hm.get(&last_bn);
                             match prev_block_data {
                                 Some(prev_block_data) => {
@@ -63,23 +64,25 @@ async fn main() {
                                         let now = std::time::Instant::now();
                                         let last_bn = bn.clone();
                                         let decoded = decode_logs(logs, &db).await.unwrap();
-                                        // save to mongodb
-                                        save_logs(&db, decoded).await.unwrap();
+
+                                        save_logs(&db, decoded.0).await.unwrap();
+                                        save_decoding_error(&db, decoded.1).await.unwrap();
+
                                         debug!("Prev block {:?} data decoded", &last_bn);
                                         debug!("Decoding took {:?}", now.elapsed());
                                     });
                                 }
-                                None => {error!("No prev block data")}
+                                None => {info!("No prev block data")}
                             }
 
                             last_bn = data.block_number;
                         }
                         logs_hm.entry(data.block_number).or_insert(Vec::new()).push(data.clone());
                     }
-                    None => {error!("No log data")}
+                    None => {info!("No log data")}
                 }
             }
-            None => {error!("No result data")}
+            None => {info!("No result data")}
         }
     }
 }

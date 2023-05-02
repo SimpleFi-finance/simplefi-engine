@@ -8,7 +8,9 @@ pub async fn save_txs(db: &Mongo, txs: Vec<Tx>) -> Result<(), Box<dyn std::error
     let global_settings = load_settings().unwrap();
     
     let txs_collection = db.collection::<Tx>(&global_settings.txs_bronze_collection_name);
-
+    if txs.len() == 0 {
+        return Ok(())
+    }
     txs_collection.insert_many(txs, None).await?;
 
     Ok(())
