@@ -1,3 +1,5 @@
+use settings::load_settings;
+
 use crate::mongo::{
     Mongo,
 };
@@ -5,7 +7,10 @@ use crate::mongo::{
 use super::types::Log;
 
 pub async fn save_logs(db: &Mongo, logs: Vec<Log>) -> Result<(), Box<dyn std::error::Error>> {
-    let logs_collection = db.collection::<Log>("logs_bronze");
+    
+    let global_settings = load_settings().unwrap();
+
+    let logs_collection = db.collection::<Log>(&global_settings.logs_bronze_collection_name);
 
     logs_collection.insert_many(logs, None).await?;
 

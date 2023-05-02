@@ -1,4 +1,4 @@
-use blockchain_tracker::{types::NewHeadsEvent, settings::load_settings};
+use blockchain_tracker::types::NewHeadsEvent;
 use chrono::{Datelike, NaiveDateTime};
 use lapin::options::BasicQosOptions;
 use serde_json::json;
@@ -18,7 +18,7 @@ async fn main() {
     // connects to node wss endpoint and listens to new blocks (can store block data as it comes in)
     // todo load settings and select chain
     let glob_settings = load_global_settings().unwrap();
-    let local_settings = load_settings().unwrap();
+
     init_logging();
     // load wss from chain and start syncing
 
@@ -37,8 +37,8 @@ async fn main() {
     socket.write_message(Message::Text(request_str)).unwrap();
 
     let mongo_config = MongoConfig {
-        uri: local_settings.mongodb_uri,
-        database: local_settings.mongodb_database_name,
+        uri: glob_settings.mongodb_uri,
+        database: glob_settings.mongodb_database_name,
     };
 
     let db = Mongo::new(&mongo_config).await.unwrap();
@@ -49,10 +49,10 @@ async fn main() {
         let result: NewHeadsEvent = serde_json::from_str(&msg).unwrap();
 
         // load from localsettings
-        let queue_name = local_settings.new_blocks_queue_name.clone();
-        let exchange_name = format!("{}_{}", String::from("ethereum"), local_settings.new_block_exchange_name.clone());
+        let queue_name = glob_settings.new_blocks_queue_name.clone();
+        let exchange_name = format!("{}_{}", String::from("ethereum"), glob_settings.new_block_exchange_name.clone());
 
-        let rmq_uri = local_settings.rabbit_mq_url.clone();
+        let rmq_uri = glob_settings.rabbit_mq_url.clone();
 
         let channel = create_rmq_channel(&rmq_uri).await.unwrap();
 

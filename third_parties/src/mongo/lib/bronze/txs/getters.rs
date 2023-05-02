@@ -1,5 +1,6 @@
 use crate::mongo::{Mongo};
 use mongodb::{bson::doc, options::{FindOptions}};
+use settings::load_settings;
 use super::types::Tx;
 use futures::stream::TryStreamExt;
 use chrono::Utc;
@@ -13,6 +14,8 @@ pub async fn get_txs (
     blocknumber_from: Option<i64>,
     blocknumber_to: Option<i64>,
 )  -> Result<Vec<Tx>, Box<dyn std::error::Error>> {
+    let global_settings = load_settings().unwrap();
+
     let mut txs = Vec::new();
 
     if address.is_none() && timestamp_from.is_none() && timestamp_to.is_none() && blocknumber_from.is_none() && blocknumber_to.is_none() {
@@ -28,7 +31,7 @@ pub async fn get_txs (
         .projection(doc!{"_id": 0})
         .build();
 
-    let txs_collection = db.collection::<Tx>("txs_bronze");
+    let txs_collection = db.collection::<Tx>(&global_settings.txs_bronze_collection_name);
 
     let mut filter = doc!{};
 

@@ -19,6 +19,8 @@ fn main() {
     let my_local_settings: MySettings =  {
         let rabbit_mq_url = settings.rabbit_mq_url;
         let abi_discovery_exchange_name = settings.abi_discovery_exchange_name;
+        let new_blocks_queue_name = settings.new_blocks_queue_name;
+        let new_block_exchange_name = settings.new_block_exchange_name;
         let gooogle_service_account_file = settings.gooogle_service_account_file;
         let infura_token = settings.infura_token;
         let etherscan_api_keys = settings.etherscan_api_keys;
@@ -30,6 +32,10 @@ fn main() {
         let local_mainnet_ws = settings.local_mainnet_ws;
         let mongodb_uri = settings.mongodb_uri;
         let mongodb_database_name = settings.mongodb_database_name;
+        let logs_bronze_collection_name = settings.logs_bronze_collection_name;
+        let txs_bronze_collection_name = settings.txs_bronze_collection_name;
+        let blocks_bronze_collection_name = settings.blocks_bronze_collection_name;
+        let decoding_error_bronze_collection_name = settings.decoding_error_bronze_collection_name;
         let redis_uri = settings.redis_uri;
         let log_level = settings.log_level;
         let log_file = settings.log_file;
@@ -37,6 +43,8 @@ fn main() {
         MySettings {
             rabbit_mq_url,
             abi_discovery_exchange_name,
+            new_blocks_queue_name,
+            new_block_exchange_name,
             gooogle_service_account_file,
             infura_token,
             etherscan_api_keys,
@@ -48,6 +56,10 @@ fn main() {
             local_mainnet_ws,
             mongodb_uri,
             mongodb_database_name,
+            logs_bronze_collection_name,
+            txs_bronze_collection_name,
+            blocks_bronze_collection_name,
+            decoding_error_bronze_collection_name,
             redis_uri,
             log_level,
             log_file,
