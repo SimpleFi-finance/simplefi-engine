@@ -26,7 +26,6 @@ pub async fn get_blocks(
         .projection(doc!{"_id": 0})
         .build();
 
-    // todo load settings
     let blocks_collection = db.collection::<Block>(&global_settings.blocks_bronze_collection_name);
     
     if timestamp_from.is_some() {
