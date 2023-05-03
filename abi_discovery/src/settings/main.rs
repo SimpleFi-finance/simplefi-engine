@@ -27,10 +27,12 @@ fn main() {
         let redis_abi_key_prefix = settings.redis_abi_key_prefix;
         let redis_key_ttl_expire_ms = settings.redis_key_ttl_expire_ms;
         let etherscan_api_keys = settings.etherscan_api_keys;
+        let redis_tracked_addresses_set = settings.redis_tracked_addresses_set;
         let mongodb_uri = settings.mongodb_uri;
         let mongodb_database_name = settings.mongodb_database_name;
         let mongodb_abi_collection = settings.mongodb_abi_collection;
         let mongodb_contract_abi_collection = settings.mongodb_contract_abi_collection;
+        let mongodb_abi_events_collection = settings.mongodb_abi_events_collection;
         let mongodb_factory_contracts_collection = settings.mongodb_factory_contracts_collection;
         let rabbit_mq_url = settings.rabbit_mq_url;
         let rabbit_exchange_name = settings.rabbit_exchange_name;
@@ -38,11 +40,13 @@ fn main() {
             redis_uri,
             redis_abi_key_prefix,
             redis_key_ttl_expire_ms,
+            redis_tracked_addresses_set,
             etherscan_api_keys,
             mongodb_uri,
             mongodb_database_name,
             mongodb_abi_collection,
             mongodb_contract_abi_collection,
+            mongodb_abi_events_collection,
             mongodb_factory_contracts_collection,
             rabbit_mq_url,
             rabbit_exchange_name,

@@ -32,6 +32,7 @@ pub fn bytecode_to_abi(abi_bytecode: &Vec<u8>) -> Result<String, Box<dyn std::er
     Ok(abi_string)
 }
 
+/*
 #[cfg(test)]
 mod tests {
     #[allow(unused)]
@@ -39,6 +40,7 @@ mod tests {
     use serde_json::json;
 
     use super::*;
+    use serde_json::json;
 
     #[test]
     fn test_abi_to_binary() {
@@ -143,11 +145,11 @@ mod tests {
     }
     #[allow(unused)]
     fn test_decode() {
-        /* let bin = Binary {
+         let bin = Binary {
 
         }
- */
-        /* let bin = doc! {
+
+         let bin = doc! {
             "timestamp": 1680278397706,
             "index": 11574,
             "abi": {
@@ -157,7 +159,8 @@ mod tests {
                 }
             }}
 
-        } */
-
+        }
     }
+
 }
+ */

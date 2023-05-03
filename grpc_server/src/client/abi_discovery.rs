@@ -5,6 +5,7 @@ use crate::abi_discovery_proto::abi_discovery_service_client::AbiDiscoveryServic
 use crate::abi_discovery_proto::{
     GetAddressesAbiRequest, TrackedAddressesRequest, AddFactoryAddressesRequest,
     AddFactoryAddressesResponse, GetAddressesAbiResponse, TrackedAddressesResponse, GetAddressesAbiJsonResponse,
+    GetAbiEventsRequest, GetAbiEventsResponse,
 };
 
 
@@ -45,6 +46,14 @@ impl AbiDiscoveryClient {
 
         response
     }
+
+    pub async fn get_abi_events(&mut self, signatures: Vec<String>) -> Response<GetAbiEventsResponse> {
+        let request = Request::new(GetAbiEventsRequest { signatures });
+        let response = self.client.get_signatures_event(request).await.unwrap();
+
+        response
+    }
+
 }
 
 #[cfg(test)]

@@ -18,7 +18,7 @@ pub async fn save_abi_json(
             AbiJSONCollection {
                 timestamp: Utc::now().timestamp_millis() as i64,
                 index: *index,
-                abi: abi,
+                abi: abi.trim().replace(" ", ""),
             },
             None,
         )

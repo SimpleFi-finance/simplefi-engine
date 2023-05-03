@@ -1,27 +1,26 @@
 use bson::Bson;
 use mongodb::{bson::doc, options::AggregateOptions};
 use futures::StreamExt;
+
+
 #[allow(unused)]
 use log::{debug, info, error};
 
 use abi_discovery::settings::load_settings;
 use shared_types::mongo::abi::{ContractAbiCollection, AbiJSONCollection};
 use shared_utils::logger::init_logging;
+
 #[allow(unused)]
 use third_parties::{redis::connect, mongo::{MongoConfig, Mongo}, broker::{publish_rmq_message, create_rmq_channel}};
-
-
 
 #[allow(unused)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_logging();
 
-    let mysettings = load_settings().expect("Failed to load settings");
+    /* let mysettings = load_settings().expect("Failed to load settings");
 
     let mongodb_uri = mysettings.mongodb_uri;
-    let mongodb_database_name = mysettings.mongodb_database_name;
-    let rabbit_uri = mysettings.rabbit_mq_url.to_string();
     let queue_name = mysettings.rabbit_exchange_name.to_string();
     let exchange_name = format!("{}_exchange", queue_name);
     let routing_key = String::from("abi_discovery");
@@ -132,7 +131,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    debug!("Found {} contracts to publish", publish_contracts.len());
+    debug!("Found {} contracts to publish", publish_contracts.len()); */
 /*
     // for each contract, publish it to rabbit
     for address in publish_contracts {

@@ -1,5 +1,3 @@
-#[allow(unused)]
-use abi_discovery::helpers::process_abi;
 // This binary should be listening a rabbit queue and when a message is received, it should
 // call the etherscan api to get the contract abi and save it in the database.
 //
@@ -12,40 +10,9 @@ use tokio::time::{timeout, Duration};
 
 use abi_discovery::{helpers::process_abi_json, settings::load_settings};
 use third_parties::broker::{
-    create_rmq_channel, process_queue_with_rate_limit, publish_rmq_message,
+    create_rmq_channel, process_queue_with_rate_limit
 };
 use third_parties::http::etherscan::get_abi;
-#[allow(unused)]
-async fn produce_messages(
-    exchange: &String,
-    routing_key: &String,
-    channel: &lapin::Channel,
-) -> Result<(), Error> {
-    let contracts = vec![
-        "0x6982508145454ce325ddbe47a25d4ec3d2311933",
-        /*"0x00000000000001ad428e4906aE43D8F9852d0dD6",
-        "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-         "0x495f947276749Ce646f68AC8c248420045cb7b5e",
-        "0xe8129d05532340cA156d9f146a28F68AcD96e80D",
-        "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57",
-        "0x0c7Ad07b985405C3f74d39d090a5916469B56f25",
-        "0xb584D4bE1A5470CA1a8778E9B86c81e165204599",
-        "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-        "0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6",
-        "0x0000000000A39bb272e79075ade125fd351887Ac",
-        "0x000000000000Ad05Ccc4F10045630fb830B95127",
-        "0x643388199C804c593cA2aaE56E2C150b8e7A5876",
-        "0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B", */
-    ];
-
-    for contract in contracts {
-        publish_rmq_message(exchange, routing_key, &contract.as_bytes(), channel)
-            .await
-            .expect("Failed to publish message");
-    }
-
-    Ok(())
-}
 
 async fn handle_message(
     delivery: Arc<Delivery>,
@@ -82,6 +49,7 @@ async fn handle_message(
             let mysettings = load_settings().expect("Failed to load settings");
 
             let redis_uri = mysettings.redis_uri.to_string();
+            let redis_tracked_addresses_set = mysettings.redis_tracked_addresses_set.to_string();
 
             // Get redis from settings
             let mut con = connect(&redis_uri.as_str())
@@ -89,7 +57,7 @@ async fn handle_message(
                 .expect("Failed to connect to redis");
 
             // Add address to tracked addresses in redis set
-            add_to_set(&mut con, &"tracked_addresses", &contract_address).await.expect("Failed to add to redis set");
+            add_to_set(&mut con, &redis_tracked_addresses_set, &contract_address).await.expect("Failed to add to redis set");
 
             info!("ABI added to redis set successfully")
         }
@@ -134,11 +102,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // We define the handler that will be called when a message is received.
     // The handler will be called for each message received.
     let handler = move |delivery: Delivery, current_count: usize| {
-        // let message_data = String::from_utf8_lossy(&delivery.data);
-
-        // debug!("Message data: {}", message_data);
-        // debug!("Current count: {}", current_count);
-
         let cloned_keys: String = String::from(&etherscan_keys);
         let cloned_delivery = Arc::new(delivery);
         let cloned_counter = current_count.clone();
@@ -178,3 +141,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+
+/*
+async fn produce_messages(
+    exchange: &String,
+    routing_key: &String,
+    channel: &lapin::Channel,
+) -> Result<(), Error> {
+    let contracts = vec![
+        "0x6982508145454ce325ddbe47a25d4ec3d2311933",
+        /*"0x00000000000001ad428e4906aE43D8F9852d0dD6",
+        "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+         "0x495f947276749Ce646f68AC8c248420045cb7b5e",
+        "0xe8129d05532340cA156d9f146a28F68AcD96e80D",
+        "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57",
+        "0x0c7Ad07b985405C3f74d39d090a5916469B56f25",
+        "0xb584D4bE1A5470CA1a8778E9B86c81e165204599",
+        "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+        "0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6",
+        "0x0000000000A39bb272e79075ade125fd351887Ac",
+        "0x000000000000Ad05Ccc4F10045630fb830B95127",
+        "0x643388199C804c593cA2aaE56E2C150b8e7A5876",
+        "0xEf1c6E67703c7BD7107eed8303Fbe6EC2554BF6B", */
+    ];
+
+    for contract in contracts {
+        publish_rmq_message(exchange, routing_key, &contract.as_bytes(), channel)
+            .await
+            .expect("Failed to publish message");
+    }
+
+    Ok(())
+} */

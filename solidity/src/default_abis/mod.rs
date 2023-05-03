@@ -1,68 +1,47 @@
-use std::collections::HashMap;
-
 use log::info;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct FactoryAbi {
     pub abi: String,
     pub address: String,
 }
-#[allow(unused)]
-#[derive(Debug, Clone)]
-struct FactoryInfo {
-    factory_address: String,
-    index: u32,
-    abi: String,
-}
-/*
-const FACTORIES_INFO: [FactoryInfo; 2] = [
-    FactoryInfo {
-        factory_address: String::from("0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f"),
-        index: 10,
-        abi: include_str!("uniswap_v2_factory_abi.json"),
-    },
-    FactoryInfo {
-        factory_address: "0xc0aee478e3658e2610c5f7a4a2e1777ce9e4f2ac".to_string(),
-        index: 50,
-        abi: include_str!("sushiswap_v2_factory_abi.json").to_string(),
-    },
-];
-
-pub async fn get_factory_info(factory_address: &str) -> Option<FactoryInfo> {
-    FACTORIES_INFO.iter().find(|factory_info| factory_info.factory_address == factory_address).cloned()
-}
- */
-
-/* #[repr(u32)]
-pub HashMap DefaultMarketAbi {
-    UniswapV2 = 11,
-    SushiswapV2 = 51,
-} */
 
 pub async fn get_factory_abis() -> HashMap<u32, FactoryAbi> {
     let mut factory_abis: HashMap<u32, FactoryAbi> = HashMap::new();
 
-    factory_abis.insert(10, FactoryAbi {
-        abi: include_str!("uniswap_v2_factory_abi.json").to_string(),
-        address: "0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f".to_string(),
-    });
+    factory_abis.insert(
+        10,
+        FactoryAbi {
+            abi: include_str!("uniswap_v2_factory_abi.json").to_string(),
+            address: "0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f".to_string(),
+        },
+    );
 
-    factory_abis.insert(50, FactoryAbi {
-        abi: include_str!("sushiswap_v2_factory_abi.json").to_string(),
-        address: "0xc0aee478e3658e2610c5f7a4a2e1777ce9e4f2ac".to_string(),
-    });
+    factory_abis.insert(
+        50,
+        FactoryAbi {
+            abi: include_str!("sushiswap_v2_factory_abi.json").to_string(),
+            address: "0xc0aee478e3658e2610c5f7a4a2e1777ce9e4f2ac".to_string(),
+        },
+    );
 
     info!("factory_abis: {:?}", factory_abis);
 
     factory_abis
 }
 
-
 pub async fn get_default_market_abis() -> HashMap<u32, String> {
     let mut default_market_abis: HashMap<u32, String> = HashMap::new();
 
-    default_market_abis.insert(11, include_str!("uniswap_v2_default_market_abi.json").to_string());
-    default_market_abis.insert(51, include_str!("sushiswap_v2_default_market_abi.json").to_string());
+    default_market_abis.insert(
+        11,
+        include_str!("uniswap_v2_default_market_abi.json").to_string(),
+    );
+    default_market_abis.insert(
+        51,
+        include_str!("sushiswap_v2_default_market_abi.json").to_string(),
+    );
 
     default_market_abis
 }
@@ -75,13 +54,14 @@ pub fn get_factory_market_index(address: &String) -> u32 {
     }
 }
 
+/*
 #[cfg(test)]
 mod tests {
     #[allow(unused)]
     use super::*;
 
-    /* #[test] */
-    /* fn test_get_factory_abis() {
+     #[test]
+      fn test_get_factory_abis() {
         let factory_abis = get_factory_abis();
 
         assert!(factory_abis.await.len() > 0);
@@ -121,5 +101,6 @@ mod tests {
 
         assert_eq!(default_market_abis.get(&uniswap_v2).unwrap(), include_str!("uniswap_v2_default_market_abi.json"));
         assert_eq!(default_market_abis.get(&sushiswap_v2).unwrap(), include_str!("sushiswap_v2_default_market_abi.json"));
-    } */
+    }
 }
+*/
