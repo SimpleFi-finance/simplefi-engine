@@ -9,9 +9,7 @@ use third_parties::redis::{add_to_set, connect};
 use tokio::time::{timeout, Duration};
 
 use abi_discovery::{helpers::process_abi_json, settings::load_settings};
-use third_parties::broker::{
-    create_rmq_channel, process_queue_with_rate_limit
-};
+use third_parties::broker::{create_rmq_channel, process_queue_with_rate_limit};
 use third_parties::http::etherscan::get_abi;
 
 async fn handle_message(
@@ -29,35 +27,40 @@ async fn handle_message(
         Duration::from_secs(30),
         get_abi(&contract_address, &etherscan_key),
     )
-    .await
-    .expect("Failed to get ABI from etherscan");
+        .await
+        .expect("Failed to get ABI from etherscan");
 
     if abi.is_err() {
         error!("Error: {:?}", abi.err());
-    } else {
-        let response = abi.unwrap(); // .unwrap();
 
-        // TODO: Saved in mongo
+
+    } else {
+        let response = match abi {
+            Ok(response) => response,
+            Err(err) => {
+                error!("Error: {:?}", err);
+
+                return Ok(());
+            }
+        };
+
         let result = process_abi_json(&contract_address, &response).await;
 
         if result == false {
             debug!("contract: {}. ABI already exists", &contract_address);
         } else {
-            // info!("ABI processed successfully");
-
-            // load settings
             let mysettings = load_settings().expect("Failed to load settings");
 
             let redis_uri = mysettings.redis_uri.to_string();
             let redis_tracked_addresses_set = mysettings.redis_tracked_addresses_set.to_string();
 
-            // Get redis from settings
             let mut con = connect(&redis_uri.as_str())
                 .await
                 .expect("Failed to connect to redis");
 
-            // Add address to tracked addresses in redis set
-            add_to_set(&mut con, &redis_tracked_addresses_set, &contract_address).await.expect("Failed to add to redis set");
+            add_to_set(&mut con, &redis_tracked_addresses_set, &contract_address)
+                .await
+                .expect("Failed to add to redis set");
 
             info!("ABI added to redis set successfully")
         }
@@ -81,26 +84,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Log settings
     info!("Setting rabbit mq connection");
-    debug!("Rabbit URI: {}", rabbit_uri);
-    debug!("Rabbit Queue Name: {}", queue_name);
-    debug!("Rabbit Exchange Name: {}", exchange_name);
-    debug!("Router key: {}", routing_key);
-    debug!("Etherscan keys: {:?}", etherscan_keys);
 
-    // max per second
-    // let max_reads_per_second = 1; // etherscan_keys.split(",").count() * 2;
+    debug!("Rabbit URI: {} \n Rabbit Queue Name: {} \n  Rabbit Exchange Name: {} \n Router key: {} \n Etherscan keys: {:?}", rabbit_uri, queue_name, exchange_name, routing_key, etherscan_keys);
+
     let max_reads_per_second = etherscan_keys.split(",").count() * 2;
+
     debug!("Max reads per second {:?}", max_reads_per_second);
 
-    // It should be per second but we are going to give 2 seconds
     let rate_limit_duration = Duration::from_secs(2);
-    // let rate_limit_duration = Duration::from_secs(10);
+
     debug!("Rate limit duration {:?}", rate_limit_duration);
 
     let counter = Arc::new(Mutex::new(0));
 
-    // We define the handler that will be called when a message is received.
-    // The handler will be called for each message received.
     let handler = move |delivery: Delivery, current_count: usize| {
         let cloned_keys: String = String::from(&etherscan_keys);
         let cloned_delivery = Arc::new(delivery);
@@ -122,8 +118,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // debug!("Channel created");
 
     /* produce_messages(&exchange_name, &routing_key, &channel)
-        .await
-        .expect("Failed to produce messages"); */
+    .await
+    .expect("Failed to produce messages"); */
 
     // debug!("Messages produced");
 
@@ -141,7 +137,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
-
 
 /*
 async fn produce_messages(

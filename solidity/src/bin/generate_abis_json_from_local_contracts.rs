@@ -13,7 +13,6 @@ use third_parties::mongo::{Mongo, MongoConfig};
 // create main function
 #[tokio::main]
 async fn main() {
-
     // Create a mongo connection with Mongo helper from shared_types
     let mongo_config = MongoConfig {
         uri: "mongodb://localhost:27017".to_string(),

@@ -4,8 +4,6 @@ use abi_discovery::settings::load_settings;
 use shared_utils::logger::init_logging;
 use third_parties::broker::{publish_rmq_message, create_rmq_channel};
 
-
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_logging();
@@ -16,7 +14,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let exchange_name = format!("{}_exchange", queue_name);
     let routing_key = String::from("abi_discovery");
 
-    let channel = create_rmq_channel("amqp://localhost:5672/%2f")
+    let channel = create_rmq_channel(&mysettings.redis_uri)
         .await
         .expect("Failed to create channel");
 

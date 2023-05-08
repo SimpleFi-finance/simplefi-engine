@@ -4,7 +4,7 @@ use mongodb::{ Collection, bson::doc };
 
 use crate::settings::load_settings;
 use shared_types::mongo::abi::{AbiEvent, AbiEventDocument};
-use third_parties::mongo::{MongoConfig, Mongo};
+use third_parties::mongo::lib::abi_discovery::get_default_connection;
 
 ///
 /// Function to get signatures event from mongo
@@ -48,18 +48,9 @@ pub async fn get_signatures_event(
 
     let mysettings = load_settings().expect("Failed to load settings");
 
-    let mongo_uri = mysettings.mongodb_uri;
-    let mongodb_database_name = mysettings.mongodb_database_name;
-    let mongodb_abi_events_collection = mysettings.mongodb_abi_events_collection;
+    let mongo = get_default_connection(&mysettings.mongodb_uri.as_str(), &mysettings.mongodb_database_name.as_str()).await;
 
-    let config = MongoConfig {
-        uri: mongo_uri,
-        database: mongodb_database_name,
-    };
-
-    let db = Mongo::new(&config).await?;
-
-    let signatures_event_collection: Collection<AbiEventDocument> = db.collection(&mongodb_abi_events_collection);
+    let signatures_event_collection: Collection<AbiEventDocument> = mongo.collection(&mysettings.mongodb_abi_events_collection);
 
     let query = doc! { "signature": { "$in": signatures }};
 
@@ -83,6 +74,7 @@ pub async fn get_signatures_event(
             Ok(abi_item) => abi_item,
             Err(e) => {
                 error!("Error: {}", e);
+
                 continue;
             }
         };

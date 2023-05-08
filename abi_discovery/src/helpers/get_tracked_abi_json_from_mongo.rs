@@ -3,7 +3,7 @@ use futures::stream::StreamExt;
 
 use crate::settings::load_settings;
 use shared_types::mongo::abi::{ ContractAbiCollection,  ContractWithAbiJSON, ContractWithAbiJSONDocument};
-use third_parties::mongo::{MongoConfig, Mongo};
+use third_parties::mongo::lib::abi_discovery::get_default_connection;
 
 ///
 /// Function to get tracked abis from mongo
@@ -38,20 +38,12 @@ use third_parties::mongo::{MongoConfig, Mongo};
 pub async fn get_tracked_abi_json_from_mongo(
     addresses: Vec<String>,
 ) -> Result<Vec<ContractWithAbiJSON>, Box<dyn std::error::Error>> {
-    let settings = load_settings()?;
+    let mysettings = load_settings().expect("Failed to load settings");
 
-    let mongo_uri = settings.mongodb_uri;
-    let mongodb_database_name = settings.mongodb_database_name;
-    let contract_abi_collection_name = settings.mongodb_contract_abi_collection;
+    let mongo = get_default_connection(&mysettings.mongodb_uri.as_str(), &mysettings.mongodb_database_name.as_str()).await;
 
-    let config = MongoConfig {
-        uri: mongo_uri,
-        database: mongodb_database_name,
-    };
+    let contract_abi_collection: Collection<ContractAbiCollection> = mongo.collection(&mysettings.mongodb_contract_abi_collection.as_str());
 
-    let db = Mongo::new(&config).await?;
-
-    let contract_abi_collection: Collection<ContractAbiCollection> = db.collection(&contract_abi_collection_name);
     let query = doc! { "address": { "$in": addresses }};
 
     let pipeline = vec![

@@ -1,12 +1,12 @@
 use futures::stream::StreamExt;
-use log::{ debug, error };
-use mongodb::{ bson::{ doc }, error::Error as MongoError };
+use log::{ debug, error, info };
+use mongodb::{ bson::doc, error::Error as MongoError };
 use std::vec;
 
-use shared_types::mongo::abi::FactoryContractsCollection;
-use third_parties::mongo::{MongoConfig, Mongo};
-
 use crate::settings::load_settings;
+use shared_types::mongo::abi::FactoryContractsCollection;
+use third_parties::mongo::lib::abi_discovery::get_default_connection;
+
 
 
 ///
@@ -18,24 +18,13 @@ use crate::settings::load_settings;
 /// @return Vec<String> - Addresses that are created by a factory contract
 ///
 pub async fn check_contracts_from_factory(addresses: &Vec<String> ) -> Result<Vec<String>, MongoError> {
-    // Create a mongo connection with Mongo helper from shared_types
+    info!("Checking if the addresses are created by a factory contract... ");
 
     let mysettings = load_settings().expect("Failed to load settings");
-    let mongo_uri = mysettings.mongodb_uri;
-    let mongodb_database_name = mysettings.mongodb_database_name;
-    let factory_contracts_collection = mysettings.mongodb_factory_contracts_collection;
 
-    let mongo_config = MongoConfig {
-        uri: mongo_uri,
-        database: mongodb_database_name,
-    };
+    let mongo = get_default_connection(&mysettings.mongodb_uri.as_str(), &mysettings.mongodb_database_name.as_str()).await;
 
-    // Create a new MongoDB client
-    let mongo = Mongo::new(&mongo_config).await.expect("Failed to create mongo Client");
-
-    debug!("Mongo client created");
-
-    let factory_address_collection = mongo.database.collection::<FactoryContractsCollection>(&factory_contracts_collection);
+    let factory_address_collection = mongo.database.collection::<FactoryContractsCollection>(&mysettings.mongodb_factory_contracts_collection);
 
     let pipeline = vec![
         doc! {
