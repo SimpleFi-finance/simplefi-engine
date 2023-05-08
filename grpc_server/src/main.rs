@@ -1,7 +1,13 @@
 use log::{ info, debug, warn };
 use tonic::{transport::Server, Request, Response, Status};
 
-use abi_discovery::helpers::{get_tracked_abis, get_tracked_abis_json, add_factory_addresses, get_signatures_event };
+use abi_discovery::helpers::{
+    get_tracked_abis,
+    get_tracked_abis_json,
+    add_factory_addresses,
+    get_signatures_event,
+    get_four_byte_signatures_event
+};
 use grpc_server::abi_discovery_proto::{
     TrackedAddressesRequest,
     TrackedAddressesResponse,
@@ -15,6 +21,9 @@ use grpc_server::abi_discovery_proto::{
     GetAbiEventsRequest,
     GetAbiEventsResponse,
     AbiEvent,
+    GetFourByteEventsRequest,
+    GetFourByteEventsResponse,
+    FourByteEvent,
     abi_discovery_service_server::{ AbiDiscoveryService, AbiDiscoveryServiceServer }
 };
 use shared_types::redis::abi::{ContractWithAbiRedis, ContractWithAbiJSONRedis};
@@ -153,6 +162,40 @@ impl AbiDiscoveryService for AbiDiscoveryServiceImpl {
         };
 
         let response = GetAbiEventsResponse {
+            signatures_event: signatures,
+        };
+
+        Ok(Response::new(response))
+    }
+
+    async fn get_four_byte_signatures_event(
+        &self,
+        request: Request<GetFourByteEventsRequest>,
+    ) -> Result<Response<GetFourByteEventsResponse>, Status> {
+        let signatures = request.into_inner().signatures;
+
+        warn!("get_signatures_event called: {:?}", signatures);
+
+        let signatures_event = get_four_byte_signatures_event(&signatures).await.expect("Failed to get signature events");
+
+        debug!("signature events: {:?}", signatures_event);
+
+        let mut signatures: Vec<FourByteEvent> = Vec::new();
+
+        for event in signatures_event.iter() {
+            debug!("event: {:?}", event);
+
+            let single_response = FourByteEvent {
+                id: event.id,
+                timestamp: event.timestamp,
+                text_signature: event.text_signature.clone(),
+                hex_signature: event.hex_signature.clone(),
+            };
+
+            signatures.push(single_response);
+        };
+
+        let response = GetFourByteEventsResponse {
             signatures_event: signatures,
         };
 

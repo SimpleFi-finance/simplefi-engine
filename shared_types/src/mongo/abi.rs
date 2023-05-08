@@ -98,5 +98,4 @@ pub struct EventSignatureDocument {
     pub timestamp: u64,
     pub text_signature: String,
     pub hex_signature: String,
-    pub bytes_signature: String,
 }

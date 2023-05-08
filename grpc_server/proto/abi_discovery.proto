@@ -12,6 +12,8 @@ service AbiDiscoveryService {
   rpc AddFactoryAddresses(AddFactoryAddressesRequest) returns (AddFactoryAddressesResponse) {}
 
   rpc GetSignaturesEvent(GetAbiEventsRequest) returns (GetAbiEventsResponse) {}
+
+  rpc GetFourByteSignaturesEvent(GetFourByteEventsRequest) returns (GetFourByteEventsResponse) {}
 }
 
 message TrackedAddressesRequest {
@@ -70,3 +72,17 @@ message AbiEvent {
     string name = 4;
 }
 
+message GetFourByteEventsRequest {
+    repeated string signatures = 1;
+}
+
+message GetFourByteEventsResponse {
+    repeated FourByteEvent signatures_event = 1;
+}
+
+message FourByteEvent {
+    uint32 id = 1;
+    uint64 timestamp = 2;
+    string text_signature = 4;
+    string hex_signature = 5;
+}

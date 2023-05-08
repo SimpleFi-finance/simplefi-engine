@@ -71,7 +71,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 id: result.id,
                 text_signature: result.text_signature,
                 hex_signature: result.hex_signature,
-                bytes_signature: result.bytes_signature,
             };
 
             event_signatures.push(event_signature);
