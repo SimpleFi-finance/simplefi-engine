@@ -12,10 +12,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_logging();
 
     // Load rabbit url from settings with load_settings helper
-    let settings = load_settings().expect("Failed to load settings");
-    let rabbit_uri = settings.rabbit_mq_url.to_string();
+    let mysettings = load_settings().expect("Failed to load settings");
+    let rabbit_uri = mysettings.rabbit_mq_url.to_string();
 
-    let queue_name = settings.rabbit_exchange_name.to_string();
+    let queue_name = mysettings.rabbit_exchange_name.to_string();
     let exchange_name = format!("{}_exchange", queue_name);
     let routing_key = String::from("abi_discovery");
 

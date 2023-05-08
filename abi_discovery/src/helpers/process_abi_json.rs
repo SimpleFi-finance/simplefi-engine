@@ -1,13 +1,10 @@
 use chrono::Utc;
-use log::{ info, debug };
+use log::{ info, debug, error };
 use mongodb::{ options::FindOneOptions, bson::doc };
 
 use crate::settings::load_settings;
 use shared_types::mongo::abi::{ ContractAbiCollection, AbiJSONCollection, ContractAbiFlag };
-use third_parties::mongo::{
-    lib::abi_discovery::save_abi_json,
-    Mongo, MongoConfig,
-};
+use third_parties::mongo::lib::abi_discovery::{save_abi_json, get_default_connection};
 
 pub async fn process_abi_json(
     address: &String,
@@ -15,25 +12,12 @@ pub async fn process_abi_json(
 ) -> bool {
     info!("Starting process_abi_json");
 
-    let settings = load_settings().expect("Failed to load settings");
+    let mysettings = load_settings().expect("Failed to load settings");
 
-    let mongo_uri = settings.mongodb_uri;
-    // let mongodb_database_name = settings.mongodb_database_name;
-    let mongodb_database_name = "abi_discovery_v10".to_string();
-    let abis_collection_name = settings.mongodb_abi_collection;
-    let contract_abi_collection_name = settings.mongodb_contract_abi_collection;
+    let mongo = get_default_connection(&mysettings.mongodb_uri.as_str(), &mysettings.mongodb_database_name.as_str()).await;
 
-    let config = MongoConfig {
-        uri: mongo_uri.clone(),
-        database: mongodb_database_name.clone(),
-    };
-
-    let db = Mongo::new(&config)
-        .await
-        .expect("Failed to connect to mongo");
-
-    let abi_collection = db.collection::<AbiJSONCollection>(&abis_collection_name);
-    let contract_abi_collection = db.collection::<ContractAbiCollection>(&contract_abi_collection_name);
+    let abi_collection = mongo.collection::<AbiJSONCollection>(&mysettings.mongodb_abi_collection.as_str());
+    let contract_abi_collection = mongo.collection::<ContractAbiCollection>(&mysettings.mongodb_contract_abi_collection.as_str());
 
     let filter = doc! { "address": address };
 
@@ -49,7 +33,7 @@ pub async fn process_abi_json(
             return false;
         }
         None => {
-            debug!("No contract found. Looking for ABI in etherscan");
+            error!("No contract found. Looking for ABI in etherscan");
         }
     }
 

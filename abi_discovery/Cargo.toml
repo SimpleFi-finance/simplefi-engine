@@ -45,10 +45,6 @@ name = "scrap_token_abis"
 path = "src/bin/scrap_token_abis.rs"
 
 [[bin]]
-name = "fix_wrong_abis"
-path = "src/bin/fix_wrong_abis.rs"
-
-[[bin]]
 name = "load_trustwallet_assets"
 path = "src/bin/load_trustwallet_assets.rs"
 

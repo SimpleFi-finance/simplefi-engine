@@ -1,5 +1,6 @@
-mod get_index;
+
+mod connection;
 mod save_abi_json;
 
-pub use get_index::get_index;
+pub use connection::get_default_connection;
 pub use save_abi_json::save_abi_json;

@@ -3,13 +3,6 @@ use serde::{Deserialize, Serialize};
 use bson::Binary;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AbiCollection {
-    pub timestamp: i64,
-    pub index: u32,
-    pub abi: Binary,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AbiJSONCollection {
     pub timestamp: i64,
     pub index: u32,
@@ -97,4 +90,12 @@ pub struct AbiEventDocument {
     pub signature: String,
     pub sorted: String,
     pub name: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct EventSignatureDocument {
+    pub id: u32,
+    pub timestamp: u64,
+    pub text_signature: String,
+    pub hex_signature: String,
 }

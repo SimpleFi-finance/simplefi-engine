@@ -10,30 +10,20 @@ use serde_json::{self, Map, Value, Error};
 use abi_discovery::settings::load_settings;
 use shared_types::mongo::abi::{AbiJSONCollection, AbiEventDocument};
 use shared_utils::logger::init_logging;
-use third_parties::mongo::{Mongo, MongoConfig};
+use third_parties::mongo::lib::abi_discovery::get_default_connection;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_logging();
 
-    info!("Starting generate_signatures");
+    info!("Starting generate_signatures process");
 
     let mysettings = load_settings().expect("Failed to load settings");
 
-    let mongodb_uri = mysettings.mongodb_uri;
-    let mongodb_abi_collection = mysettings.mongodb_abi_collection;
-    let mongodb_abi_events_collection = mysettings.mongodb_abi_events_collection;
+    let mongo = get_default_connection(&mysettings.mongodb_uri.as_str(), &mysettings.mongodb_database_name.as_str()).await;
 
-    let mongo_config = MongoConfig {
-        uri: mongodb_uri,
-        database: "abi_discovery_v10".to_string(),
-    };
-
-    let mongo = Mongo::new(&mongo_config)
-        .await
-        .expect("Failed to create mongo Client");
-    let abis_collection = mongo.database.collection::<AbiJSONCollection>(&mongodb_abi_collection);
-    let abi_signatures_collection = mongo.database.collection::<AbiEventDocument>(&mongodb_abi_events_collection);
+    let abis_collection = mongo.database.collection::<AbiJSONCollection>(&mysettings.mongodb_abi_collection);
+    let abi_signatures_collection = mongo.database.collection::<AbiEventDocument>(&mysettings.mongodb_abi_events_collection);
 
     let mut skip = 0;
 
@@ -44,53 +34,53 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .find(None, options)
             .await
             .expect("Failed to execute find");
+
         let results = cursor.collect::<Vec<_>>().await;
 
         if results.is_empty() {
+            info!("No more results");
+
             break;
         }
 
         for abi_collection_item in results {
-            let abi_item = abi_collection_item.expect("Failed to get next from server");
+            let abi_item = match abi_collection_item {
+                Ok(item) => {
+                    item
+                }
+                Err(e) => {
+                    error!("Failed to create abi item: {:?}", e);
 
-            let abi = abi_item.abi;
+                    continue;
+                }
+            };
 
-            let abi_definitions_results: Result<Vec<Value>, Error> = serde_json::from_str(&abi);
+            let abi_event_result: Result<Vec<Value>, Error> = serde_json::from_str(&abi_item.abi);
 
-            // check if abi is valid
-            let abi_definitions = match abi_definitions_results {
+            let abi_arr_definitions = match abi_event_result {
                 Ok(result) => {
                     result
                 }
                 Err(e) => {
                     error!("Index: {}. Failed to parse abi: {:?}", abi_item.index, e);
+
                     continue;
                 }
             };
 
-            // Iterate over each ABI definition and generate a signature
-            for abi_definition in abi_definitions {
+            for abi_definition in abi_arr_definitions {
                 if let Some(type_field) = abi_definition.get("type") {
                     match type_field.as_str().unwrap() {
-                        "function" => {
-
-                            debug!("Found function");
-                        }
-                        "constructor" => {
-
-                            debug!("Found constructor");
-                        }
                         "event" => {
                             debug!("Found event");
 
                             let index: u32 = abi_item.index;
                             let name = abi_definition.get("name").unwrap().as_str().unwrap().to_string();
 
-                            let mut event_definition = abi_definition.clone();
-
-                            let object = event_definition.as_object_mut().unwrap().clone();
-
+                            // Generate a sorted map with abi event definition
                             let mut sorted_map: BTreeMap<String, Value> = BTreeMap::new();
+                            let mut event_definition = abi_definition.clone();
+                            let object = event_definition.as_object_mut().unwrap().clone();
 
                             for (key, value) in object.iter() {
                                 sorted_map.insert(key.to_string(), value.to_owned());
@@ -100,15 +90,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 .map(|(k, v)| (k, v))
                                 .collect();
 
+                            // Serialize the sorted map to a string
                             let sorted_json_string = serde_json::to_string(&sorted_object).unwrap();
 
-                            debug!("{}", sorted_json_string);
+                            debug!("Sorted event => {}", sorted_json_string);
 
-                            let sorted_json_value = serde_json::from_str::<Value>(&sorted_json_string).unwrap();
+                            // Serialize the sorted string to a json value
+                            let event_definition = serde_json::from_str::<Event>(&sorted_json_string);
 
-                            let event_result = serde_json::from_value::<Event>(sorted_json_value);
-
-                            let event = match event_result {
+                            let event = match event_definition {
                                 Ok(result) => {
                                     result
                                 }
@@ -157,7 +147,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             };
 
                             abi_signatures_collection.insert_one(abi_signature, None).await.unwrap();
-
+                        }
+                        "function" => {
+                            debug!("Found function");
+                        }
+                        "constructor" => {
+                            debug!("Found constructor");
                         }
                         "fallback" => {
                             // Generate a signature for a fallback
@@ -167,16 +162,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }
             }
-
-
-
-
         }
 
         warn!("Processed abis. skip {}", skip);
 
         skip += 500;
-
     }
 
     info!("Finished generate_signatures");

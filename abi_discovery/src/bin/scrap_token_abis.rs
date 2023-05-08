@@ -1,60 +1,54 @@
 use futures::StreamExt;
+use log::{debug, info, error};
 use mongodb::bson::doc;
+use shared_utils::logger::init_logging;
 use std::error::Error;
 
 use abi_discovery::{
     settings::load_settings,
     types::TokensCollection,
 };
-use third_parties::{mongo::{Mongo, MongoConfig}, broker::{publish_rmq_message, create_rmq_channel}};
-#[allow(unused)]
+use third_parties::{
+    mongo::lib::abi_discovery::get_default_connection,
+    broker::{publish_rmq_message, create_rmq_channel}
+};
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    println!("Hello, world!");
+    init_logging();
+
+    info!("Starting scrap token abis process...");
 
     let mysettings = load_settings().expect("Failed to load settings");
 
-    let mongodb_uri = mysettings.mongodb_uri;
-    let mongodb_database_name = mysettings.mongodb_database_name;
     let rabbit_uri = mysettings.rabbit_mq_url.to_string();
     let queue_name = mysettings.rabbit_exchange_name.to_string();
     let exchange_name = format!("{}_exchange", queue_name);
     let routing_key = String::from("abi_discovery");
     let etherscan_keys = mysettings.etherscan_api_keys;
 
-    println!("Setting rabbit mq connection");
-    println!("Rabbit URI: {}", rabbit_uri);
-    println!("Rabbit Queue Name: {}", queue_name);
-    println!("Rabbit Exchange Name: {}", exchange_name);
-    println!("Router key: {}", routing_key);
-    println!("Etherscan keys: {:?}", etherscan_keys);
+    debug!("Setting rabbit mq connection");
+    debug!("Rabbit URI: {}", rabbit_uri);
+    debug!("Rabbit Queue Name: {}", queue_name);
+    debug!("Rabbit Exchange Name: {}", exchange_name);
+    debug!("Router key: {}", routing_key);
+    debug!("Etherscan keys: {:?}", etherscan_keys);
 
-    println!("mongodb_uri: {}", mongodb_uri);
-
-    let channel = create_rmq_channel("amqp://localhost:5672/%2f")
+    let channel = create_rmq_channel(&mysettings.rabbit_mq_url)
         .await
         .expect("Failed to create channel");
 
-    let mongo_config = MongoConfig {
-        uri: mongodb_uri.clone(),
-        database: mongodb_database_name.to_string(),
-    };
-
-    let mongo = Mongo::new(&mongo_config)
-        .await
-        .expect("Failed to create mongo Client");
+    let mongo = get_default_connection(&mysettings.mongodb_uri.as_str(), &mysettings.mongodb_database_name.as_str()).await;
 
     let core_data_collection = mongo.collection::<TokensCollection>("tokens");
 
     let mut skip = 0;
 
-    println!("Starting to load contract indexes from MongoDB to Redis Set (verify_addresses) ...");
+    info!("Starting to load contract indexes from MongoDB to Redis Set (verify_addresses) ...");
 
     loop {
-        // create query to retrieve all address from chain 1
         let query = doc! {
             "chain": "ethereum",
-            // "exported": { "$exists": 0 }
         };
 
         let options = mongodb::options::FindOptions::builder()
@@ -73,16 +67,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
             break;
         }
 
-        println!(
-            "Found {} contract indexes. Skipping {}",
-            results.len(),
-            skip
-        );
+        debug!("Found {} contract indexes. Skipping {}", results.len(), skip);
 
         for result in results {
             match result {
                 Ok(token) => {
-                    println!("Token address: {:?}", token.address);
+                    debug!("Token address: {:?}", token.address);
 
                     let address = token.address;
 
@@ -90,125 +80,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 .await
                                 .expect("Failed to publish message");
 
-                    // tokio::time::sleep(Duration::from_secs(1)).await;
-
                     continue;
-
-                    // address = "0x6b175474e89094c44da98b954eedeac495271d0f".to_string();
-
-                    /* let url =
-                        "https://simple-web3-api.herokuapp.com/contracts/get-etherscan-importable";
-
-                    let mut request_body: HashMap<String, String> = HashMap::new();
-                    request_body.insert("address".to_string(), address.to_string());
-
-                    // Make a POST request to the website with the input field value
-                    let client = reqwest::Client::new();
-
-                    let mut header = reqwest::header::HeaderMap::new();
-                    header.insert(
-                        "Content-Type",
-                        "application/x-www-form-urlencoded".parse().unwrap(),
-                    );
-                    header.insert("Origin", "https://www.cookbook.dev".parse().unwrap());
-
-                    let res = client.post(url).json(&request_body).send().await?;
-
-                    let response = match res.json::<ResponseBody>().await {
-                        Ok(response) => response,
-                        Err(e) => {
-                            println!("Error: {:?}", e);
-                            continue;
-                        }
-                    };
-
-
-                    println!("Response: contracts per chain {:?}", response.imports.len());
-
-                    let mut abi: Option<String> = None;
-                    let mut contract_address: Option<String> = None;
-                    let chain_id = 1;
-
-                    if response.contracts.len() > 0 {
-                        for contract in response.contracts {
-                            if contract.chain_id == chain_id {
-                                abi = Some(contract.abi);
-                                contract_address = Some(contract.contract_address);
-                            }
-                        }
-                    }
-
-                    if response.imports.len() > 0 {
-                        for import in response.imports {
-                            if import.chain_id == chain_id {
-                                abi = Some(import.abi);
-                                contract_address = Some(import.contract_address);
-                            }
-                        }
-                    }
-
-                    let abi = match abi {
-                        Some(abi) => {
-                            abi
-                        }
-                        None => {
-                            println!("No abi found for address: {}", address);
-
-                            publish_rmq_message(&exchange_name, &routing_key, &address.as_bytes(), &channel)
-                                .await
-                                .expect("Failed to publish message");
-
-                            println!("Message published to rabbit mq and waiting 2 seconds...");
-                            tokio::time::sleep(Duration::from_secs(2)).await;
-
-                            continue;
-                        }
-                    };
-
-                    println!("Contract address loaded. trying to save: {:?}", contract_address);
-
-                    let address = contract_address.unwrap();
-                    let abi_string = abi.clone();
-
-                    let filename = format!(
-                        "E:/simplefi/scrap_jsons/{}-{}.json",
-                        address, chain_id
-                    );
-
-                    let path = Path::new(&filename);
-
-                    let mut file = match File::create(&path) {
-                        Err(why) => panic!("couldn't create {}: {}", path.display(), why),
-                        Ok(file) => file,
-                    };
-
-                    match file.write_all(abi_string.as_bytes()) {
-                        Err(why) => panic!("couldn't write to {}: {}", path.display(), why),
-                        Ok(_) => {
-                            println!("successfully wrote to {}", path.display());
-
-                            // Modify mongodb collection with property exported=true
-                            let filter = doc! { "address": &address, "chain": "ethereum" };
-                            let update = doc! { "$set": { "exported": true } };
-                            let options = mongodb::options::UpdateOptions::builder()
-                                .upsert(false)
-                                .build();
-
-                            let result = core_data_collection
-                                .update_one(filter, update, options)
-                                .await
-                                .expect("Failed to update document.");
-
-                            println!("Updated {} documents.", result.modified_count);
-
-                        }
-                    }
-
-                    println!("Saved in file contract address: {} with abi length {} and waiting 2 seconds...", &address, abi_string.len());
-                    tokio::time::sleep(Duration::from_secs(2)).await;*/
                 }
                 Err(error_msg) => {
-                    println!("Error: {}", error_msg);
+                    error!("Error: {}", error_msg);
                 }
             }
         }
