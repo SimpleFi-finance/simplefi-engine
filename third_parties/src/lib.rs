@@ -4,3 +4,4 @@ pub mod elastic_search;
 pub mod http;
 pub mod mongo;
 pub mod redis;
+pub mod data_lake;

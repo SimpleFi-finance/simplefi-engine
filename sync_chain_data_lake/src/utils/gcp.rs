@@ -1,30 +1,23 @@
-use datafusion::{prelude::{SessionContext, ParquetReadOptions}, arrow::json::writer::record_batches_to_json_rows};
-use object_store::{gcp::GoogleCloudStorageBuilder, path::Path, ObjectStore};
+use object_store::{gcp::{GoogleCloudStorageBuilder, GoogleCloudStorage}, ObjectStore, path::Path};
 use settings::load_settings;
-use url::Url;
-use std::sync::Arc;
 use futures::{stream::StreamExt, TryStreamExt};
 
-#[tokio::main]
-async fn main() {
+pub fn gcp_object_store (bucket_name: &String) -> GoogleCloudStorage {
     let glob_settings = load_settings().expect("Failed to load settings");
-    let gcp_bucket = glob_settings.cloud_bucket;
     let account_file_path = glob_settings.gooogle_service_account_file.to_str().unwrap().to_string();
-    
-    let data_path: Path = "ethereum/bronze/logs".try_into().unwrap();
-
-    // load object store and get dir, get latest day partition, if none start from blocknumber 0 or given, else start from the latest block found
 
     let object_store = GoogleCloudStorageBuilder::new()
         .with_service_account_path(account_file_path)
-        .with_bucket_name(gcp_bucket.clone())
+        .with_bucket_name(bucket_name.to_string())
         .build()
         .unwrap();
 
-    let objs = Arc::new(object_store);
-    let gcs = objs.clone();
+    object_store
+}
 
-    let mut list_stream = gcs
+pub async fn get_latest_partition_in_bucket(gcs_os: &GoogleCloudStorage, data_path: &Path) -> Result<String, Box<dyn std::error::Error>> {
+    
+    let mut list_stream = gcs_os.clone()
         .list(Some(&data_path))
         .await
         .expect("Error listing files");
@@ -64,33 +57,5 @@ async fn main() {
 
     let last_partition = format!("{}/year={}/month={}/day={}/{}", data_path.to_string(), year, month, day, filtered[filtered.len() - 1].2);
 
-    // load the partition and get latest block number
-    let path = format!("gs://{}/{}", gcp_bucket, last_partition);
-    let gcs_url = Url::parse(&path).unwrap();
-    let ctx = SessionContext::new();
-    let gcs = objs.clone();
-
-    ctx
-        .runtime_env()
-        .register_object_store(&gcs_url, gcs);
-
-    ctx.register_parquet("logs", &path, ParquetReadOptions::default())
-        .await.unwrap();
-
-    println!("table registered");
-    let start_block_query = "SELECT block_number FROM logs ORDER BY block_number DESC LIMIT 1".to_string();
-
-    let res = ctx.sql(&start_block_query).await.unwrap();
-
-    let latest_block_saved = res.collect().await.unwrap();
-
-    let records = record_batches_to_json_rows(&latest_block_saved).unwrap();
-    let latest_block_number = records[0]["block_number"].as_i64().unwrap();
-    // todo add exclusion if no latest block found
-
-    
-    println!("latest_block_saved: {:?}", latest_block_number);
-
-
-
+    Ok(last_partition)
 }

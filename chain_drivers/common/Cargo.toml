@@ -1,0 +1,20 @@
+[package]
+name = "common"
+version = "0.1.0"
+edition = "2021"
+nested = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde_json = { workspace = true }
+tungstenite = { workspace = true}
+settings = {path = "../../settings"}
+shared_utils = {path = "../../shared_utils"}
+third_parties = {path = "../../third_parties"}
+log = { workspace = true }
+serde = { workspace = true}
+tokio = { workspace = true}
+futures = { workspace = true}
+mongodb = { workspace = true }
+async-trait = { workspace = true }

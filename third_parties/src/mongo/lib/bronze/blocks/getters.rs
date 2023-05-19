@@ -106,7 +106,7 @@ pub async fn get_block(
     }
 
     if block_number.is_none() && timestamp.is_none() {
-        panic!("One bteween block_number and timestamp must be set");
+        panic!("One between block_number and timestamp must be set");
     }
 
     let blocks_collection = db.collection::<Block>(&global_settings.blocks_bronze_collection_name);

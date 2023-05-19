@@ -1,5 +1,5 @@
 use std::{collections::HashMap};
-use logs_subscriber::utils::decode_logs::decode_logs;
+use logs_subscriber::{settings::load_settings, utils::decode_logs::decode_logs};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use settings::load_settings as load_global_settings;
@@ -11,14 +11,12 @@ use tungstenite::{connect, Message};
 
 #[tokio::main]
 async fn main() {
-    // pick the chain driver depending on settings
-
     let global_settings = load_global_settings().unwrap();
-
+    
     init_logging();
 
     let mut logs_hm: HashMap<i64, Vec<Log>> = HashMap::new();
-    // todo set depending on chain
+
     let wss_url = format!("{}{}", global_settings.infura_mainnet_ws, global_settings.infura_token);
 
     let request_method = json!({
@@ -76,7 +74,7 @@ async fn main() {
                                 }
                                 None => {info!("No prev block data")}
                             }
-
+                            
                             last_bn = data.block_number;
                         }
                         logs_hm.entry(data.block_number).or_insert(Vec::new()).push(data.clone());

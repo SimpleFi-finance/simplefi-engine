@@ -13,7 +13,13 @@ members = [
     "third_parties",
     "logs_subscriber",
     "historical_decoder",
-    "sync_chain_data_lake"
+    "sync_chain_data_lake",
+    "chain_drivers/ethereum",
+    "chain_drivers/common",
+    "processes/track_blocks", #wss connection to get new blocks
+    "processes/track_logs", #wss connection to get new logs
+    "processes/get_txs", #https connection to get txs
+    "processes/get_logs", #https connection to get logs
 ]
 
 [workspace.dependencies]
@@ -52,6 +58,6 @@ ethabi = {version = "18.0.0", features = ["full-serde"]}
 google-cloud-storage = "0.11.0"
 google-cloud-auth = "0.9.0"
 google-cloud-default = "0.2.0"
-datafusion = "23.0.0"
+datafusion = "24.0.0"
 object_store = "0.5.6"
 url = "2.2.1"

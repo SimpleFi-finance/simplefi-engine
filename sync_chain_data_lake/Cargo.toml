@@ -12,3 +12,20 @@ datafusion = {workspace = true}
 object_store = {workspace = true, features = ["gcp"]}
 futures = {workspace = true}
 url = {workspace = true}
+clap = {workspace = true}
+log = {workspace = true}
+serde = {workspace = true}
+confy ={ workspace = true}
+serde_json = {workspace = true}
+
+[[bin]]
+name = "sync_chain_db"
+path = "src/bin/sync_chain_to_db.rs"
+
+[[bin]]
+name = "sync_db_to_datalake"
+path = "src/bin/sync_db_to_datalake.rs"
+
+[[bin]]
+name = "generate_settings"
+path = "src/settings/main.rs"

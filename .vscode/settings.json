@@ -1,5 +1,7 @@
 {
     "rust-analyzer.linkedProjects": [
-        "./abi_discovery/Cargo.toml"
+        "./abi_discovery/Cargo.toml",
+        "./chain_drivers/ethereum/Cargo.toml",
+        "./chain_drivers/ethereum/Cargo.toml"
     ]
 }
