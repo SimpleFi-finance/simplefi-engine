@@ -19,7 +19,7 @@ async-trait = "0.1"
 bincode = "1.3"
 bson = "2.6"
 chrono = "0.4.24"
-clap = { version = "4.2", features = ["derive"] }
+clap = { version = "4.3", features = ["derive"] }
 confy = { version = "0.5.1" }
 ethers = { version = "2.0.4", features = ["ws", "rustls", "legacy"]}
 ethers-providers = "2.0.4"
