@@ -1,9 +1,9 @@
-use common::types::chain::{Chain, NativeCurrency, ConnectionType, SupportedMethods, WSSLogProcessor};
 use settings::load_settings;
 use third_parties::mongo::MongoConfig;
 
-#[tokio::main]
-pub async fn ethereum_mainnet() -> Chain {
+use crate::common::{base_chain::{ConnectionType, SupportedMethods, NativeCurrency, Engine, Chain}, evm::EvmChain};
+
+pub async fn ethereum_mainnet() -> Result<EvmChain, Box<dyn std::error::Error>> {
 
     // load settings for ethereum
     // let settings = load_settings().unwrap_or_default();
@@ -65,21 +65,17 @@ pub async fn ethereum_mainnet() -> Chain {
         database: "test".to_string(),
     };
 
-    Chain::new(
-        "1".to_string(), 
-        "Ethereum Mainnet".to_string(), 
-        "mainnet".to_string(),
-        "ETH".to_string(), 
-        common::types::chain::Engine::EVM, 
-        vec![eth],
-        nodes,
-        rpc_methods,
-        db,
-    ).await
+    Ok(
+        EvmChain::new(
+            "1".to_string(), 
+            "Ethereum Mainnet".to_string(), 
+            "mainnet".to_string(),
+            "ETH".to_string(), 
+            Engine::EVM, 
+            vec![eth],
+            nodes,
+            rpc_methods,
+            db,
+        ).await
+    )
 }
-
-// decoding methods (evm?)
-
-// db methods
-
-// datalake methods

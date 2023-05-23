@@ -14,8 +14,7 @@ members = [
     "logs_subscriber",
     "historical_decoder",
     "sync_chain_data_lake",
-    "chain_drivers/ethereum",
-    "chain_drivers/common",
+    "chains_drivers",
     "processes/track_blocks", #wss connection to get new blocks
     "processes/track_logs", #wss connection to get new logs
     "processes/get_txs", #https connection to get txs

@@ -5,21 +5,27 @@ use serde_json::Value;
 use third_parties::mongo::{Mongo, MongoConfig};
 use mongodb::{
     bson::doc,
-    options::FindOptions
 };
-use async_trait::async_trait;
 use tungstenite::{connect, Message};
-// use serde_json::Value;
-// use tungstenite::{Message, connect};
-// use shared_utils::logger::init_logging;
-// use log::{ debug, info };
-// use futures::{StreamExt, stream, Stream};
 
 pub enum SupportedChains {
-    Ethereum,
-    Matic,
-    Binance,
-    Arbitrum
+    EthereumMainnet,
+}
+
+impl fmt::Display for SupportedChains {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            SupportedChains::EthereumMainnet => write!(f, "ethereum_mainnet"),
+        }
+    }
+}
+
+impl fmt::Debug for SupportedChains {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            SupportedChains::EthereumMainnet => write!(f, "ethereum_mainnet"),
+        }
+    }
 }
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy, Hash)]
@@ -40,8 +46,14 @@ impl fmt::Display for ConnectionType {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Engine {
     EVM,
-    DOT,
-    NonEvm
+}
+
+impl fmt::Display for Engine {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Engine::EVM => write!(f, "EVM"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -55,21 +67,7 @@ pub enum SupportedMethods {
     SubscribeTransactions,
 }
 
-impl fmt::Display for Engine {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            Engine::EVM => write!(f, "EVM"),
-            Engine::DOT => write!(f, "DOT"),
-            Engine::NonEvm => write!(f, "NonEvm"),
-        }
-    }
-}
 
-// pub trait RawToBronze {
-//     fn logs_to_bronze<T>(&self, logs: Vec<T>) -> Vec<serde_json::Value>;
-//     fn blocks_to_bronze<T>(&self, blocks: Vec<T>) -> Vec<serde_json::Value>;
-//     fn txs_to_bronze<T>(&self, txs: Vec<T>) -> Vec<serde_json::Value>;
-// }
 #[derive(Debug, Clone, PartialEq)]
 pub struct NativeCurrency {
     pub name: String,
@@ -172,39 +170,6 @@ impl Chain {
 
         results
     }
-    // pub fn subscribe<T, R: serde::de::Deserialize<'_>>(&self, method: &Value, provider: String) -> impl Stream<Item = R> {
-
-        // init_logging();
-
-        // let request_str = serde_json::to_string(method).unwrap();
-        // let wss = self.get_node(provider, ConnectionType::WSS).expect("No WSS connection found for requested provider");
-
-        // let (mut socket, _response) = connect(wss).expect("Can't connect");
-        // socket.write_message(Message::Text(request_str)).unwrap();
-
-        // loop {
-        //     let msg = socket.read_message().expect("Error reading message");
-        //     let msg_str = msg.into_text().unwrap();
-        //     let msg_data: R = serde_json::from_str(&msg_str).unwrap();
-
-        //     return stream::iter(vec![msg_data]);
-        // }
-        //todo implement stream to source
-        // loop {
-        //     let msg = socket.read_message().expect("Error reading message");
-        //     let msg = msg.into_text().unwrap();
-        //     let msg_data: R = serde_json::from_str(&msg).unwrap();
-
-        //     return stream::iter(vec![msg_data]);
-        // }
-    // }
-    pub async fn long_poll(&self) {
-
-        // TODO: Implement long polling for each chain
-        // load the wss url from settings
-        // load the request method from struct
-        println!("Long polling {}", self);
-    }
 }
 
 impl fmt::Display for Chain {
@@ -213,52 +178,71 @@ impl fmt::Display for Chain {
     }
 }
 
-type Callback<T,R> = fn(Vec<T>) -> Vec<R>;
-pub trait Processor {
-    fn decode_logs<T,R>(self, items: Vec<T>, cb: Callback<T,R>) -> Vec<R>;
+// type Callback<T,R> = fn(Vec<T>) -> Vec<R>;
+pub trait DecodeLogs {
+    fn decode_logs<T,R>(self, items: Vec<T>) -> Vec<R>;
 }
 
-impl Processor for Chain {
-    fn decode_logs<T, R>(self, items: Vec<T>, cb: Callback<T,R>) -> Vec<R> {
-        cb(items)
-    }
+pub trait DecodeBlocks {
+    fn decode_blocks<T,R>(self, items: Vec<T>) -> Vec<R>;
 }
+
+pub trait DecodeTransactions {
+    fn decode_transactions<T,R>(self, items: Vec<T>) -> Vec<R>;
+}
+
+pub trait SubscribeBlocks {
+    fn subscribe_blocks<T,R>(self);
+}
+
+pub trait SubscribeLogs {
+    fn subscribe_logs<T,R>(self);
+}
+
+pub trait GetTransactions {
+    fn get_transactions<T,R>(self, from_block_number: u64, to_block_number: u64);
+}
+
+pub trait GetLogs {
+    fn get_logs<T,R>(self, from_block_number: u64, to_block_number: u64);
+}
+
 
 // type CallbackWSS<T,R> = fn(String, &HashMap<i64, Vec<T>>) -> Future<>;
 
-type CallbackWSS<T> = fn(String, &HashMap<i64, Vec<T>>);
+// type CallbackWSS<T> = fn(String, &HashMap<i64, Vec<T>>);
 
-#[async_trait]
-pub trait WSSLogProcessor {
-    async fn subscribe_logs<T>(self, cb: CallbackWSS<T>);
-}
+// #[async_trait]
+// pub trait WSSLogProcessor {
+//     async fn subscribe_logs<T>(self, cb: CallbackWSS<T>);
+// }
 
-#[async_trait]
-impl WSSLogProcessor for Chain {
-    async fn subscribe_logs<T>(self, cb: CallbackWSS<T>) {
-        let wss_connection = self.get_node(&"infura".to_string(), &ConnectionType::WSS).expect("No WSS connection found for requested provider");
-        let method = self.get_method(&SupportedMethods::SubscribeLogs).unwrap();
+// #[async_trait]
+// impl WSSLogProcessor for Chain {
+//     async fn subscribe_logs<T>(self, cb: CallbackWSS<T>) {
+//         let wss_connection = self.get_node(&"infura".to_string(), &ConnectionType::WSS).expect("No WSS connection found for requested provider");
+//         let method = self.get_method(&SupportedMethods::SubscribeLogs).unwrap();
        
-        let request_str = serde_json::to_string(method).unwrap();
+//         let request_str = serde_json::to_string(method).unwrap();
 
-        let (mut socket, _response) = connect(wss_connection).expect("Can't connect");
-        socket.write_message(Message::Text(request_str)).unwrap();
+//         let (mut socket, _response) = connect(wss_connection).expect("Can't connect");
+//         socket.write_message(Message::Text(request_str)).unwrap();
 
-        // save logs in hashmap
+//         // save logs in hashmap
 
 
-        let mut logs_hm: HashMap<i64, Vec<T>> = HashMap::new();
+//         let mut logs_hm: HashMap<i64, Vec<T>> = HashMap::new();
 
-        loop {
-            let msg = socket.read_message().expect("Error reading message");
-            let msg_str = msg.into_text().unwrap();
-            // todo implement await for callback
+//         loop {
+//             let msg = socket.read_message().expect("Error reading message");
+//             let msg_str = msg.into_text().unwrap();
+//             // todo implement await for callback
 
-            cb(msg_str.clone(), &logs_hm);
-            println!("Message: {}", msg_str);
-        }
-    }
-}
+//             cb(msg_str.clone(), &logs_hm);
+//             println!("Message: {}", msg_str);
+//         }
+//     }
+// }
 // impl RawToBronze for Chain {
 //     // import types from common
 //     fn logs_to_bronze<T>(&self, logs: Vec<T>) -> Vec<serde_json::Value> {
