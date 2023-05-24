@@ -1,7 +1,7 @@
 use serde::{de::Error, Serialize, Deserialize, Deserializer};
 
 #[derive(Debug,Default, PartialEq, Clone, Serialize, Deserialize)]
-pub struct EthLog {
+pub struct Log {
     #[serde(default, rename = "blockNumber", deserialize_with="hex_to_i64")]
     pub block_number: i64,
     #[serde(default, rename = "blockHash")]
