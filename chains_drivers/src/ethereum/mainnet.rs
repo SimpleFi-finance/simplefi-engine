@@ -1,20 +1,18 @@
 use settings::load_settings;
 use third_parties::mongo::MongoConfig;
 
-use crate::common::{base_chain::{ConnectionType, SupportedMethods, NativeCurrency, Engine, Chain}, evm::EvmChain};
+use crate::common::{base_chain::{ConnectionType, SupportedMethods, NativeCurrency, Engine}, evm::EvmChain};
 
 pub async fn ethereum_mainnet() -> Result<EvmChain, Box<dyn std::error::Error>> {
 
-    // load settings for ethereum
-    // let settings = load_settings().unwrap_or_default();
+    // todo load settings specific for ethereum
     let settings = load_settings().unwrap();
 
-
     let nodes =  vec![
-        ("infura".to_string(), ConnectionType::RPC, format!("{}/{}", settings.infura_mainnet_rpc, settings.infura_token)),
-        ("infura".to_string(), ConnectionType::WSS, format!("{}/{}", settings.infura_mainnet_ws, settings.infura_token)),
+        ("infura".to_string(), ConnectionType::RPC, format!("{}{}", settings.infura_mainnet_rpc, settings.infura_token)),
+        ("infura".to_string(), ConnectionType::WSS, format!("{}{}", settings.infura_mainnet_ws, settings.infura_token)),
     ];
-    println!("nodes: {:?}", nodes);
+
     let rpc_methods = vec![(
         SupportedMethods::GetLogs,
         serde_json::json!({
@@ -59,10 +57,9 @@ pub async fn ethereum_mainnet() -> Result<EvmChain, Box<dyn std::error::Error>> 
         address: "0x0000000000000000000000000000000000000000".to_string(),
     };
 
-    // todo remove hardcoding
     let db = MongoConfig {
-        uri: "mongodb://localhost:27017".to_string(),
-        database: "test".to_string(),
+        uri: settings.mongodb_uri,
+        database: settings.mongodb_database_name,
     };
 
     Ok(
