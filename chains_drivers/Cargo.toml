@@ -19,7 +19,6 @@ third_parties = {path="../third_parties"}
 block_indexer = {path="../block_indexer"}
 serde_json = { workspace = true }
 tungstenite = { workspace = true }
-blockchain_tracker = {path = "../blockchain_tracker"}
 serde = {workspace = true}
 logs_subscriber = {path = "../logs_subscriber"}
 shared_types = {path = "../shared_types"}

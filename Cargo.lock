@@ -855,26 +855,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "blockchain_tracker"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "clap 4.2.7",
- "confy",
- "futures",
- "lapin",
- "log",
- "serde",
- "serde_json",
- "settings",
- "shared_types",
- "shared_utils",
- "third_parties",
- "tokio",
- "tungstenite 0.19.0",
-]
-
-[[package]]
 name = "blocking"
 version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1049,7 +1029,6 @@ name = "chains_drivers"
 version = "0.1.0"
 dependencies = [
  "block_indexer",
- "blockchain_tracker",
  "chrono",
  "futures",
  "grpc_server",
@@ -1312,23 +1291,6 @@ dependencies = [
  "strum",
  "strum_macros",
  "unicode-width",
-]
-
-[[package]]
-name = "common"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "futures",
- "log",
- "mongodb",
- "serde",
- "serde_json",
- "settings",
- "shared_utils",
- "third_parties",
- "tokio",
- "tungstenite 0.19.0",
 ]
 
 [[package]]
@@ -2139,30 +2101,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ethereum"
-version = "0.1.0"
-dependencies = [
- "block_indexer",
- "blockchain_tracker",
- "chrono",
- "common",
- "futures",
- "grpc_server",
- "lapin",
- "log",
- "logs_subscriber",
- "rayon",
- "serde",
- "serde_json",
- "settings",
- "shared_types",
- "shared_utils",
- "third_parties",
- "tokio",
- "tungstenite 0.19.0",
-]
-
-[[package]]
 name = "ethereum-types"
 version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2724,14 +2662,6 @@ dependencies = [
  "version_check",
  "zeroize",
 ]
-
-[[package]]
-name = "get_logs"
-version = "0.1.0"
-
-[[package]]
-name = "get_txs"
-version = "0.1.0"
 
 [[package]]
 name = "getrandom"
@@ -4365,6 +4295,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "processes"
+version = "0.1.0"
+dependencies = [
+ "chains_drivers",
+ "log",
+ "serde",
+ "serde_json",
+ "settings",
+ "shared_types",
+ "shared_utils",
+ "third_parties",
+ "tokio",
+ "tungstenite 0.19.0",
+]
+
+[[package]]
 name = "prost"
 version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5465,7 +5411,7 @@ dependencies = [
 name = "sync_chain_data_lake"
 version = "0.1.0"
 dependencies = [
- "clap 4.2.5",
+ "clap 4.2.7",
  "confy",
  "datafusion",
  "futures",
@@ -5971,32 +5917,6 @@ dependencies = [
  "thread_local",
  "tracing-core",
  "tracing-log",
-]
-
-[[package]]
-name = "track_blocks"
-version = "0.1.0"
-dependencies = [
- "ethereum",
- "log",
- "serde",
- "serde_json",
- "tokio",
- "tungstenite 0.19.0",
-]
-
-[[package]]
-name = "track_logs"
-version = "0.1.0"
-dependencies = [
- "common",
- "ethereum",
- "log",
- "serde",
- "serde_json",
- "settings",
- "tokio",
- "tungstenite 0.19.0",
 ]
 
 [[package]]
