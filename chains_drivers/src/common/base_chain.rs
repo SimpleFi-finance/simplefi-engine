@@ -196,7 +196,7 @@ pub trait SubscribeBlocks {
 }
 
 pub trait SubscribeLogs {
-    fn subscribe_logs<T,R>(&self);
+    fn subscribe_logs<T, R>(&self);
 }
 
 pub trait GetTransactions {

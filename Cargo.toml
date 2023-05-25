@@ -10,7 +10,6 @@ members = [
     "shared_utils",
     "solidity",
     "third_parties",
-    "logs_subscriber",
     "historical_decoder",
     "sync_chain_data_lake",
     "chains_drivers",

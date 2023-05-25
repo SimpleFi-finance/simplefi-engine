@@ -1,6 +1,7 @@
 use chains_drivers::{
-    ethereum::mainnet::ethereum_mainnet,
+    ethereum::mainnet::ethereum_mainnet, common::base_chain::SubscribeLogs,
 };
+use third_parties::mongo::lib::bronze::logs::types::Log;
 use settings::load_settings;
 
 #[tokio::main]
@@ -11,9 +12,10 @@ async fn main() {
     let chain_name = "ethereum_mainnet"; //todo switch to settings
 
     let chain = match chain_name.clone() {
-        "ethereum_mainnet" => ethereum_mainnet(),
+        "ethereum_mainnet" => ethereum_mainnet().await.unwrap(),
         _ => panic!("Chain not found"),
     };
 
-    // call method directly
+    // todo pass types dynamically to methods 
+    chain.subscribe_logs::<Log, Log>();
 }

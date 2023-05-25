@@ -2,7 +2,7 @@ use chrono::{NaiveDateTime, Datelike};
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use third_parties::mongo::lib::bronze::blocks::types::Block as MongoBlock;
 
-use crate::ethereum::types::raw::block::Block;
+use crate::common::types::evm::block::Block;
 use std::error::Error;
 
 pub fn decode_blocks(blocks: Vec<Block>) -> Result<Vec<MongoBlock>, Box<dyn Error>> {

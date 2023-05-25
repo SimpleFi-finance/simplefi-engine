@@ -1,11 +1,23 @@
 use std::collections::HashMap;
 
-use super::base_chain::{
-    Chain, ConnectionType, DecodeLogs, Engine, NativeCurrency, SubscribeBlocks, SubscribeLogs,
-    SupportedMethods,
+use super::{
+    base_chain::{
+        Chain, ConnectionType, DecodeLogs, Engine, NativeCurrency, SubscribeBlocks, SubscribeLogs,
+        SupportedMethods,
+    },
+    types::{
+        evm::{
+            log::Log, 
+            new_heads::{
+                NewLogEvent, 
+                NewHeadsEvent
+            }, 
+            block::Block
+        }
+    },
 };
+
 use crate::ethereum::{
-    types::raw::{log::Log, new_heads::{NewLogEvent, NewHeadsEvent}, block::Block},
     utils::{decode_logs_mainnet, decode_block_mainnet},
 };
 use log::{debug, info};
@@ -14,6 +26,7 @@ use shared_utils::logger::init_logging;
 use std::clone::Clone;
 use third_parties::mongo::{lib::bronze::decoding_error::types::DecodingError, Mongo, MongoConfig};
 use tungstenite::{connect, Message};
+
 use third_parties::mongo::lib::bronze::{
     logs::types::Log as MongoLog,
     blocks::types::Block as MongoBlock

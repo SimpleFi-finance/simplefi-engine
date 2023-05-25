@@ -1,30 +1,21 @@
-use chains_drivers::ethereum::mainnet::ethereum_mainnet;
-use settings::load_settings as load_global_settings;
-use third_parties::{
-    broker::{
-        bind_queue_to_exchange, create_rmq_channel, declare_exchange, declare_rmq_queue,
-        publish_rmq_message,
-    },
-    mongo::{lib::bronze::blocks::{setters::save_blocks, types::Block}, Mongo, MongoConfig},
+use chains_drivers::{
+    ethereum::mainnet::ethereum_mainnet, common::base_chain::{SubscribeBlocks},
 };
-
-use shared_utils::logger::init_logging;
+use third_parties::mongo::lib::bronze::logs::types::Log;
+use settings::load_settings;
 
 #[tokio::main]
 async fn main() {
-    // connects to node wss endpoint and listens to new blocks (can store block data as it comes in)
-    // todo load settings and select chain
+    // load chain using settings name
+    let glob_settings = load_settings().unwrap();
+
     let chain_name = "ethereum_mainnet"; //todo switch to settings
 
-    let chain = match chain_name {
-        "ethereum_mainnet" => ethereum_mainnet(),
-        _ => panic!("Chain not found")
+    let chain = match chain_name.clone() {
+        "ethereum_mainnet" => ethereum_mainnet().await.unwrap(),
+        _ => panic!("Chain not found"),
     };
 
-    let glob_settings = load_global_settings().unwrap();
-
-    init_logging();
-
-    // load method directly
-    
+    // todo pass types dynamically to methods 
+    chain.subscribe_blocks::<Log, Log>();
 }

@@ -9,7 +9,7 @@ use third_parties::mongo::lib::bronze::blocks::getters::get_blocks;
 use third_parties::mongo::lib::bronze::decoding_error::types::DecodingError;
 use third_parties::mongo::lib::bronze::logs::types::Log as MongoLog;
 
-use crate::ethereum::types::raw::log::Log;
+use crate::common::types::evm::log::Log;
 
 // returns logs with extra info such as timestamp, year, month, day, decoded_data. if a log does not have an abi available the decoded_data field will be empty
 pub async fn decode_logs(logs: Vec<Log>, db: &Mongo) -> Result<(Vec<MongoLog>, Vec<DecodingError>), Box<dyn std::error::Error>> {

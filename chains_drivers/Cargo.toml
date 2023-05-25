@@ -20,6 +20,5 @@ block_indexer = {path="../block_indexer"}
 serde_json = { workspace = true }
 tungstenite = { workspace = true }
 serde = {workspace = true}
-logs_subscriber = {path = "../logs_subscriber"}
 shared_types = {path = "../shared_types"}
 mongodb = { workspace = true }
