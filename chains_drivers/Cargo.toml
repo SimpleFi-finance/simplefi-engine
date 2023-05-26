@@ -22,3 +22,6 @@ tungstenite = { workspace = true }
 serde = {workspace = true}
 shared_types = {path = "../shared_types"}
 mongodb = { workspace = true }
+async-trait = { workspace = true }
+ethabi = { workspace = true }
+reqwest = { workspace = true }

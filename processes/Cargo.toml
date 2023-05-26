@@ -16,6 +16,10 @@ chains_drivers = { path = "../chains_drivers"}
 shared_types = { path = "../shared_types"}
 shared_utils = { path = "../shared_utils"}
 third_parties = { path = "../third_parties"}
+rayon = { workspace = true }
+grpc_server = { path = "../grpc_server" }
+futures = { workspace = true }
+chrono = { workspace = true }
 
 [[bin]]
 name = "track_logs"
@@ -24,3 +28,7 @@ path = "src/bin/track_logs.rs"
 [[bin]]
 name = "track_blocks"
 path = "src/bin/track_blocks.rs"
+
+[[bin]]
+name = "index_blocks"
+path = "src/bin/block_data_indexer.rs"

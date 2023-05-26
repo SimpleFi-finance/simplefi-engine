@@ -1,8 +1,18 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, error::Error, pin::Pin};
+use ethabi::ethereum_types::H256;
+use futures::Future;
+use serde::{de::DeserializeOwned, Serialize};
 
 use super::{
     base_chain::{
-        Chain, ConnectionType, DecodeLogs, Engine, NativeCurrency, SubscribeBlocks, SubscribeLogs,
+        Chain, 
+        ConnectionType, 
+        DecodeLogs, 
+        Engine, 
+        NativeCurrency, 
+        SubscribeBlocks, 
+        SubscribeLogs, 
+        GetBlocks,
         SupportedMethods,
     },
     types::{
@@ -12,8 +22,9 @@ use super::{
                 NewLogEvent, 
                 NewHeadsEvent
             }, 
-            block::Block
-        }
+            block::Block, transaction::Tx,
+            generic::GenericNodeResponse
+        },
     },
 };
 
@@ -66,20 +77,8 @@ impl EvmChain {
     }
 }
 
-impl DecodeLogs for EvmChain {
-    fn decode_logs<T, R>(
-        &self,
-        items: Vec<T>,
-    ) -> Vec<R> {
-        // todo add logs decoding functionality
-        vec![]
-    }
-}
-
 impl SubscribeLogs for EvmChain {
     fn subscribe_logs<T, R>(&self) {
-        init_logging();
-
         let wss_connection = self
             .chain
             .get_node(&"infura".to_string(), &ConnectionType::WSS)
@@ -186,8 +185,7 @@ impl SubscribeLogs for EvmChain {
 }
 
 impl SubscribeBlocks for EvmChain {
-    fn subscribe_blocks<T, R>(&self) {
-        init_logging();
+    fn subscribe_blocks<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default, R: DeserializeOwned + Unpin + Sync + Send + Serialize>(&self) {
         let wss_connection = self
             .chain
             .get_node(&"infura".to_string(), &ConnectionType::WSS)
@@ -203,7 +201,7 @@ impl SubscribeBlocks for EvmChain {
         socket.write_message(Message::Text(request_str)).unwrap();
 
         let decode_message = match self.chain.chain_id.as_str() {
-            "1" => |msg_str: String| match serde_json::from_str::<NewHeadsEvent>(&msg_str) {
+            "1" => |msg_str: String| match serde_json::from_str::<NewHeadsEvent<T>>(&msg_str) {
                 Ok(v) => v,
                 Err(e) => panic!("{:?}", e),
             },
@@ -211,8 +209,8 @@ impl SubscribeBlocks for EvmChain {
         };
 
         let decode_blocks = match self.chain.chain_id.as_str() {
-            "1" => |blocks: Vec<Block>| {
-                let decoded = decode_block_mainnet::decode_blocks(blocks).unwrap();
+            "1" => |blocks: Vec<Block<T>>| {
+                let decoded = decode_block_mainnet::decode_blocks::<T>(blocks).unwrap();
                 decoded
             },
             _ => panic!("Chain not supported"),
@@ -245,5 +243,58 @@ impl SubscribeBlocks for EvmChain {
                 }
             }
         }
+    }
+}
+
+
+// R: Raw Tx from response
+// T: Block expected 
+// Y: Raw Block with/out txs
+impl GetBlocks for EvmChain {
+    fn get_blocks<Y: DeserializeOwned + Unpin + Sync + Send + Serialize , T: DeserializeOwned + Unpin + Sync + Send + Serialize, R>(
+        &self, 
+        from_block_number: u64, 
+        to_block_number: u64, 
+        with_txs: bool
+    ) -> std::io::Result<Vec<T>> {
+        
+        let client = reqwest::Client::new();
+
+        let connection = self.chain.get_node(&"infura".to_string(), &ConnectionType::RPC).unwrap();
+        
+        let method = match with_txs {
+            true => self.chain.get_method(&SupportedMethods::GetBlockWithTxs).unwrap(),
+            false => self.chain.get_method(&SupportedMethods::GetBlock).unwrap(),
+        };
+
+        futures::executor::block_on(async move {
+            let mut blocks_data: Vec<T> = vec![];
+            for block_number in from_block_number..=to_block_number {
+                let block_hex = format!("0x{:x}", block_number);
+                let method = serde_json::to_string(method).unwrap();
+                let query = method.replace("__insert_block_number__", &block_hex);
+
+                let request = client
+                    .post(connection)
+                    .body(query)
+                    .send()
+                    .await
+                    .unwrap();
+
+                let response = request.text().await.unwrap();
+
+                match with_txs {
+                    true => {
+                        let data: GenericNodeResponse<T> = serde_json::from_str(&response).unwrap();
+                        blocks_data.push(data.result);
+                    },
+                    false => {
+                        let data: GenericNodeResponse<T> = serde_json::from_str(&response).unwrap();
+                        blocks_data.push(data.result);
+                    }
+                }
+            }
+            Ok(blocks_data)
+        })
     }
 }

@@ -1,11 +1,12 @@
 use chrono::{NaiveDateTime, Datelike};
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use serde::{de::DeserializeOwned, Serialize};
 use third_parties::mongo::lib::bronze::blocks::types::Block as MongoBlock;
 
 use crate::common::types::evm::block::Block;
 use std::error::Error;
 
-pub fn decode_blocks(blocks: Vec<Block>) -> Result<Vec<MongoBlock>, Box<dyn Error>> {
+pub fn decode_blocks<T: DeserializeOwned + Unpin + Sync + Send + Serialize>(blocks: Vec<Block<T>>) -> Result<Vec<MongoBlock>, Box<dyn Error>> {
     
     let blocks = blocks.par_iter().map(|block| {
         let date = NaiveDateTime::from_timestamp_opt(block.timestamp, 0).unwrap();

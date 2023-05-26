@@ -9,11 +9,11 @@ async fn main() {
     // load chain using settings name
     let glob_settings = load_settings().unwrap();
 
-    let chain_name = "ethereum_mainnet"; //todo switch to settings
+    let chain_id = "1"; //todo switch to settings
 
-    let chain = match chain_name.clone() {
-        "ethereum_mainnet" => ethereum_mainnet().await.unwrap(),
-        _ => panic!("Chain not found"),
+    let chain = match chain_id {
+        "1" => ethereum_mainnet().await.unwrap(),
+        _ => panic!("Chain not implemented to subscribe to logs"),
     };
 
     // todo pass types dynamically to methods 

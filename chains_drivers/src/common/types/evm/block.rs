@@ -1,7 +1,7 @@
 use serde::{de::Error, Serialize, Deserialize, Deserializer};
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Block {
+pub struct Block<T> {
     #[serde(default, deserialize_with="hex_to_i64")]
     pub timestamp: i64,
 
@@ -53,6 +53,9 @@ pub struct Block {
 
     #[serde(rename = "withdrawalsRoot")]
     pub withdrawals_root: Option<String>,
+
+    #[serde(default)]
+    pub transactions: Option<Vec<T>>,
 }
 
 fn hex_to_i64<'de, D>(deserializer: D) -> Result<i64, D::Error>

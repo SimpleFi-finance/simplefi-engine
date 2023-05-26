@@ -1,6 +1,6 @@
 use serde::{de::Error, Serialize, Deserialize, Deserializer};
 
-#[derive(Debug,PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug,PartialEq, Clone, Serialize, Deserialize, Default)]
 pub struct Tx {
     #[serde(default, rename = "blockNumber", deserialize_with="hex_to_i64")]
     pub block_number: i64,

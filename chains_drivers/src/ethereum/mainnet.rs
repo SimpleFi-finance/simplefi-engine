@@ -30,6 +30,14 @@ pub async fn ethereum_mainnet() -> Result<EvmChain, Box<dyn std::error::Error>> 
             "jsonrpc": "2.0",
             "id": 1,
             "method": "eth_getBlockByNumber",
+            "params": ["__insert_block_number__", false],
+        })
+    ),(
+        SupportedMethods::GetBlockWithTxs,
+        serde_json::json!({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "eth_getBlockByNumber",
             "params": ["__insert_block_number__", true],
         })
     ),(

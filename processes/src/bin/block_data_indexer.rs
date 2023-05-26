@@ -1,59 +1,46 @@
-// use std::{collections::{HashSet}, time::Instant};
-
 // use block_indexer::utils::{get_block_logs, get_block_with_txs};
-// use chrono::{Datelike, NaiveDateTime};
-// use futures::{StreamExt, TryStreamExt};
-// use grpc_server::{client::AbiDiscoveryClient};
 // use lapin::{options::{BasicConsumeOptions, BasicAckOptions}, types::FieldTable};
-// use log::{debug, info};
-// use rayon::{iter::ParallelIterator, prelude::IntoParallelIterator};
-// use rayon::prelude::IntoParallelRefIterator;
-// use settings::load_settings as load_global_settings;
-// use shared_utils::{logger::init_logging, decoder::{logs::evm::evm_logs_decoder, types::ContractAbi}};
-// use third_parties::{
-//     broker::create_rmq_channel,
-//     mongo::{
-//         lib::bronze::{
-//             logs::{setters::save_logs, types::Log},
-//             txs::{setters::save_txs, types::Tx}, decoding_error::setters::save_decoding_error,
-//         },
-//         Mongo, MongoConfig,
-//     },
-// };
+use settings::load_settings as load_global_settings;
+
+use chains_drivers::{
+    ethereum::mainnet::ethereum_mainnet, 
+    common::{base_chain::GetBlocks, types::evm::{block::Block, transaction::Tx}},
+};
+use shared_utils::logger::init_logging;
+
 #[tokio::main]
 async fn main() {
-    // let global_settings = load_global_settings().unwrap();
-    // init_logging();
-    // // todo selector to get txs and logs or just txs or just logs
+    let global_settings = load_global_settings().unwrap();
+    init_logging(); 
 
-    // let queue_name = global_settings.new_blocks_queue_name.clone();
-    // let consumer_name = format!("{}_{}", String::from("ethereum"), String::from("block_indexer"));
-    // let rmq_uri = global_settings.rabbit_mq_url.clone();
-    // let channel = create_rmq_channel(&rmq_uri).await.unwrap();
+    // connect to redis queue
+    // listen to blocknumebrs minted
+    // get logs, txs and block data
+    // can be used with multiple workers
 
-    // let consumer = channel
-    //     .basic_consume(
-    //         &queue_name,
-    //         &consumer_name,
-    //         BasicConsumeOptions::default(),
-    //         FieldTable::default(),
-    //     )
-    //     .await
-    //     .expect("Failed to start consumer");
+    let chain_id = "1"; //todo switch to settings
+    let block_number = 17_000_000;
+    match chain_id {
+        "1" => {
+            let chain = ethereum_mainnet().await.unwrap();
 
-    // info!("Waiting for messages...");
-    // let mut consumer_stream = consumer.into_stream();
+            // load data of chain, connect to node, digest data, die
+            let block_with_txs = chain
+                .get_blocks::<Block<String>, Block<String>, Tx>(
+                    block_number, 
+                    block_number, 
+                    true
+                ).unwrap();
+            // todo add call for logs
+        },
+        _ => panic!("Chain not implemented for indexing"),
+    };
 
-    // let provider_url = format!("{}{}", global_settings.infura_mainnet_rpc, global_settings.infura_token);
+    todo!("add timestamp to logs, decode logs, save all data");
 
-    // let db_config = MongoConfig {
-    //     uri: global_settings.mongodb_uri.clone(),
-    //     database: global_settings.mongodb_database_name.clone(),
-    // };
+    // let db = chain.db.clone();
 
-    // let db = Mongo::new(&db_config).await.unwrap();
-    // // todo migrate the log decoding to new function
-
+    
     // while let Some(delivery) = consumer_stream.next().await {
     //     let delivery_data = delivery.unwrap();
     //     let block: i64 = serde_json::from_slice(&delivery_data.data).unwrap();
@@ -93,6 +80,7 @@ async fn main() {
     //                 log_type: l.log_type.clone(),
     //             }
     //         })
+    //         .collect::<Vec<Log>>();
     //         .collect::<Vec<Log>>();
         
     //     let unique_addresses = logs.clone().into_par_iter()

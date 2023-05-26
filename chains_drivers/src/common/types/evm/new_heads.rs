@@ -18,16 +18,18 @@ pub struct NewLogsEventParams {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct NewHeadsEvent {
+pub struct NewHeadsEvent<R> {
     pub jsonrpc: String,
     pub method: Option<String>,
     pub result: Option<String>,
-    pub params: Option<NewHeadsEventParams>,
+    #[serde(default)]
+    pub params: Option<NewHeadsEventParams<R>>,
     pub id: Option<u32>,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct NewHeadsEventParams {
-    pub result: Option<Block>,
+#[derive(Deserialize, Serialize, Debug, Clone, Default)]
+pub struct NewHeadsEventParams<R> {
+    #[serde(default)]
+    pub result: Option<Block<R>>,
     pub subscription: String,
 }

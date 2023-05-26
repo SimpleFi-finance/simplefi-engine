@@ -1022,14 +1022,17 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 name = "chains_drivers"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "block_indexer",
  "chrono",
+ "ethabi",
  "futures",
  "grpc_server",
  "lapin",
  "log",
  "mongodb",
  "rayon",
+ "reqwest",
  "serde",
  "serde_json",
  "settings",
@@ -4061,7 +4064,11 @@ name = "processes"
 version = "0.1.0"
 dependencies = [
  "chains_drivers",
+ "chrono",
+ "futures",
+ "grpc_server",
  "log",
+ "rayon",
  "serde",
  "serde_json",
  "settings",
