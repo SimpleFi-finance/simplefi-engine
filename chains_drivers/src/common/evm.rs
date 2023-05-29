@@ -1,18 +1,18 @@
-use std::{collections::HashMap, fmt::Debug};
+use std::{collections::{HashMap, HashSet}, fmt::Debug};
+use grpc_server::{client::AbiDiscoveryClient};
 use serde::{de::DeserializeOwned, Serialize};
 use shared_types::data_lake::{SupportedDataLevels, SupportedDataTypes};
-
 use super::{
     base_chain::{
         Chain, 
         ConnectionType, 
-        DecodeLogs, 
         Engine, 
         NativeCurrency, 
         SubscribeBlocks, 
         SubscribeLogs, 
         GetBlocks,
-        SupportedMethods, GetLogs,
+        SupportedMethods, 
+        GetLogs, 
     },
     types::{
         evm::{
@@ -21,10 +21,11 @@ use super::{
                 NewLogEvent, 
                 NewHeadsEvent
             }, 
-            block::Block, transaction::Tx,
+            block::Block,
             generic::GenericNodeResponse
         },
     },
+    decoding::logs::evm::evm_logs_decoder
 };
 
 use crate::ethereum::{
@@ -45,7 +46,6 @@ use third_parties::mongo::lib::bronze::{
 pub struct EvmChain {
     pub chain: Chain,
 }
-
 impl EvmChain {
     pub async fn new(
         chain_id: String,
@@ -74,6 +74,30 @@ impl EvmChain {
             )
             .await,
         }
+    }
+
+    async fn get_abis(&self, contract_addresses: Vec<String>) -> Result<Vec<grpc_server::abi_discovery_proto::AddressAbiJson>, Box<dyn std::error::Error>>{
+        let mut abi_discovery_client = AbiDiscoveryClient::new("http://[::1]:50051".to_string()).await;
+        // todo add chain_id to call
+        let abis_addresses = abi_discovery_client
+            .get_addresses_abi_json(contract_addresses.clone())
+            .await
+            .into_inner();
+
+        Ok(abis_addresses.addresses_abi)
+    }
+
+    pub async fn decode_logs(&self, logs: Vec<MongoLog>) -> Result<(Vec<MongoLog>, Vec<DecodingError>), Box<dyn std::error::Error>> {
+        let unique_addresses = logs.clone().into_iter()
+            .map(|log| log.address.unwrap())
+            .collect::<HashSet<String>>()
+            .into_iter()
+            .collect::<Vec<String>>();
+
+        let abis = self.get_abis(unique_addresses).await?;
+
+        let decoded_logs = evm_logs_decoder(logs, abis).unwrap();
+        Ok(decoded_logs)
     }
 }
 
@@ -140,8 +164,7 @@ impl SubscribeLogs for EvmChain {
                                         tokio::spawn(async move {
                                             let now = std::time::Instant::now();
                                             let decoded = decode_logs(logs, db).await;
-
-                                            // todo dynamic type and collection name
+                                            // todo use generics type
                                             chain
                                                 .save_to_db::<MongoLog>(
                                                     decoded.0,
@@ -230,7 +253,6 @@ impl SubscribeBlocks for EvmChain {
                             let chain = self.chain.clone();
                             tokio::spawn(async move {
                                 let decoded = decode_blocks(vec![block]);
-                                // todo add to queue in redis
                                 chain
                                     .save_to_db::<MongoBlock>(
                                         decoded, 
@@ -238,6 +260,7 @@ impl SubscribeBlocks for EvmChain {
                                         &SupportedDataLevels::Bronze
                                     ).await;
                             });
+                            todo!("Add to queue in redis");
                         },
                         None => {
                             info!("No block data")

@@ -16,7 +16,6 @@ rayon = {workspace = true}
 settings = {path = "../settings"}
 shared_utils = {path ="../shared_utils"}
 third_parties = {path="../third_parties"}
-block_indexer = {path="../block_indexer"}
 serde_json = { workspace = true }
 tungstenite = { workspace = true }
 serde = {workspace = true}
@@ -25,3 +24,4 @@ mongodb = { workspace = true }
 async-trait = { workspace = true }
 ethabi = { workspace = true }
 reqwest = { workspace = true }
+hex = {workspace = true}

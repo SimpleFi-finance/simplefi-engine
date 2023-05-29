@@ -8,8 +8,6 @@ use third_parties::mongo::lib::bronze::logs::types::{Log, DecodedData};
 use ethabi::ethereum_types::H256;
 use ethabi::{RawLog, Contract, Token};
 
-use crate::decoder::types::ContractAbi;
-
 struct TokenWType {
     value: String,
     token_type: String,
@@ -49,9 +47,9 @@ fn get_token_type(token: Token) -> Result<TokenWType, Box<dyn Error>> {
     })
 }
 
-pub fn evm_logs_decoder(logs: Vec<Log>, abis: Vec<ContractAbi>) -> Result<(Vec<Log>, Vec<DecodingError>), Box<dyn Error>>{
+pub fn evm_logs_decoder(logs: Vec<Log>, abis: Vec<grpc_server::abi_discovery_proto::AddressAbiJson>) -> Result<(Vec<Log>, Vec<DecodingError>), Box<dyn Error>>{
 
-
+    // todo make more efficient (use hashmap instead of vec, on inputs of function)
     let logs_by_address = logs
         .par_iter()
         .fold(||HashMap::new(), |mut acc, log| {

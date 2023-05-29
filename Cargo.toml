@@ -2,7 +2,6 @@
 
 members = [
     "abi_discovery",
-    "block_indexer", #listens to new blocks emitted and gets logs, data, txs
     "short_to_long_storage", #saves daily data into parquet in corresponding directory
     "grpc_server",
     "settings",

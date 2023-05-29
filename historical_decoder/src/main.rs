@@ -3,7 +3,7 @@ use std::sync::Arc;
 use datafusion::{prelude::{ParquetReadOptions, SessionContext}};
 use object_store::{gcp::GoogleCloudStorageBuilder, ObjectStore, path::Path};
 use settings::load_settings;
-use futures::{stream::StreamExt, TryStreamExt};
+use futures::{stream::StreamExt};
 use url::Url;
 
 // given a range of dates, load the data from gcp, decode it, and write it to a file in gcp

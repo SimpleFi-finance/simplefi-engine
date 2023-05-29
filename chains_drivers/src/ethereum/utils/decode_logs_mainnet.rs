@@ -1,15 +1,12 @@
-use std::collections::{HashSet};
+use std::collections::HashSet;
 use grpc_server::client::AbiDiscoveryClient;
-use rayon::{iter::ParallelIterator};
+use rayon::iter::ParallelIterator;
 use rayon::prelude::{IntoParallelRefIterator, IntoParallelIterator};
-use shared_utils::decoder::logs::evm::evm_logs_decoder;
-use shared_utils::decoder::types::ContractAbi;
 use third_parties::mongo::Mongo;
 use third_parties::mongo::lib::bronze::blocks::getters::get_blocks;
 use third_parties::mongo::lib::bronze::decoding_error::types::DecodingError;
 use third_parties::mongo::lib::bronze::logs::types::Log as MongoLog;
-
-use crate::common::types::evm::log::Log;
+use crate::common::{types::evm::log::Log, decoding::logs::evm::evm_logs_decoder};
 
 // returns logs with extra info such as timestamp, year, month, day, decoded_data. if a log does not have an abi available the decoded_data field will be empty
 pub async fn decode_logs(logs: Vec<Log>, db: &Mongo) -> Result<(Vec<MongoLog>, Vec<DecodingError>), Box<dyn std::error::Error>> {
@@ -32,7 +29,6 @@ pub async fn decode_logs(logs: Vec<Log>, db: &Mongo) -> Result<(Vec<MongoLog>, V
         .into_iter()
         .collect::<Vec<String>>();
 
-    // get abis
     // todo add pagination of abi requests (and pagination of logs decoding)
 
     let abis_addresses = abi_discovery_client.get_addresses_abi_json(unique_addresses.clone()).await;
@@ -61,12 +57,7 @@ pub async fn decode_logs(logs: Vec<Log>, db: &Mongo) -> Result<(Vec<MongoLog>, V
         }
     }).collect::<Vec<MongoLog>>();
 
-    let abis = abis_response.addresses_abi.into_par_iter().map(|abi| {
-        ContractAbi {
-            address: abi.address,
-            abi: abi.abi,
-        }
-    }).collect::<Vec<ContractAbi>>();
+    let abis = abis_response.addresses_abi;
 
     let decoded_logs = evm_logs_decoder(logs, abis);
 

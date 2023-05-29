@@ -3,7 +3,6 @@ use chrono::TimeZone;
 use rand::Rng;
 
 pub fn get_mock_block (ts: &Option<i64>, bn: &Option<i64>, n: Option<i16>) -> Vec<Block> {
-    // todo add random number for ts and bn
     let array_len = n.unwrap_or(1);
 
     let mut blocks = Vec::new();

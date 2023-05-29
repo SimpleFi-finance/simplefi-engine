@@ -1,4 +1,4 @@
-use futures::{TryStreamExt, Future};
+use futures::{TryStreamExt};
 use mongodb::bson::doc;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
@@ -161,13 +161,6 @@ impl Chain {
         self.rpc_methods.get(method)
     }
 
-    // pub fn decode_message<T: DeserializeOwned>(&self, message: &String) -> T
-    // {
-    //     let data: T = serde_json::from_str(message).unwrap();
-
-    //     data
-    // }
-
     fn resolve_collection_name(&self, 
         data_type: &SupportedDataTypes,
         data_level: &SupportedDataLevels,
@@ -230,27 +223,6 @@ impl fmt::Display for Chain {
     }
 }
 
-pub trait DecodeLogs {
-    fn decode_logs<T, R>(
-        &self,
-        items: Vec<T>,
-    ) -> Vec<R>;
-}
-
-pub trait DecodeBlocks {
-    fn decode_blocks<T, R>(
-        &self,
-        items: Vec<T>,
-    ) -> Vec<R>;
-}
-
-pub trait DecodeTransactions {
-    fn decode_transactions<T, R>(
-        &self,
-        items: Vec<T>,
-    ) -> Vec<R>;
-}
-
 pub trait SubscribeBlocks {
     fn subscribe_blocks<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default, R: DeserializeOwned + Unpin + Sync + Send + Serialize>(&self);
 }
@@ -283,3 +255,6 @@ pub trait GetConfirmedBlocks {
         with_txs: bool,
     ) -> Result<Vec<T>>;
 }
+
+
+

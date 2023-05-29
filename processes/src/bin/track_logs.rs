@@ -11,11 +11,12 @@ async fn main() {
 
     let chain_id = "1"; //todo switch to settings
 
-    let chain = match chain_id {
-        "1" => ethereum_mainnet().await.unwrap(),
+    match chain_id {
+        "1" => {
+            let chain = ethereum_mainnet().await.unwrap();
+
+            chain.subscribe_logs::<Log, Log>();
+        },
         _ => panic!("Chain not implemented to subscribe to logs"),
     };
-
-    // todo pass types dynamically to methods 
-    chain.subscribe_logs::<Log, Log>();
 }
