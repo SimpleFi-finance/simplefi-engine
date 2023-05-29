@@ -1,7 +1,6 @@
-use std::{collections::HashMap, error::Error, pin::Pin};
-use ethabi::ethereum_types::H256;
-use futures::Future;
+use std::{collections::HashMap, fmt::Debug};
 use serde::{de::DeserializeOwned, Serialize};
+use shared_types::data_lake::{SupportedDataLevels, SupportedDataTypes};
 
 use super::{
     base_chain::{
@@ -13,7 +12,7 @@ use super::{
         SubscribeBlocks, 
         SubscribeLogs, 
         GetBlocks,
-        SupportedMethods,
+        SupportedMethods, GetLogs,
     },
     types::{
         evm::{
@@ -33,7 +32,6 @@ use crate::ethereum::{
 };
 use log::{debug, info};
 use serde_json::Value;
-use shared_utils::logger::init_logging;
 use std::clone::Clone;
 use third_parties::mongo::{lib::bronze::decoding_error::types::DecodingError, Mongo, MongoConfig};
 use tungstenite::{connect, Message};
@@ -59,6 +57,7 @@ impl EvmChain {
         nodes: Vec<(String, ConnectionType, String)>,
         rpc_methods: Vec<(SupportedMethods, Value)>,
         db_config: MongoConfig,
+        confirmation_time: u64,
     ) -> Self {
         EvmChain {
             chain: Chain::new(
@@ -71,6 +70,7 @@ impl EvmChain {
                 nodes,
                 rpc_methods,
                 db_config,
+                confirmation_time
             )
             .await,
         }
@@ -145,14 +145,16 @@ impl SubscribeLogs for EvmChain {
                                             chain
                                                 .save_to_db::<MongoLog>(
                                                     decoded.0,
-                                                    "logs_bronze_test".to_string(),
+                                                    &SupportedDataTypes::Logs,
+                                                    &SupportedDataLevels::Bronze
                                                 )
                                                 .await;
 
                                             chain
                                                 .save_to_db::<DecodingError>(
                                                     decoded.1,
-                                                    "logs_decoding_error".to_string(),
+                                                    &SupportedDataTypes::DecodingError,
+                                                    &SupportedDataLevels::Bronze
                                                 )
                                                 .await;
 
@@ -230,7 +232,11 @@ impl SubscribeBlocks for EvmChain {
                                 let decoded = decode_blocks(vec![block]);
                                 // todo add to queue in redis
                                 chain
-                                    .save_to_db::<MongoBlock>(decoded, "blocks_bronze".to_string()).await;
+                                    .save_to_db::<MongoBlock>(
+                                        decoded, 
+                                        &SupportedDataTypes::Blocks, 
+                                        &SupportedDataLevels::Bronze
+                                    ).await;
                             });
                         },
                         None => {
@@ -246,10 +252,6 @@ impl SubscribeBlocks for EvmChain {
     }
 }
 
-
-// R: Raw Tx from response
-// T: Block expected 
-// Y: Raw Block with/out txs
 impl GetBlocks for EvmChain {
     fn get_blocks<Y: DeserializeOwned + Unpin + Sync + Send + Serialize , T: DeserializeOwned + Unpin + Sync + Send + Serialize, R>(
         &self, 
@@ -295,6 +297,45 @@ impl GetBlocks for EvmChain {
                 }
             }
             Ok(blocks_data)
+        })
+    }
+}
+
+impl GetLogs for EvmChain {
+    fn get_logs<T: DeserializeOwned + Unpin + Sync + Send + Debug + Serialize>(
+            &self,
+            from_block_number: u64,
+            to_block_number: u64,
+        ) -> std::io::Result<Vec<T>> {
+        let client = reqwest::Client::new();
+
+        let connection = self.chain.get_node(&"infura".to_string(), &ConnectionType::RPC).unwrap();
+
+        let method = self.chain.get_method(&SupportedMethods::GetLogs).unwrap();
+
+        futures::executor::block_on(async move {
+            let mut logs_data: Vec<T> = vec![];
+
+            for block_number in from_block_number..=to_block_number {
+                let block_hex = format!("0x{:x}", block_number);
+                let method = serde_json::to_string(method).unwrap();
+                let query = method
+                    .replace("__insert_from_block_number__", &block_hex)
+                    .replace("__insert_to_block_number__", &block_hex);
+
+                let request = client
+                    .post(connection)
+                    .body(query)
+                    .send()
+                    .await
+                    .unwrap();
+
+                let response = request.text().await.unwrap();
+                let data: GenericNodeResponse<Vec<T>> = serde_json::from_str(&response).unwrap();
+
+                logs_data.extend(data.result);
+            }
+            Ok(logs_data)
         })
     }
 }

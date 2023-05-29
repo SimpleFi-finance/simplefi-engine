@@ -6,6 +6,7 @@ pub enum SupportedDataTypes {
     Blocks,
     Transactions,
     Logs,
+    DecodingError
 }
 
 impl fmt::Display for SupportedDataTypes {
@@ -14,6 +15,7 @@ impl fmt::Display for SupportedDataTypes {
             SupportedDataTypes::Logs => write!(f, "logs"),
             SupportedDataTypes::Blocks => write!(f, "blocks"),
             SupportedDataTypes::Transactions => write!(f, "transactions"),
+            SupportedDataTypes::DecodingError => write!(f, "decoding_error"),
         }
     }
 }

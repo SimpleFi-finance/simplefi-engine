@@ -2,7 +2,9 @@ use futures::{TryStreamExt, Future};
 use mongodb::bson::doc;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
+use shared_types::data_lake::{SupportedDataLevels, SupportedDataTypes};
 use std::clone::Clone;
+use std::fmt::Debug;
 use std::io::Result;
 use std::{collections::HashMap, fmt};
 use third_parties::mongo::{Mongo, MongoConfig};
@@ -95,6 +97,7 @@ pub struct Chain {
     pub engine_type: Engine,
     pub native_currency: Vec<NativeCurrency>,
     pub db: Mongo,
+    pub confirmation_time: u64,
     nodes: HashMap<(String, ConnectionType), String>,
     rpc_methods: HashMap<SupportedMethods, Value>,
 }
@@ -110,6 +113,7 @@ impl Chain {
         nodes: Vec<(String, ConnectionType, String)>,
         rpc_methods: Vec<(SupportedMethods, Value)>,
         db_config: MongoConfig,
+        confirmation_time: u64,
     ) -> Self {
         let nodes = nodes
             .iter()
@@ -138,6 +142,7 @@ impl Chain {
             nodes,
             rpc_methods: methods,
             db: mongo,
+            confirmation_time,
         }
     }
 
@@ -163,13 +168,24 @@ impl Chain {
     //     data
     // }
 
+    fn resolve_collection_name(&self, 
+        data_type: &SupportedDataTypes,
+        data_level: &SupportedDataLevels,
+    ) -> String {
+
+        format!("{}_{}_{}", self.symbol, data_type.to_string(), data_level.to_string())
+    }
+
     pub async fn save_to_db<R>(
         &self,
         items: Vec<R>,
-        collection_name: String,
+        collection_name: &SupportedDataTypes,
+        data_level: &SupportedDataLevels
     ) where
         for<'a> R: Deserialize<'a> + Serialize,
-    {
+    {   
+        let collection_name = self.resolve_collection_name(collection_name, &data_level);
+
         let collection = self.db.collection::<R>(&collection_name);
 
         collection.insert_many(items, None).await.unwrap();
@@ -177,12 +193,15 @@ impl Chain {
 
     pub async fn get_items<R>(
         &self,
-        collection_name: String,
+        collection_name: &SupportedDataTypes,
+        data_level: &SupportedDataLevels,
         filter: Option<HashMap<String, String>>,
     ) -> Vec<R>
     where
         R: DeserializeOwned + Unpin + Sync + Send + Serialize,
     {
+        let collection_name = self.resolve_collection_name(collection_name, data_level);
+
         let collection = self.db.collection::<R>(&collection_name);
         // todo implement filters
         let filter = doc! {};
@@ -241,13 +260,22 @@ pub trait SubscribeLogs {
 }
 
 pub trait GetLogs {
-    fn get_logs<T, R>(
+    fn get_logs<T: DeserializeOwned + Unpin + Sync + Send + Debug + Serialize>(
         &self,
         from_block_number: u64,
         to_block_number: u64,
-    );
+    ) -> Result<Vec<T>>;
 }
 pub trait GetBlocks {
+    fn get_blocks<Y: DeserializeOwned + Unpin + Sync + Send + Serialize, T: DeserializeOwned + Unpin + Sync + Send + Serialize, R>(
+        &self,
+        from_block_number: u64,
+        to_block_number: u64,
+        with_txs: bool,
+    ) -> Result<Vec<T>>;
+}
+
+pub trait GetConfirmedBlocks {
     fn get_blocks<Y: DeserializeOwned + Unpin + Sync + Send + Serialize, T: DeserializeOwned + Unpin + Sync + Send + Serialize, R>(
         &self,
         from_block_number: u64,
