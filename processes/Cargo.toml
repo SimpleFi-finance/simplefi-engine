@@ -20,6 +20,7 @@ rayon = { workspace = true }
 grpc_server = { path = "../grpc_server" }
 futures = { workspace = true }
 chrono = { workspace = true }
+mongodb = {workspace = true}
 
 [[bin]]
 name = "track_logs"

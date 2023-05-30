@@ -177,6 +177,11 @@ impl Chain {
     ) where
         for<'a> R: Deserialize<'a> + Serialize,
     {   
+
+        if items.len() == 0 {
+            return;
+        }
+        
         let collection_name = self.resolve_collection_name(collection_name, &data_level);
 
         let collection = self.db.collection::<R>(&collection_name);
@@ -224,7 +229,9 @@ impl fmt::Display for Chain {
 }
 
 pub trait SubscribeBlocks {
-    fn subscribe_blocks<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default, R: DeserializeOwned + Unpin + Sync + Send + Serialize>(&self);
+    fn subscribe_blocks<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default>(
+        &self, 
+        redis_uri: String);
 }
 
 pub trait SubscribeLogs {

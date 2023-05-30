@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, fmt::Debug};
+use std::{collections::{HashMap}, fmt::Debug};
 use grpc_server::{client::AbiDiscoveryClient};
 use mongodb::bson::doc;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator, IntoParallelRefIterator};
@@ -33,7 +33,7 @@ use super::{
 use log::{debug, info};
 use serde_json::Value;
 use std::clone::Clone;
-use third_parties::mongo::{lib::bronze::decoding_error::types::DecodingError, Mongo, MongoConfig};
+use third_parties::{mongo::{lib::bronze::decoding_error::types::DecodingError, MongoConfig}, redis::{publish_message, connect as redis_connect}};
 use tungstenite::{connect, Message};
 use third_parties::mongo::lib::bronze::{
     logs::types::Log as MongoLog,
@@ -124,7 +124,6 @@ impl SubscribeLogs for EvmChain {
             .chain
             .get_node(&"infura".to_string(), &ConnectionType::WSS)
             .expect("No WSS connection found for requested provider");
-        println!("{:?}", wss_connection);
 
         let method = self
             .chain
@@ -237,14 +236,17 @@ impl SubscribeLogs for EvmChain {
 }
 
 impl SubscribeBlocks for EvmChain {
-    fn subscribe_blocks<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default, R: DeserializeOwned + Unpin + Sync + Send + Serialize>(&self) {
+    fn subscribe_blocks<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default>(
+        &self, 
+        redis_uri: String
+    ) {
         let wss_connection = self
             .chain
             .get_node(&"infura".to_string(), &ConnectionType::WSS)
             .expect("No WSS connection found for requested provider");
         let method = self
             .chain
-            .get_method(&SupportedMethods::SubscribeBlocks)
+            .get_method(&SupportedMethods::SubscribeNewHeads)
             .unwrap();
 
         let request_str = serde_json::to_string(method).unwrap();
@@ -259,36 +261,44 @@ impl SubscribeBlocks for EvmChain {
             },
             _ => panic!("Chain not supported"),
         };
-
+        
         let decode_blocks = match self.chain.chain_id.as_str() {
             "1" => |blocks: Vec<Block<T>>| {
                 blocks.par_iter().map(|bl|{
                     bl.raw_to_mongo()
-                }).collect()
+                }).collect::<Vec<MongoBlock>>()
             },
             _ => panic!("Chain not supported"),
         };
-
+        
         loop {
             let msg = socket.read_message().expect("Error reading message");
             let msg_str = msg.into_text().unwrap();
             let data = decode_message(msg_str);
-    
+            let redis_uri = redis_uri.clone();
+
             match data.params {
                 Some(data) => {
                     match data.result {
                         Some(block) => {
                             let chain = self.chain.clone();
                             tokio::spawn(async move {
+                                let mut redis_conn = redis_connect(&redis_uri).await.unwrap();
                                 let decoded = decode_blocks(vec![block]);
+
+                                let bn = decoded[0].number.clone().to_string();
+
                                 chain
                                     .save_to_db::<MongoBlock>(
                                         decoded, 
                                         &SupportedDataTypes::Blocks, 
                                         &SupportedDataLevels::Bronze
                                     ).await;
+
+                                    let redis_channel = format!("{}_{}", &chain.symbol.to_lowercase(), "blocks".to_string());
+
+                                    publish_message(&mut redis_conn, &redis_channel, &bn).await.unwrap();
                             });
-                            todo!("Add to queue in redis");
                         },
                         None => {
                             info!("No block data")

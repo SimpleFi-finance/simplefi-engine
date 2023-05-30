@@ -3814,6 +3814,7 @@ dependencies = [
  "futures",
  "grpc_server",
  "log",
+ "mongodb",
  "rayon",
  "serde",
  "serde_json",

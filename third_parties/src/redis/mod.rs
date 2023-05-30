@@ -1,9 +1,9 @@
-use std::pin::Pin;
+use std::{pin::Pin};
 
 // use futures::prelude::*;
 use redis::{
     Client, AsyncCommands, RedisError, RedisResult,
-    aio::{AsyncStream, Connection, ConnectionManager},
+    aio::{AsyncStream, Connection, ConnectionManager}, PubSub,
 };
 
 // create a helper to establish a connection to redis in async way
@@ -36,6 +36,15 @@ pub async fn add_to_set(
     Ok(())
 }
 
+pub async fn publish_message(
+    con: &mut Connection,
+    channel: &str,
+    message: &str,
+) -> RedisResult<()> {
+    let _: () = con.publish(channel, message).await?;
+
+    Ok(())
+}
 // create a helper to check if a String is in a redis list in async way
 pub async fn is_in_set(
     con: &mut Connection,

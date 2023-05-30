@@ -1,4 +1,5 @@
 use chrono::{Datelike, NaiveDateTime};
+use log::info;
 use rayon::prelude::IntoParallelIterator;
 use settings::load_settings as load_global_settings;
 
@@ -10,13 +11,29 @@ use shared_types::data_lake::{SupportedDataLevels, SupportedDataTypes};
 use shared_utils::{logger::init_logging};
 use rayon::iter::ParallelIterator;
 use third_parties::{mongo::lib::bronze::{
-    txs::types::Tx as MongoTx,
-}};
+    txs::types::Tx as MongoTx, 
+    logs::types::Log as MongoLog,
+}, redis::{connect_client}};
 
-// todo add option to query only confirmed block data
+use mongodb::bson::doc;
 
-async fn index_eth_mainnet_blocks (block_number: u64) {
+async fn index_eth_mainnet_blocks (block_number: u64, confirmed: bool) {
+
     let chain = ethereum_mainnet().await.unwrap();
+    let block_number = match confirmed {
+        true => block_number - chain.chain.confirmation_time,
+        false => block_number,
+    };
+
+
+    let data = chain.chain.get_items::<MongoLog>(&SupportedDataTypes::Logs, &SupportedDataLevels::Bronze, Some(doc!{
+        "block_number": block_number as i64,
+    })).await;
+
+    if data.len() > 0 {
+        info!("Block {} already indexed", block_number);
+        return;
+    }
 
     let block_with_txs = chain
         .get_blocks::<Block<Tx>, Block<Tx>, Tx>(
@@ -62,7 +79,8 @@ async fn index_eth_mainnet_blocks (block_number: u64) {
 
     let decoded_logs = chain.decode_logs(logs, timestamp).await.unwrap();
 
-    // Note: Blocks dont need saving as they are already saved by websocket process
+    // Note: Blocks dont need saving as they are already saved by websocket process before pushing blocknumber to queue
+
     let(_,_,_) = tokio::join!(
         chain.chain.save_to_db(decoded_logs.0, &SupportedDataTypes::Logs, &SupportedDataLevels::Bronze),
         chain.chain.save_to_db(decoded_logs.1, &SupportedDataTypes::DecodingError, &SupportedDataLevels::Bronze),
@@ -75,12 +93,28 @@ async fn main() {
     // todo add local settings
     init_logging(); 
 
-    //todo connect to redis queue
-
     let chain_id = "1"; //todo switch to settings
-    let block_number = 17_000_000;
-    match chain_id {
-        "1" => index_eth_mainnet_blocks(block_number).await,
+
+    let chain = match chain_id {
+        "1" => ethereum_mainnet().await.unwrap(),
         _ => panic!("Chain not implemented for indexing"),
     };
+
+    let redis_cli = connect_client(&global_settings.redis_uri).await.unwrap();
+    let mut conn = redis_cli.get_connection().unwrap();
+    let mut pubsub = conn.as_pubsub();
+
+    let channel = format!("{}_{}", chain.chain.symbol.to_lowercase(), "blocks".to_string());
+
+    pubsub.subscribe(channel).unwrap();
+
+    loop {
+        let msg = pubsub.get_message().unwrap();
+        let block_number: u64 = msg.get_payload().unwrap();
+
+        match chain_id {
+            "1" => index_eth_mainnet_blocks(block_number, true).await,
+            _ => panic!("Chain not implemented for indexing"),
+        };
+    }
 }
