@@ -1,5 +1,0 @@
-{
-    "rust-analyzer.linkedProjects": [
-        "./abi_discovery/Cargo.toml"
-    ]
-}

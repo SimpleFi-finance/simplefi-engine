@@ -56,7 +56,7 @@ pub struct Settings {
         short = 'C',
         long = "cloud_bucket",
         help = "Cloud Bucket to store the data",
-        required = false
+        default_value="simplefi-data-lake"
     )]
     pub cloud_bucket: String,
 

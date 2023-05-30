@@ -1,0 +1,27 @@
+[package]
+name = "chains_drivers"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+futures = {workspace = true}
+chrono = {workspace = true}
+tokio = {workspace = true}
+grpc_server = { path = "../grpc_server"}
+lapin = {workspace = true}
+log = {workspace = true}
+rayon = {workspace = true}
+settings = {path = "../settings"}
+shared_utils = {path ="../shared_utils"}
+third_parties = {path="../third_parties"}
+serde_json = { workspace = true }
+tungstenite = { workspace = true }
+serde = {workspace = true}
+shared_types = {path = "../shared_types"}
+mongodb = { workspace = true }
+async-trait = { workspace = true }
+ethabi = { workspace = true }
+reqwest = { workspace = true }
+hex = {workspace = true}

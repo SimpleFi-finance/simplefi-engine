@@ -7,10 +7,12 @@ use crate::mongo::{
 use super::types::Log;
 
 pub async fn save_logs(db: &Mongo, logs: Vec<Log>) -> Result<(), Box<dyn std::error::Error>> {
-    
     let global_settings = load_settings().unwrap();
-
+    // todo add chain to collection name
     let logs_collection = db.collection::<Log>(&global_settings.logs_bronze_collection_name);
+    if logs.len() == 0 {
+        return Ok(())
+    }
 
     logs_collection.insert_many(logs, None).await?;
 

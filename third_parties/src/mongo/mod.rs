@@ -9,7 +9,7 @@ pub struct MongoConfig {
 }
 
 // Define a struct to hold the MongoDB client
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Mongo {
     pub client: Client,
     pub database: Database,

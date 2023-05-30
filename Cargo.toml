@@ -2,16 +2,17 @@
 
 members = [
     "abi_discovery",
-    "blockchain_tracker", # listens to new blocks emitted and sends them to queue
-    "block_indexer", #listens to new blocks emitted and gets logs, data, txs
-    "daily_data_digest", #saves daily data into parquet in corresponding directory
+    "short_to_long_storage", #saves daily data into parquet in corresponding directory
     "grpc_server",
     "settings",
     "shared_types",
     "shared_utils",
     "solidity",
     "third_parties",
-    "logs_subscriber",
+    "historical_decoder",
+    "sync_chain_data_lake",
+    "chains_drivers",
+    "processes"
 ]
 
 [workspace.dependencies]
@@ -47,3 +48,9 @@ tonic-build = "0.9"
 tracing = "0.1"
 tungstenite = { version = "0.19.0", features = ["native-tls"] }
 ethabi = {version = "18.0.0", features = ["full-serde"]}
+google-cloud-storage = "0.11.0"
+google-cloud-auth = "0.9.0"
+google-cloud-default = "0.2.0"
+datafusion = "24.0.0"
+object_store = "0.5.6"
+url = "2.2.1"
