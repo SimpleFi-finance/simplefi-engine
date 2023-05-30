@@ -47,29 +47,7 @@ fn get_token_type(token: Token) -> Result<TokenWType, Box<dyn Error>> {
     })
 }
 
-pub fn evm_logs_decoder(logs: Vec<Log>, abis: Vec<grpc_server::abi_discovery_proto::AddressAbiJson>) -> Result<(Vec<Log>, Vec<DecodingError>), Box<dyn Error>>{
-
-    // todo make more efficient (use hashmap instead of vec, on inputs of function)
-    let logs_by_address = logs
-        .par_iter()
-        .fold(||HashMap::new(), |mut acc, log| {
-
-            acc
-                .entry(log.address.clone().unwrap())
-                .or_insert(vec![])
-                .push(log.clone());
-
-            acc
-        })
-        .reduce(||HashMap::new(), |mut acc, hm| {
-            for (key, value) in hm {
-                acc
-                .entry(key)
-                .or_insert(vec![])
-                .extend(value);
-            }
-            acc
-        });
+pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Log>>, abis: Vec<grpc_server::abi_discovery_proto::AddressAbiJson>) -> Result<(Vec<Log>, Vec<DecodingError>), Box<dyn Error>>{
 
     let mut eventhm = HashMap::new();
 

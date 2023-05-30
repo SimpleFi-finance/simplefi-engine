@@ -1,5 +1,7 @@
 use std::{collections::{HashMap, HashSet}, fmt::Debug};
 use grpc_server::{client::AbiDiscoveryClient};
+use mongodb::bson::doc;
+use rayon::prelude::{IntoParallelIterator, ParallelIterator, IntoParallelRefIterator};
 use serde::{de::DeserializeOwned, Serialize};
 use shared_types::data_lake::{SupportedDataLevels, SupportedDataTypes};
 use super::{
@@ -25,18 +27,14 @@ use super::{
             generic::GenericNodeResponse
         },
     },
-    decoding::logs::evm::evm_logs_decoder
+    utils::decoding::logs::evm::evm_logs_decoder
 };
 
-use crate::ethereum::{
-    utils::{decode_logs_mainnet, decode_block_mainnet},
-};
 use log::{debug, info};
 use serde_json::Value;
 use std::clone::Clone;
 use third_parties::mongo::{lib::bronze::decoding_error::types::DecodingError, Mongo, MongoConfig};
 use tungstenite::{connect, Message};
-
 use third_parties::mongo::lib::bronze::{
     logs::types::Log as MongoLog,
     blocks::types::Block as MongoBlock
@@ -87,16 +85,35 @@ impl EvmChain {
         Ok(abis_addresses.addresses_abi)
     }
 
-    pub async fn decode_logs(&self, logs: Vec<MongoLog>) -> Result<(Vec<MongoLog>, Vec<DecodingError>), Box<dyn std::error::Error>> {
-        let unique_addresses = logs.clone().into_iter()
-            .map(|log| log.address.unwrap())
-            .collect::<HashSet<String>>()
-            .into_iter()
-            .collect::<Vec<String>>();
+    pub async fn decode_logs(&self, logs: Vec<Log>, timestamp: i64) -> Result<(Vec<MongoLog>, Vec<DecodingError>), Box<dyn std::error::Error>> {
+        let logs_by_address = logs
+            .par_iter()
+            .fold(||HashMap::new(), |mut acc, log| {
+
+                let log = log.raw_to_mongo(timestamp);
+
+                acc
+                    .entry(log.address.clone().unwrap())
+                    .or_insert(vec![])
+                    .push(log.clone());
+
+                acc
+            })
+            .reduce(||HashMap::new(), |mut acc, hm| {
+                for (key, value) in hm {
+                    acc
+                    .entry(key)
+                    .or_insert(vec![])
+                    .extend(value);
+                }
+                acc
+            });
+
+        let unique_addresses: Vec<String> = logs_by_address.keys().cloned().collect();
 
         let abis = self.get_abis(unique_addresses).await?;
 
-        let decoded_logs = evm_logs_decoder(logs, abis).unwrap();
+        let decoded_logs = evm_logs_decoder(logs_by_address, abis).unwrap();
         Ok(decoded_logs)
     }
 }
@@ -128,8 +145,17 @@ impl SubscribeLogs for EvmChain {
         };
 
         let decode_logs = match self.chain.chain_id.as_str() {
-            "1" => |logs: Vec<Log>, db: Mongo| async move {
-                let decoded = decode_logs_mainnet::decode_logs(logs, &db).await.unwrap();
+            "1" => |logs: Vec<Log>, chain: EvmChain| async move {
+                // get ts from block
+
+                let filter = doc! {"number": logs[0].block_number};
+                let block = chain.chain.get_items::<MongoBlock>(&SupportedDataTypes::Blocks, &SupportedDataLevels::Bronze, Some(filter)).await;
+                let timestamp = match block.len() > 0 {
+                    true => block[0].timestamp,
+                    false => 0 as i64,
+                };
+
+                let decoded = chain.decode_logs(logs, timestamp).await.unwrap();
                 decoded
             },
             _ => panic!("Chain not supported"),
@@ -139,7 +165,9 @@ impl SubscribeLogs for EvmChain {
         let mut logs_hm: HashMap<i64, Vec<Log>> = HashMap::new();
 
         loop {
-            let db = self.chain.db.clone();
+            let evm_chain = self.clone();
+            let chain = self.chain.clone();
+
             let msg = socket.read_message().expect("Error reading message");
             let msg_str = msg.into_text().unwrap();
 
@@ -159,12 +187,11 @@ impl SubscribeLogs for EvmChain {
                                         let bn = last_bn.clone();
                                         let logs = prev_block_data.clone();
                                         logs_hm.remove(&bn);
-                                        let chain = self.chain.clone();
 
                                         tokio::spawn(async move {
                                             let now = std::time::Instant::now();
-                                            let decoded = decode_logs(logs, db).await;
-                                            // todo use generics type
+                                            let decoded = decode_logs(logs, evm_chain).await;
+
                                             chain
                                                 .save_to_db::<MongoLog>(
                                                     decoded.0,
@@ -235,8 +262,9 @@ impl SubscribeBlocks for EvmChain {
 
         let decode_blocks = match self.chain.chain_id.as_str() {
             "1" => |blocks: Vec<Block<T>>| {
-                let decoded = decode_block_mainnet::decode_blocks::<T>(blocks).unwrap();
-                decoded
+                blocks.par_iter().map(|bl|{
+                    bl.raw_to_mongo()
+                }).collect()
             },
             _ => panic!("Chain not supported"),
         };

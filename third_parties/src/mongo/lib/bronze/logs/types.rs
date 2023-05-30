@@ -23,6 +23,49 @@ pub struct Log {
     pub log_type: Option<String>,
 }
 
+impl Log {
+    pub fn new(
+        timestamp: i64,
+        year: i16,
+        month: i8,
+        day: i8,
+        block_number: i64,
+        block_hash: String,
+        transaction_hash: Option<String>,
+        transaction_index: i64,
+
+        address: Option<String>,
+
+        data: Option<String>,
+
+        decoded_data: Option<Vec<DecodedData>>,
+        topics: Vec<String>,
+        log_index: i64,
+        transaction_log_index: i64,
+        removed: bool,
+        log_type: Option<String>,
+    ) -> Self {
+        Self {
+            timestamp,
+            year,
+            month,
+            day,
+            block_number,
+            block_hash,
+            transaction_hash,
+            transaction_index,
+            address,
+            data,
+            decoded_data,
+            topics,
+            log_index,
+            transaction_log_index,
+            removed,
+            log_type,
+        }
+    }
+}
+
 #[derive(Debug,PartialEq, Clone, Serialize, Deserialize, Default)]
 pub struct DecodedData {
     pub name: String,

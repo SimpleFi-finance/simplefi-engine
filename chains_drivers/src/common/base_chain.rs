@@ -1,5 +1,5 @@
 use futures::{TryStreamExt};
-use mongodb::bson::doc;
+use mongodb::bson::{doc, Bson, Document};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use shared_types::data_lake::{SupportedDataLevels, SupportedDataTypes};
@@ -166,7 +166,7 @@ impl Chain {
         data_level: &SupportedDataLevels,
     ) -> String {
 
-        format!("{}_{}_{}", self.symbol, data_type.to_string(), data_level.to_string())
+        format!("{}_{}_{}", self.symbol.to_lowercase(), data_type.to_string(), data_level.to_string())
     }
 
     pub async fn save_to_db<R>(
@@ -188,7 +188,7 @@ impl Chain {
         &self,
         collection_name: &SupportedDataTypes,
         data_level: &SupportedDataLevels,
-        filter: Option<HashMap<String, String>>,
+        filter: Option<Document>,
     ) -> Vec<R>
     where
         R: DeserializeOwned + Unpin + Sync + Send + Serialize,
@@ -197,7 +197,7 @@ impl Chain {
 
         let collection = self.db.collection::<R>(&collection_name);
         // todo implement filters
-        let filter = doc! {};
+        let filter = filter.unwrap_or(doc! {});
 
         let mut results = vec![];
         let mut items = collection.find(filter, None).await.unwrap();

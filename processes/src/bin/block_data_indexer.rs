@@ -10,7 +10,6 @@ use shared_types::data_lake::{SupportedDataLevels, SupportedDataTypes};
 use shared_utils::{logger::init_logging};
 use rayon::iter::ParallelIterator;
 use third_parties::{mongo::lib::bronze::{
-    logs::types::Log as MongoLog,
     txs::types::Tx as MongoTx,
 }};
 
@@ -28,15 +27,6 @@ async fn index_eth_mainnet_blocks (block_number: u64) {
 
     let logs = chain
         .get_logs::<Log>(block_number, block_number).unwrap();
-
-    // let unique_addresses = logs.clone().into_par_iter()
-    //     .map(|l| l.address.unwrap())
-    //     .collect::<HashSet<String>>()
-    //     .into_iter()
-    //     .collect::<Vec<String>>();
-
-    // let abis = get_chain_abis(&chain.chain.chain_id, &unique_addresses).await.unwrap();
-    // todo implement decoding
 
     let timestamp = block_with_txs[0].timestamp.clone();
 
@@ -70,32 +60,8 @@ async fn index_eth_mainnet_blocks (block_number: u64) {
         })
         .collect::<Vec<MongoTx>>();
 
-    let logs_mongo = logs
-        .into_par_iter().map(|l| {
-            // todo decode logs
-            MongoLog {
-                address: l.address.clone(),
-                block_hash: l.block_hash.clone(),
-                block_number: l.block_number,
-                data: l.data.clone(),
-                log_index: l.log_index,
-                removed: l.removed,
-                topics: l.topics.clone(),
-                transaction_hash: l.transaction_hash.clone(),
-                transaction_index: l.transaction_index,
-                transaction_log_index: l.transaction_log_index,
-                year: date.year() as i16,
-                month: date.month() as i8,
-                day: date.day() as i8,
-                timestamp: date.timestamp_micros(),
-                decoded_data: None,
-                log_type: l.log_type.clone(),
-            }
-        })
-        .collect::<Vec<MongoLog>>();
+    let decoded_logs = chain.decode_logs(logs, timestamp).await.unwrap();
 
-
-    let decoded_logs = chain.decode_logs(logs_mongo).await.unwrap();
     // Note: Blocks dont need saving as they are already saved by websocket process
     let(_,_,_) = tokio::join!(
         chain.chain.save_to_db(decoded_logs.0, &SupportedDataTypes::Logs, &SupportedDataLevels::Bronze),
