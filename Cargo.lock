@@ -3792,7 +3792,6 @@ dependencies = [
  "rayon",
  "serde_json",
  "settings",
- "third_parties",
  "tracing",
  "tracing-subscriber",
 ]

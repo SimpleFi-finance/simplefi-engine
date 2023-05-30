@@ -36,7 +36,7 @@ async fn index_eth_mainnet_blocks (block_number: u64, confirmed: bool) {
     }
 
     let block_with_txs = chain
-        .get_blocks::<Block<Tx>, Block<Tx>, Tx>(
+        .get_blocks::<Block<Tx>>(
             block_number, 
             block_number, 
             true

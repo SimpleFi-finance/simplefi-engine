@@ -1,5 +1,5 @@
 use futures::{TryStreamExt};
-use mongodb::bson::{doc, Bson, Document};
+use mongodb::bson::{doc, Document};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use shared_types::data_lake::{SupportedDataLevels, SupportedDataTypes};
@@ -8,6 +8,8 @@ use std::fmt::Debug;
 use std::io::Result;
 use std::{collections::HashMap, fmt};
 use third_parties::mongo::{Mongo, MongoConfig};
+
+use super::types::evm::log::{LogBlockNumber, LogContractAddress, RawToMongo};
 
 pub enum SupportedChains {
     EthereumMainnet,
@@ -235,7 +237,7 @@ pub trait SubscribeBlocks {
 }
 
 pub trait SubscribeLogs {
-    fn subscribe_logs<T, R>(&self);
+    fn subscribe_logs<T: LogBlockNumber + LogContractAddress + RawToMongo + DeserializeOwned + Serialize + Clone + Send + Sync + 'static>(&self);
 }
 
 pub trait GetLogs {
@@ -246,12 +248,12 @@ pub trait GetLogs {
     ) -> Result<Vec<T>>;
 }
 pub trait GetBlocks {
-    fn get_blocks<Y: DeserializeOwned + Unpin + Sync + Send + Serialize, T: DeserializeOwned + Unpin + Sync + Send + Serialize, R>(
+    fn get_blocks<Y: DeserializeOwned + Unpin + Sync + Send + Serialize>(
         &self,
         from_block_number: u64,
         to_block_number: u64,
         with_txs: bool,
-    ) -> Result<Vec<T>>;
+    ) -> Result<Vec<Y>>;
 }
 
 pub trait GetConfirmedBlocks {

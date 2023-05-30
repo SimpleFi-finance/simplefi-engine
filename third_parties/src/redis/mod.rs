@@ -3,7 +3,7 @@ use std::{pin::Pin};
 // use futures::prelude::*;
 use redis::{
     Client, AsyncCommands, RedisError, RedisResult,
-    aio::{AsyncStream, Connection, ConnectionManager}, PubSub,
+    aio::{AsyncStream, Connection, ConnectionManager},
 };
 
 // create a helper to establish a connection to redis in async way
