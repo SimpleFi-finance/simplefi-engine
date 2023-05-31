@@ -1,7 +1,7 @@
 use chains_drivers::{
-    ethereum::mainnet::ethereum_mainnet, common::base_chain::SubscribeLogs,
+    ethereum::mainnet::ethereum_mainnet, common::{base_chain::SubscribeLogs, types::evm::log::Log},
 };
-use third_parties::mongo::lib::bronze::logs::types::Log;
+
 use settings::load_settings;
 
 #[tokio::main]

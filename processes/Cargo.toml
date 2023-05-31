@@ -21,6 +21,8 @@ grpc_server = { path = "../grpc_server" }
 futures = { workspace = true }
 chrono = { workspace = true }
 mongodb = {workspace = true}
+clap = {workspace = true}
+confy = {workspace = true}
 
 [[bin]]
 name = "track_logs"
@@ -33,3 +35,7 @@ path = "src/bin/track_blocks.rs"
 [[bin]]
 name = "index_blocks"
 path = "src/bin/block_data_indexer.rs"
+
+[[bin]]
+name = "generate_settings"
+path = "src/settings/main.rs"
