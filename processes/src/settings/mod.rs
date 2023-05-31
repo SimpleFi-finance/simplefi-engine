@@ -13,27 +13,27 @@ use serde::{Deserialize, Serialize};
 pub struct ChainSettings {
     // MongoDB Settings
     #[arg(
-        long = "chain",
-        help = "chain",
-        default_value = "ethereum"
+        long = "chain_id",
+        help = "chain_id",
+        default_value = "1"
     )]
-    pub chain: String,
+    pub chain_id: String,
 }
 
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct MyChainSettings {
-    pub chain: String,
+    pub chain_id: String,
 }
 
 
 
 impl MyChainSettings {
     pub fn new(
-        chain: String,
+        chain_id: String,
     ) -> Self {
         MyChainSettings {
-            chain,
+            chain_id,
         }
     }
 }
@@ -41,7 +41,7 @@ impl MyChainSettings {
 
 pub fn load_settings() -> Result<MyChainSettings, ConfyError> {
     let default_settings = MyChainSettings {
-        chain: String::from("ethereum"),
+        chain_id: String::from("1"),
     };
 
     let settings: MyChainSettings = load("simplefi_engine", Some("processes_chains_settings")).unwrap_or(default_settings);

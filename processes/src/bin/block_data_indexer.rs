@@ -2,6 +2,7 @@ use chrono::{Datelike, NaiveDateTime};
 use log::info;
 use rayon::prelude::IntoParallelIterator;
 use settings::load_settings as load_global_settings;
+use processes::settings::{load_settings};
 
 use chains_drivers::{
     ethereum::mainnet::ethereum_mainnet, 
@@ -90,12 +91,13 @@ async fn index_eth_mainnet_blocks (block_number: u64, confirmed: bool) {
 #[tokio::main]
 async fn main() {
     let global_settings = load_global_settings().unwrap();
-    // todo add local settings
+    let local_settings = load_settings().unwrap();
+
     init_logging(); 
 
-    let chain_id = "1"; //todo switch to settings
+    let chain_id = &local_settings.chain_id;
 
-    let chain = match chain_id {
+    let chain = match chain_id.as_str() {
         "1" => ethereum_mainnet().await.unwrap(),
         _ => panic!("Chain not implemented for indexing"),
     };
@@ -112,7 +114,7 @@ async fn main() {
         let msg = pubsub.get_message().unwrap();
         let block_number: u64 = msg.get_payload().unwrap();
 
-        match chain_id {
+        match chain_id.as_str() {
             "1" => index_eth_mainnet_blocks(block_number, true).await,
             _ => panic!("Chain not implemented for indexing"),
         };

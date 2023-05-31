@@ -19,7 +19,7 @@ fn main() {
     let my_local_settings: MyChainSettings = {
 
         MyChainSettings {
-            chain: settings.chain,
+            chain_id: settings.chain_id,
         }
     };
 
