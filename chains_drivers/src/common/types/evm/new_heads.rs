@@ -1,19 +1,19 @@
 use serde::{Deserialize, Serialize};
 
-use super::{log::Log, block::Block};
+use super::{block::Block};
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct NewLogEvent {
+pub struct NewLogEvent<T> {
     pub jsonrpc: String,
     pub method: Option<String>,
     pub result: Option<String>,
-    pub params: Option<NewLogsEventParams>,
+    pub params: Option<NewLogsEventParams<T>>,
     pub id: Option<u32>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct NewLogsEventParams {
-    pub result: Option<Log>,
+pub struct NewLogsEventParams<T> {
+    pub result: Option<T>,
     pub subscription: String,
 }
 

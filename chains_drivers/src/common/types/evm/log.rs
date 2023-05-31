@@ -2,6 +2,18 @@ use chrono::{Datelike, NaiveDateTime};
 use serde::{de::Error, Serialize, Deserialize, Deserializer};
 use third_parties::mongo::lib::bronze::logs::types::Log as MongoLog;
 
+pub trait RawToMongo {
+    fn raw_to_mongo(&self, timestamp: i64) -> MongoLog;
+}
+
+pub trait LogBlockNumber {
+    fn block_number(&self) -> i64;
+}
+
+pub trait LogContractAddress {
+    fn contract_address(&self) -> String;
+}
+
 #[derive(Debug,Default, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Log {
     #[serde(default, rename = "blockNumber", deserialize_with="hex_to_i64")]
@@ -27,8 +39,8 @@ pub struct Log {
     pub log_type: Option<String>,
 }
 
-impl Log {
-    pub fn raw_to_mongo(&self, timestamp: i64) -> MongoLog {
+impl RawToMongo for Log {
+    fn raw_to_mongo(&self, timestamp: i64) -> MongoLog {
 
         let date = NaiveDateTime::from_timestamp_opt(timestamp, 0).unwrap();
 
@@ -54,6 +66,18 @@ impl Log {
     }
 }
 
+
+impl LogBlockNumber for Log {
+    fn block_number(&self) -> i64 {
+        self.block_number
+    }
+}
+
+impl LogContractAddress for Log {
+    fn contract_address(&self) -> String {
+        self.address.clone().unwrap()
+    }
+}
 
 fn hex_to_i64<'de, D>(deserializer: D) -> Result<i64, D::Error>
 where

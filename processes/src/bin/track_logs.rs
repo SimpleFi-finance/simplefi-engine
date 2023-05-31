@@ -15,7 +15,7 @@ async fn main() {
         "1" => {
             let chain = ethereum_mainnet().await.unwrap();
 
-            chain.subscribe_logs::<Log, Log>();
+            chain.subscribe_logs::<Log>();
         },
         _ => panic!("Chain not implemented to subscribe to logs"),
     };
