@@ -9,11 +9,9 @@ use settings::load_settings;
 #[tokio::main]
 async fn main() {
     let global_settings = load_settings().expect("Failed to load settings");
-
-    // either use a pubsub to get the latest partition ready to be digested or get the latest partition from the bucket and find the next one available
-
-    // read the data form the partition, transform into parquet and save to the data lake
-
-    // delete the data from the db
-    
+    /*
+        listen to pubsub to get latest set of data available in db
+        read from db in stream, store in parquet file in data lake
+        delete from db
+    */    
 }

@@ -54,15 +54,6 @@ async fn main() {
 
     println!("latest_block_saved: {:?}", latest_block_number);
 
-    // query latest block to rpc
-    /*
-        get blocks data
-        stage in mongo?
-        digest from mongo to parquet
-        clean mongo
-        potentially decode the logs while gathering the data
-     */
-
     let request_method = json!({
         "jsonrpc": "2.0",
         "id": 1,
@@ -74,6 +65,6 @@ async fn main() {
 
     // post to rpc to get latest block
 
-    
+    // post to list in redis to query the range of timestamps from db to store in data lake
 
 }

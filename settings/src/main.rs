@@ -23,6 +23,8 @@ fn main() {
         let new_block_exchange_name = settings.new_block_exchange_name;
         let gooogle_service_account_file = settings.gooogle_service_account_file;
         let infura_token = settings.infura_token;
+        let gcs_secret_access_key = settings.gcs_secret_access_key;
+        let gcs_access_key_id = settings.gcs_access_key_id;
         let etherscan_api_keys = settings.etherscan_api_keys;
         let cloud_bucket = settings.cloud_bucket;
         let local_storage = settings.local_storage;
@@ -46,6 +48,8 @@ fn main() {
             new_blocks_queue_name,
             new_block_exchange_name,
             gooogle_service_account_file,
+            gcs_secret_access_key,
+            gcs_access_key_id,
             infura_token,
             etherscan_api_keys,
             cloud_bucket,

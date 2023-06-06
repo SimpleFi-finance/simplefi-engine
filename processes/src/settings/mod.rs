@@ -50,7 +50,7 @@ pub fn load_settings() -> Result<MyChainSettings, ConfyError> {
 }
 
 pub fn store_settings(settings: &MyChainSettings) -> Result<(), ConfyError> {
-    store("simplefi_engine", Some("chain_sync_to_db_settings"), &settings).expect("Failed to store abi discovery settings");
+    store("simplefi_engine", Some("processes_chains_settings"), &settings).expect("Failed to store abi discovery settings");
 
     Ok(())
 }

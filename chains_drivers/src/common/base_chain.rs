@@ -188,7 +188,14 @@ impl Chain {
 
         let collection = self.db.collection::<R>(&collection_name);
 
-        collection.insert_many(items, None).await.unwrap();
+        let res = collection.insert_many(items, None).await;
+
+        match res.err() {
+            Some(err) => {
+                println!("Error saving to db: {}", err);
+            }
+            None => {}
+        }
     }
 
     pub async fn get_items<R>(
@@ -203,7 +210,7 @@ impl Chain {
         let collection_name = self.resolve_collection_name(collection_name, data_level);
 
         let collection = self.db.collection::<R>(&collection_name);
-        // todo implement filters
+
         let filter = filter.unwrap_or(doc! {});
 
         let mut results = vec![];

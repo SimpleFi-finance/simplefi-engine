@@ -27,6 +27,14 @@ async fn index_eth_mainnet_blocks (block_number: u64, confirmed: bool) {
     };
 
 
+    // todo
+
+    // two steps: keep in track, backtrack data
+
+    // if keep in sync: listen to pubsub and get bn - confirmation_time
+
+    // if back track get the smallest bn -15 and get all the data from there
+
     let data = chain.chain.get_items::<MongoLog>(&SupportedDataTypes::Logs, &SupportedDataLevels::Bronze, Some(doc!{
         "block_number": block_number as i64,
     })).await;
