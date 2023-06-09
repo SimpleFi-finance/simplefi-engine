@@ -6,6 +6,7 @@ use shared_types::data_lake::{SupportedDataLevels, SupportedDataTypes};
 use std::clone::Clone;
 use std::fmt::Debug;
 use std::io::Result;
+use std::os::unix::process;
 use std::{collections::HashMap, fmt};
 use third_parties::mongo::{Mongo, MongoConfig};
 
@@ -99,6 +100,7 @@ pub struct Chain {
     pub engine_type: Engine,
     pub native_currency: Vec<NativeCurrency>,
     pub db: Mongo,
+    pub average_block_time: u64,
     pub confirmation_time: u64,
     nodes: HashMap<(String, ConnectionType), String>,
     rpc_methods: HashMap<SupportedMethods, Value>,
@@ -116,6 +118,7 @@ impl Chain {
         rpc_methods: Vec<(SupportedMethods, Value)>,
         db_config: MongoConfig,
         confirmation_time: u64,
+        average_block_time: u64,
     ) -> Self {
         let nodes = nodes
             .iter()
@@ -139,6 +142,7 @@ impl Chain {
             name,
             symbol,
             network,
+            average_block_time,
             engine_type,
             native_currency,
             nodes,
@@ -188,7 +192,14 @@ impl Chain {
 
         let collection = self.db.collection::<R>(&collection_name);
 
-        collection.insert_many(items, None).await.unwrap();
+        let res = collection.insert_many(items, None).await;
+
+        match res.err() {
+            Some(err) => {
+                println!("Error saving to db: {}", err);
+            }
+            None => {}
+        }
     }
 
     pub async fn get_items<R>(
@@ -203,7 +214,7 @@ impl Chain {
         let collection_name = self.resolve_collection_name(collection_name, data_level);
 
         let collection = self.db.collection::<R>(&collection_name);
-        // todo implement filters
+
         let filter = filter.unwrap_or(doc! {});
 
         let mut results = vec![];
@@ -265,5 +276,9 @@ pub trait GetConfirmedBlocks {
     ) -> Result<Vec<T>>;
 }
 
-
-
+pub trait VolumetricSnapshot {
+    fn calculate_volumetric_snapshot<T: DeserializeOwned + Unpin + Sync + Send + Serialize, R>(
+        &self,
+        data: R,
+    ) -> Result<T>;
+}

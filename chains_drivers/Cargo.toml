@@ -25,3 +25,6 @@ async-trait = { workspace = true }
 ethabi = { workspace = true }
 reqwest = { workspace = true }
 hex = {workspace = true}
+redis = {workspace = true}
+parquet = {workspace = true, features = ["json"]}
+arrow ={ workspace = true}

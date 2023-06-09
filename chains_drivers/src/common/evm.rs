@@ -11,18 +11,23 @@ use super::{
     },
     utils::decoding::logs::evm::evm_logs_decoder,
 };
+
 use grpc_server::client::AbiDiscoveryClient;
 use mongodb::bson::doc;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use serde::{de::DeserializeOwned, Serialize};
-use shared_types::data_lake::{SupportedDataLevels, SupportedDataTypes};
+use shared_types::{data_lake::{SupportedDataLevels, SupportedDataTypes}};
 use std::{collections::HashMap, fmt::Debug};
 
 use log::{debug, info};
 use serde_json::Value;
 use std::clone::Clone;
-use third_parties::mongo::lib::bronze::{
-    blocks::types::Block as MongoBlock, logs::types::Log as MongoLog,
+use third_parties::{
+    mongo::lib::bronze::{
+        blocks::types::Block as MongoBlock, 
+        logs::types::Log as MongoLog,
+    }, 
+    redis::add_to_set
 };
 use third_parties::{
     mongo::{lib::bronze::decoding_error::types::DecodingError, MongoConfig},
@@ -47,6 +52,7 @@ impl EvmChain {
         rpc_methods: Vec<(SupportedMethods, Value)>,
         db_config: MongoConfig,
         confirmation_time: u64,
+        average_block_time: u64,
     ) -> Self {
         EvmChain {
             chain: Chain::new(
@@ -60,6 +66,7 @@ impl EvmChain {
                 rpc_methods,
                 db_config,
                 confirmation_time,
+                average_block_time,
             )
             .await,
         }
@@ -266,6 +273,7 @@ impl SubscribeBlocks for EvmChain {
             .chain
             .get_node(&"infura".to_string(), &ConnectionType::WSS)
             .expect("No WSS connection found for requested provider");
+
         let method = self
             .chain
             .get_method(&SupportedMethods::SubscribeNewHeads)
@@ -306,10 +314,11 @@ impl SubscribeBlocks for EvmChain {
                         let chain = self.chain.clone();
                         tokio::spawn(async move {
                             let mut redis_conn = redis_connect(&redis_uri).await.unwrap();
+
                             let decoded = decode_blocks(vec![block]);
 
                             let bn = decoded[0].number.clone().to_string();
-
+                            
                             chain
                                 .save_to_db::<MongoBlock>(
                                     decoded,
@@ -321,8 +330,10 @@ impl SubscribeBlocks for EvmChain {
                             let redis_channel = format!(
                                 "{}_{}",
                                 &chain.symbol.to_lowercase(),
-                                "blocks".to_string()
+                                "blocks_pubsub".to_string()
                             );
+
+                            add_to_set(&mut redis_conn, &format!("{}_{}", &chain.symbol, &"blocks".to_string()), &bn).await.unwrap();
 
                             publish_message(&mut redis_conn, &redis_channel, &bn)
                                 .await

@@ -4,6 +4,7 @@ use std::{pin::Pin};
 use redis::{
     Client, AsyncCommands, RedisError, RedisResult,
     aio::{AsyncStream, Connection, ConnectionManager},
+    // streams::StreamMaxlen,
 };
 
 // create a helper to establish a connection to redis in async way
@@ -35,6 +36,34 @@ pub async fn add_to_set(
 
     Ok(())
 }
+
+// pub async fn stream_push_message(
+//     con: &mut Connection,
+//     channel: String,
+//     maxlen: Option<StreamMaxlen>,
+//     id: &String,
+//     items: Vec<(String, String)>
+// ) -> RedisResult<()> {
+//     let maxlen = maxlen.unwrap_or(StreamMaxlen::Approx(100000));
+//     con
+//         .xadd_maxlen::<std::string::String, &str, std::string::String, std::string::String, ()>(channel, maxlen, id, &items);
+
+//     Ok(())
+// }
+
+// pub async fn stream_get_message(
+//     con: &mut Connection,
+//     channel: String,
+//     maxlen: Option<StreamMaxlen>,
+//     id: &String,
+//     items: Vec<(String, String)>
+// ) -> RedisResult<()> {
+//     let maxlen = maxlen.unwrap_or(StreamMaxlen::Approx(100000));
+//     con
+//         .xadd_maxlen::<std::string::String, &str, std::string::String, std::string::String, ()>(channel, maxlen, id, &items);
+
+//     Ok(())
+// }
 
 pub async fn publish_message(
     con: &mut Connection,

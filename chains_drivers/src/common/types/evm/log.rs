@@ -1,6 +1,6 @@
 use chrono::{Datelike, NaiveDateTime};
 use serde::{de::Error, Serialize, Deserialize, Deserializer};
-use third_parties::mongo::lib::bronze::logs::types::Log as MongoLog;
+use third_parties::{mongo::lib::bronze::logs::types::Log as MongoLog, data_lake::lib::bronze::types::LogsSeries};
 
 pub trait RawToMongo {
     fn raw_to_mongo(&self, timestamp: i64) -> MongoLog;

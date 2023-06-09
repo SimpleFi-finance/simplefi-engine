@@ -82,6 +82,7 @@ pub async fn ethereum_mainnet() -> Result<EvmChain, Box<dyn std::error::Error>> 
             rpc_methods,
             db,
             13, // number of blocks to confirm a transaction
+            15000 // average block time in ms
         ).await
     )
 }
