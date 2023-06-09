@@ -2,15 +2,12 @@
 
 members = [
     "abi_discovery",
-    "short_to_long_storage", #saves daily data into parquet in corresponding directory
     "grpc_server",
     "settings",
     "shared_types",
     "shared_utils",
     "solidity",
     "third_parties",
-    "historical_decoder",
-    "sync_chain_data_lake",
     "chains_drivers",
     "processes"
 ]
