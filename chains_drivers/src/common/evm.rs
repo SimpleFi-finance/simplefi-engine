@@ -22,9 +22,13 @@ use std::{collections::HashMap, fmt::Debug};
 use log::{debug, info};
 use serde_json::Value;
 use std::clone::Clone;
-use third_parties::{mongo::lib::bronze::{
-    blocks::types::Block as MongoBlock, logs::types::Log as MongoLog,
-}, redis::add_to_set};
+use third_parties::{
+    mongo::lib::bronze::{
+        blocks::types::Block as MongoBlock, 
+        logs::types::Log as MongoLog,
+    }, 
+    redis::add_to_set
+};
 use third_parties::{
     mongo::{lib::bronze::decoding_error::types::DecodingError, MongoConfig},
     redis::{connect as redis_connect, publish_message},
@@ -48,6 +52,7 @@ impl EvmChain {
         rpc_methods: Vec<(SupportedMethods, Value)>,
         db_config: MongoConfig,
         confirmation_time: u64,
+        average_block_time: u64,
     ) -> Self {
         EvmChain {
             chain: Chain::new(
@@ -61,6 +66,7 @@ impl EvmChain {
                 rpc_methods,
                 db_config,
                 confirmation_time,
+                average_block_time,
             )
             .await,
         }

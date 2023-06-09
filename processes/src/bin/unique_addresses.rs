@@ -11,8 +11,6 @@ use mongodb::bson::doc;
 use object_store::{path::Path};
 use std::{sync::Arc, collections::HashSet};
 
-use sync_chain_data_lake::{utils::gcp::{gcp_object_store}};
-
 use duckdb::{Connection};
 use duckdb::arrow::record_batch::RecordBatch;
 use duckdb::arrow::json::writer::record_batches_to_json_rows;

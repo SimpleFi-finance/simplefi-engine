@@ -5,6 +5,9 @@ use chains_drivers::{
 use settings::load_settings as glob_settings;
 use processes::settings::load_settings;
 
+/*
+connects to wss to listen to new blocks mints and saves initial data in mongo and pushes message to stream/pubsub
+ */
 #[tokio::main]
 async fn main() {
     let glob_settings = glob_settings().unwrap();

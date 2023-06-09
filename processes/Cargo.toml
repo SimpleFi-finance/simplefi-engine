@@ -23,7 +23,6 @@ chrono = { workspace = true }
 mongodb = {workspace = true}
 clap = {workspace = true}
 confy = {workspace = true}
-sync_chain_data_lake ={ path = "../sync_chain_data_lake"}
 url = {workspace = true}
 object_store = {workspace = true}
 datafusion = {workspace = true}

@@ -18,6 +18,10 @@ use third_parties::{mongo::lib::bronze::{
 
 use mongodb::bson::doc;
 
+/*
+    connects to stream/pubsub to listen to notification of blocks mints and gets data of last confirmed block according to that number, stores in mongo
+ */
+
 async fn index_eth_mainnet_blocks (block_number: u64, confirmed: bool) {
 
     let chain = ethereum_mainnet().await.unwrap();
@@ -25,15 +29,6 @@ async fn index_eth_mainnet_blocks (block_number: u64, confirmed: bool) {
         true => block_number - chain.chain.confirmation_time,
         false => block_number,
     };
-
-
-    // todo
-
-    // two steps: keep in track, backtrack data
-
-    // if keep in sync: listen to pubsub and get bn - confirmation_time
-
-    // if back track get the smallest bn -15 and get all the data from there
 
     let data = chain.chain.get_items::<MongoLog>(&SupportedDataTypes::Logs, &SupportedDataLevels::Bronze, Some(doc!{
         "block_number": block_number as i64,
@@ -117,6 +112,8 @@ async fn main() {
     let channel = format!("{}_{}", chain.chain.symbol.to_lowercase(), "blocks".to_string());
 
     pubsub.subscribe(channel).unwrap();
+
+    // todo convert from pubsub to stream
 
     loop {
         let msg = pubsub.get_message().unwrap();

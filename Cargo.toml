@@ -2,17 +2,17 @@
 
 members = [
     "abi_discovery",
-    "short_to_long_storage", #saves daily data into parquet in corresponding directory
     "grpc_server",
     "settings",
     "shared_types",
     "shared_utils",
     "solidity",
     "third_parties",
-    "historical_decoder",
-    "sync_chain_data_lake",
     "chains_drivers",
-    "processes"
+    "processes",
+    "bronze",
+    "silver",
+    "gold",
 ]
 
 [workspace.dependencies]
@@ -55,3 +55,5 @@ datafusion = "25.0.0"
 object_store = "0.5.6"
 url = "2.2.1"
 duckdb = "0.8.0"
+parquet = "41.0.0"
+arrow = "41.0.0"
