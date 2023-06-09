@@ -11,3 +11,4 @@ clap = { workspace = true, features = ["derive"] }
 mongodb = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 settings = { path="../settings" }
+serde_json = { workspace = true }
