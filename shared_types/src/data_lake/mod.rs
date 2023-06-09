@@ -2,6 +2,39 @@ use std::fmt;
 use clap::{ValueEnum};
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
+pub enum SupportedPartitionIntervals {
+    Day,
+    Week,
+    Month,
+}
+impl fmt::Display for SupportedPartitionIntervals {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            SupportedPartitionIntervals::Day => write!(f, "day"),
+            SupportedPartitionIntervals::Week => write!(f, "week"),
+            SupportedPartitionIntervals::Month => write!(f, "month"),
+        }
+    }
+}
+
+impl SupportedPartitionIntervals {
+    fn get_seconds(&self) -> u64 {
+        match self {
+            SupportedPartitionIntervals::Day => 86400,
+            SupportedPartitionIntervals::Week => 604800,
+            SupportedPartitionIntervals::Month => 2592000,
+        }
+    }
+    fn get_ms(&self) -> u64 {
+        match self {
+            SupportedPartitionIntervals::Day => 86400000,
+            SupportedPartitionIntervals::Week => 604800000,
+            SupportedPartitionIntervals::Month => 2592000000,
+        }
+    }
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
 pub enum SupportedDataTypes {
     Blocks,
     Transactions,
