@@ -22,7 +22,6 @@ shared_types = { path = "../shared_types" }
 tokio = { workspace = true, features = ["full"] }
 chrono = { workspace = true }
 rand = { workspace = true }
-parquet = { workspace = true }
 
 [dev-dependencies]
 mockito = { workspace = true }

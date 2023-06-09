@@ -48,17 +48,6 @@ pub struct Settings {
         help = "Google Service Account JSON file"
     )]
     pub gooogle_service_account_file: std::path::PathBuf,
-    #[arg(
-        long = "gcs_access_key_id",
-        help = "Google Service Account JSON file"
-    )]
-    pub gcs_access_key_id: String,
-
-    #[arg(
-        long = "gcs_secret_access_key",
-        help = "Google Service Account JSON file"
-    )]
-    pub gcs_secret_access_key: String,
 
     #[arg(short = 'I', long = "infura_token", help = "Infura Auth Token")]
     pub infura_token: String,
@@ -184,8 +173,6 @@ pub struct MySettings {
     pub new_blocks_queue_name: String,
     pub new_block_exchange_name: String,
     pub gooogle_service_account_file: std::path::PathBuf,
-    pub gcs_access_key_id: String,
-    pub gcs_secret_access_key: String,
     pub infura_token: String,
     pub etherscan_api_keys: String,
     pub cloud_bucket: String,
@@ -212,8 +199,6 @@ impl MySettings {
         new_blocks_queue_name: String,
         new_block_exchange_name: String,
         gooogle_service_account_file: std::path::PathBuf,
-        gcs_access_key_id: String,
-        gcs_secret_access_key: String,
         infura_token: String,
         etherscan_api_keys: String,
         cloud_bucket: String,
@@ -237,8 +222,6 @@ impl MySettings {
             abi_discovery_exchange_name,
             new_blocks_queue_name,
             new_block_exchange_name,
-            gcs_access_key_id,
-            gcs_secret_access_key,
             gooogle_service_account_file,
             infura_token,
             etherscan_api_keys,
@@ -270,8 +253,6 @@ pub fn load_settings() -> Result<MySettings, ConfyError> {
         gooogle_service_account_file: std::path::PathBuf::from(
             "default_google_service_account.json",
         ),
-        gcs_access_key_id: String::from("default_gcs_access_key_id"),
-        gcs_secret_access_key: String::from("default_gcs_secret_access_key"),
         infura_token: String::from("default_infura_token"),
         etherscan_api_keys: String::from("change_etherscan_api_key_1,change_etherscan_api_key_2"),
         cloud_bucket: String::from("default_cloud_bucket"),
