@@ -9,7 +9,10 @@ members = [
     "solidity",
     "third_parties",
     "chains_drivers",
-    "processes"
+    "processes",
+    "gold",
+    "silver",
+    "bronze"
 ]
 
 [workspace.dependencies]
