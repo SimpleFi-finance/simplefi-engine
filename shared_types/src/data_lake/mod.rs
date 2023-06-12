@@ -1,8 +1,6 @@
 use std::fmt;
 use clap::{ValueEnum};
 
-pub mod bronze;
-
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
 pub enum SupportedPartitionIntervals {
     Day,

@@ -1,7 +1,5 @@
 use serde::{Serialize, Deserialize};
 
-use crate::data_lake::bronze::evm::logs::LogsSeries;
-
 #[derive(Debug,Default, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Log {
     pub timestamp: i64,
