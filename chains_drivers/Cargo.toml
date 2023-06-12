@@ -25,3 +25,4 @@ async-trait = { workspace = true }
 ethabi = { workspace = true }
 reqwest = { workspace = true }
 hex = {workspace = true}
+bronze = {path = "../bronze"}

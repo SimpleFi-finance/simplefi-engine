@@ -1,13 +1,12 @@
 // command to init collection in database with indexes
 
 use mongodb::{options::IndexOptions, IndexModel, bson::doc};
+use serde::de::DeserializeOwned;
 use settings::load_settings;
 
 use crate::mongo::{MongoConfig, Mongo};
 
-use super::types::Tx;
-
-pub async fn txs_db () -> Result<Mongo, Box<dyn std::error::Error>> {
+pub async fn txs_db() -> Result<Mongo, Box<dyn std::error::Error>> {
     let global_settings = load_settings().unwrap();
 
     let txs_db_config = MongoConfig {
@@ -22,7 +21,7 @@ pub async fn txs_db () -> Result<Mongo, Box<dyn std::error::Error>> {
     Ok(txs_db)
 }
 
-pub async fn init_txs_bronze(db: &Mongo) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn init_txs_bronze<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(db: &Mongo) -> Result<(), Box<dyn std::error::Error>> {
     let txs_db = db;
     let global_settings = load_settings().unwrap();
 
@@ -43,19 +42,19 @@ pub async fn init_txs_bronze(db: &Mongo) -> Result<(), Box<dyn std::error::Error
         .build();
 
     txs_db
-        .collection::<Tx>(&global_settings.txs_bronze_collection_name)
+        .collection::<T>(&global_settings.txs_bronze_collection_name)
         .create_index(unique_number, None)
         .await
         .expect("error creating block unique index!");
 
     txs_db
-        .collection::<Tx>(&global_settings.txs_bronze_collection_name)
+        .collection::<T>(&global_settings.txs_bronze_collection_name)
         .create_index(indexes_generic, None)
         .await
         .expect("error creating ts index!");
     
     txs_db
-        .collection::<Tx>(&global_settings.txs_bronze_collection_name)
+        .collection::<T>(&global_settings.txs_bronze_collection_name)
         .create_index(number_generic, None)
         .await
         .expect("error creating ts index!");

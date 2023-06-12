@@ -1,11 +1,10 @@
 // command to init collection in database with indexes
 
 use mongodb::{options::IndexOptions, IndexModel, bson::doc};
+use serde::de::DeserializeOwned;
 use settings::load_settings;
 
 use crate::mongo::{MongoConfig, Mongo};
-
-use super::types::Block;
 
 pub async fn blocks_db () -> Result<Mongo, Box<dyn std::error::Error>> {
     let global_settings = load_settings().unwrap();
@@ -22,7 +21,7 @@ pub async fn blocks_db () -> Result<Mongo, Box<dyn std::error::Error>> {
     Ok(blocks_db)
 }
 
-pub async fn init_blocks_bronze(db: &Mongo) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn init_blocks_bronze<T: serde::Serialize + DeserializeOwned>(db: &Mongo) -> Result<(), Box<dyn std::error::Error>> {
     let global_settings = load_settings().unwrap();
    
     let blocks_db = db;
@@ -39,13 +38,13 @@ pub async fn init_blocks_bronze(db: &Mongo) -> Result<(), Box<dyn std::error::Er
         .build();
 
     blocks_db
-        .collection::<Block>(&global_settings.blocks_bronze_collection_name)
+        .collection::<T>(&global_settings.blocks_bronze_collection_name)
         .create_index(unique_number, None)
         .await
         .expect("error creating block unique index!");
 
     blocks_db
-        .collection::<Block>(&global_settings.blocks_bronze_collection_name)
+        .collection::<T>(&global_settings.blocks_bronze_collection_name)
         .create_index(indexes_generic, None)
         .await
         .expect("error creating ts index!");

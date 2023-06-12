@@ -1,11 +1,10 @@
 // command to init collection in database with indexes
 
 use mongodb::{options::IndexOptions, IndexModel, bson::doc};
+use serde::de::DeserializeOwned;
 use settings::load_settings;
 
 use crate::mongo::{MongoConfig, Mongo};
-
-use super::types::Log;
 
 pub async fn logs_db () -> Result<Mongo, Box<dyn std::error::Error>> {
     let global_settings = load_settings().unwrap();
@@ -22,7 +21,7 @@ pub async fn logs_db () -> Result<Mongo, Box<dyn std::error::Error>> {
     Ok(logs_db)
 }
 
-pub async fn init_logs_bronze(db: &Mongo) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn init_logs_bronze<T: serde::Serialize + DeserializeOwned>(db: &Mongo) -> Result<(), Box<dyn std::error::Error>> {
     let global_settings = load_settings().unwrap();
     let logs_db = db;
 
@@ -52,24 +51,24 @@ pub async fn init_logs_bronze(db: &Mongo) -> Result<(), Box<dyn std::error::Erro
         .build();
 
     logs_db
-        .collection::<Log>(&global_settings.logs_bronze_collection_name)
+        .collection::<T>(&global_settings.logs_bronze_collection_name)
         .create_index(timestamp_index, None)
         .await
         .expect("error creating timestamp index!");
     logs_db
-        .collection::<Log>(&global_settings.logs_bronze_collection_name)
+        .collection::<T>(&global_settings.logs_bronze_collection_name)
         .create_index(unique_index, None)
         .await
         .expect("error creating unique index!");
 
     logs_db
-        .collection::<Log>(&global_settings.logs_bronze_collection_name)
+        .collection::<T>(&global_settings.logs_bronze_collection_name)
         .create_index(block_index, None)
         .await
         .expect("error creating logs index!");
 
     logs_db
-        .collection::<Log>(&global_settings.logs_bronze_collection_name)
+        .collection::<T>(&global_settings.logs_bronze_collection_name)
         .create_index(address_index, None)
         .await
         .expect("error creating address index!");

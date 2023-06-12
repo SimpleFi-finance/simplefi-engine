@@ -1,11 +1,10 @@
 // command to init collection in database with indexes
 
 use mongodb::{options::IndexOptions, IndexModel, bson::doc};
+use serde::de::DeserializeOwned;
 use settings::load_settings;
 
 use crate::mongo::{MongoConfig, Mongo};
-
-use super::types::DecodingError;
 
 pub async fn decoding_error_db () -> Result<Mongo, Box<dyn std::error::Error>> {
 
@@ -23,7 +22,7 @@ pub async fn decoding_error_db () -> Result<Mongo, Box<dyn std::error::Error>> {
     Ok(error_db)
 }
 
-pub async fn init_decoding_error_bronze(db: &Mongo) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn init_decoding_error_bronze<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(db: &Mongo) -> Result<(), Box<dyn std::error::Error>> {
     
     let global_settings = load_settings().unwrap();
     
@@ -40,13 +39,13 @@ pub async fn init_decoding_error_bronze(db: &Mongo) -> Result<(), Box<dyn std::e
         .build();
 
     decoding_error_db
-        .collection::<DecodingError>(&global_settings.decoding_error_bronze_collection_name)
+        .collection::<T>(&global_settings.decoding_error_bronze_collection_name)
         .create_index(timestamp_index, None)
         .await
         .expect("error creating timestamp index!");
 
     decoding_error_db
-        .collection::<DecodingError>(&global_settings.decoding_error_bronze_collection_name)
+        .collection::<T>(&global_settings.decoding_error_bronze_collection_name)
         .create_index(contract_index, None)
         .await
         .expect("error creating unique index!");
