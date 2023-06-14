@@ -16,6 +16,8 @@ use parquet::{
     }
 };
 
+use super::{GetSchema, WriteDFToFile, FileProperties};
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct LogsSeries {
     pub timestamp_data: Vec<i64>,
@@ -55,8 +57,10 @@ impl LogsSeries {
             transaction_log_index_data: Vec::new(),
         }
     }
+}
 
-    pub fn get_schema() -> Type {
+impl GetSchema for LogsSeries {
+    fn get_schema() -> Type {
         parse_message_type("
         message schema {
             REQUIRED INT64 timestamp (TIMESTAMP_MICROS);
@@ -77,8 +81,10 @@ impl LogsSeries {
         }
         ").unwrap()
     }
+}
 
-    pub fn write_to_file(&self, writer: &mut SerializedFileWriter<File>) -> Result<(), Box<dyn std::error::Error>> {
+impl WriteDFToFile for LogsSeries {
+    fn write_to_file(&self, writer: &mut SerializedFileWriter<File>) -> Result<(), Box<dyn std::error::Error>> {
         println!("Writing to file...");
     
         let mut row_group_writer = writer.next_row_group().unwrap();
@@ -215,8 +221,10 @@ impl LogsSeries {
         println!("Finished writing to file!");
         Ok(())
     }
+}
 
-    pub fn file_properties() -> WriterProperties {
+impl FileProperties for LogsSeries {
+    fn file_properties() -> WriterProperties {
         return WriterProperties::builder()
             .set_compression(Compression::ZSTD(ZstdLevel::try_new(4).unwrap()))
             .set_dictionary_enabled(true)

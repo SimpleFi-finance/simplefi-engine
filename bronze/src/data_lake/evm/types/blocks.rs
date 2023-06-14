@@ -16,6 +16,7 @@ use parquet::{
     }
 };
 
+use super::{GetSchema, WriteDFToFile, FileProperties};
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct BlockSeries {
@@ -44,7 +45,6 @@ pub struct BlockSeries {
     pub nonce: Vec<String>, 
     pub base_fee_per_gas: Vec<String>, 
 }
-
 
 impl BlockSeries {
     pub fn new() -> Self {
@@ -75,8 +75,10 @@ impl BlockSeries {
             base_fee_per_gas: Vec::new(),
         }
     }
+}
 
-    pub fn get_schema() -> Type {
+impl GetSchema for BlockSeries {
+    fn get_schema() -> Type {
         parse_message_type("
             message schema {
                 REQUIRED INT64 timestamp (TIMESTAMP_MICROS);
@@ -107,8 +109,10 @@ impl BlockSeries {
             }
         ").unwrap()
     }
+}
 
-    pub fn write_to_file(&self, writer: &mut SerializedFileWriter<File>) -> Result<(), Box<dyn std::error::Error>> {
+impl WriteDFToFile for BlockSeries {
+    fn write_to_file(&self, writer: &mut SerializedFileWriter<File>) -> Result<(), Box<dyn std::error::Error>> {
         let mut row_group_writer = writer.next_row_group().unwrap();
     
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
@@ -330,8 +334,10 @@ impl BlockSeries {
     
         Ok(())
     }
+}
 
-    pub fn file_properties() -> WriterProperties {
+impl FileProperties for BlockSeries {
+    fn file_properties() -> WriterProperties {
         return WriterProperties::builder()
             .set_compression(Compression::ZSTD(ZstdLevel::try_new(4).unwrap()))
             .set_dictionary_enabled(true)
