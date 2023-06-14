@@ -68,17 +68,19 @@ impl EvmChain {
     async fn get_abis(
         &self,
         contract_addresses: Vec<String>,
-    ) -> Result<Vec<grpc_server::abi_discovery_proto::AddressAbiJson>, Box<dyn std::error::Error>>
+    ) -> Result<Vec<grpc_server::abi_discovery_proto::ContractInfo>, Box<dyn std::error::Error>>
     {
         let mut abi_discovery_client =
             AbiDiscoveryClient::new("http://[::1]:50051".to_string()).await;
-        // todo add chain_id to call
-        let abis_addresses = abi_discovery_client
-            .get_addresses_abi_json(contract_addresses.clone())
-            .await
-            .into_inner();
 
-        Ok(abis_addresses.addresses_abi)
+        // TODO: Add chain as parameter
+        let chain = "ethereum".to_string();
+
+        let response = abi_discovery_client.get_contracts_info_handler(chain, contract_addresses).await;
+
+        let response_data = response.into_inner();
+
+        Ok(response_data.contracts_info)
     }
 
     pub async fn decode_logs<T: LogBlockNumber + LogContractAddress + RawToMongo + Sync>(

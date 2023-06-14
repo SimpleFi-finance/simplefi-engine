@@ -7,13 +7,16 @@ edition = "2021"
 
 [dependencies]
 bson = { workspace = true }
-http = { workspace = true }
 futures = { workspace = true }
+hex = { workspace = true }
+http = { workspace = true }
 lapin = { workspace = true }
 log = { workspace = true }
 mongodb = { workspace = true }
 once_cell = { workspace = true }
 redis = { workspace = true, features = ["tokio-comp", "connection-manager"] }
+regex = { workspace = true }
+ring = { workspace = true}
 reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

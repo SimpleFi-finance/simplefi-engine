@@ -47,16 +47,23 @@ fn get_token_type(token: Token) -> Result<TokenWType, Box<dyn Error>> {
     })
 }
 
-pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Log>>, abis: Vec<grpc_server::abi_discovery_proto::AddressAbiJson>) -> Result<(Vec<Log>, Vec<DecodingError>), Box<dyn Error>>{
+pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Log>>, abis: Vec<grpc_server::abi_discovery_proto::ContractInfo>) -> Result<(Vec<Log>, Vec<DecodingError>), Box<dyn Error>>{
 
     let mut eventhm = HashMap::new();
 
     let contracts_with_abi = abis.iter().map(|a| {
         let abi = &a.abi;
-        let contract: Contract = serde_json::from_str(abi.as_str()).unwrap();
+
+        if abi.is_none() {
+            return a.address.clone()
+        }
+
+        let abi = abi.clone().unwrap();
+
+        let contract: Contract = serde_json::from_str(abi.abi.as_str()).unwrap();
         for event in &contract.events {
             let e = event.1[0].clone();
-    
+
             eventhm.insert(e.signature(), e);
         }
         a.address.clone()
@@ -76,7 +83,7 @@ pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Log>>, abis: Vec<gr
         .par_iter()
         .map(|address| {
             let logs_of_address = logs_by_address.get(address).unwrap();
-            
+
             let mut errors = vec![];
 
             let decoded = logs_of_address
@@ -92,7 +99,7 @@ pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Log>>, abis: Vec<gr
                     topics: h256_topics.clone(),
                     data: bytes,
                 };
-    
+
                 let event = eventhm.get(&h256_topics[0]);
                 match event {
                     Some(event) => {
@@ -100,7 +107,7 @@ pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Log>>, abis: Vec<gr
                         match decoded_log {
                             Ok(decoded_log) => {
                                 let decoded_data = decoded_log.params.iter().enumerate().map(|(i,d)| {
-                                    
+
                                     let token_type = get_token_type(d.value.clone());
 
                                     match token_type {
@@ -137,7 +144,7 @@ pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Log>>, abis: Vec<gr
                                             }
                                         }
                                     }
-                                }).collect::<Vec<DecodedData>>();    
+                                }).collect::<Vec<DecodedData>>();
 
                                 let decoded_log = Log {
                                     address: log.address,
@@ -190,7 +197,7 @@ pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Log>>, abis: Vec<gr
             (decoded, errors)
         })
         .collect::<Vec<(Vec<Log>, Vec<DecodingError>)>>();
-    
+
     let mut decoding_errors = vec![];
     let mut decoded = vec![];
 

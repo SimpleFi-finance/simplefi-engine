@@ -1,22 +1,18 @@
 [package]
 name = "abi_discovery"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 
 
 [dependencies]
-bincode =       { workspace = true }
 bson =          { workspace = true }
 clap =          { workspace = true, features = ["derive"] }
 confy =         { workspace = true }
 chrono =        { workspace = true }
 ethabi =        { workspace = true }
-hex =           { workspace = true }
 futures =       { workspace = true }
-lapin =         { workspace = true }
 log =           { workspace = true }
 mongodb =       { workspace = true }
-rand =          { workspace = true }
 redis =         { workspace = true }
 reqwest =       { workspace = true }
 serde =         { workspace = true, default_features = false, features = ["derive"] }
@@ -24,30 +20,13 @@ serde_json =    { workspace = true }
 settings =      { path = "../settings" }
 shared_types =  { path = "../shared_types" }
 shared_utils =  { path = "../shared_utils" }
-solidity =      { path = "../solidity" }
 third_parties = { path = "../third_parties" }
 tokio =         { workspace = true, features = ["full"] }
 
 [[bin]]
-name = "create_queue"
-path = "src/bin/create_queue.rs"
+name = "abi_ethereum_queue_consumers"
+path = "src/bin/abi_ethereum_queue_consumers.rs"
 
 [[bin]]
-name = "scrap_etherscan"
-path = "src/bin/scrap_etherscan.rs"
-
-[[bin]]
-name = "generate_settings"
-path = "src/settings/main.rs"
-
-[[bin]]
-name = "scrap_token_abis"
-path = "src/bin/scrap_token_abis.rs"
-
-[[bin]]
-name = "load_trustwallet_assets"
-path = "src/bin/load_trustwallet_assets.rs"
-
-[[bin]]
-name = "generate_signatures"
-path = "src/bin/generate_signatures.rs"
+name = "load_contracts_to_redis_set"
+path = "src/bin/load_contracts_to_redis_set.rs"
