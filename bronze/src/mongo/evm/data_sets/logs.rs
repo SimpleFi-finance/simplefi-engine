@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 
-use crate::data_lake::evm::types::logs::LogsSeries;
+use crate::data_lake::evm::data_sets::logs::LogsSeries;
 
 #[derive(Debug,Default, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Log {

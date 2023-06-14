@@ -1,7 +1,7 @@
 use chrono::{NaiveDateTime, Datelike};
 use serde::{de::Error, Serialize, Deserialize, Deserializer};
 
-use bronze::mongo::evm::types::txs::Tx as MongoTx;
+use bronze::mongo::evm::data_sets::txs::Tx as MongoTx;
 
 #[derive(Debug,PartialEq, Clone, Serialize, Deserialize, Default)]
 pub struct Tx {

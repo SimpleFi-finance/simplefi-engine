@@ -4,7 +4,7 @@ use bronze::mongo::common::types::decoding_errors::{DecodingError, ErrorType};
 use std::str::FromStr;
 use rayon::{iter::ParallelIterator};
 use rayon::prelude::{IntoParallelRefIterator};
-use bronze::mongo::evm::types::logs::{Log, DecodedData};
+use bronze::mongo::evm::data_sets::logs::{Log, DecodedData};
 use ethabi::ethereum_types::H256;
 use ethabi::{RawLog, Contract, Token};
 

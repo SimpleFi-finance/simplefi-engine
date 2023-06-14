@@ -9,3 +9,10 @@ edition = "2021"
 serde_json = { workspace = true }
 serde = { workspace = true}
 parquet = {workspace = true}
+chrono = {workspace = true}
+log = {workspace = true}
+rayon = {workspace = true}
+settings = {path = "../settings"}
+chains_drivers = {path = "../chains_drivers"}
+shared_types = {path = "../shared_types"}
+shared_utils = {path = "../shared_utils"}

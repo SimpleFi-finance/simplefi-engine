@@ -1,6 +1,6 @@
 use chrono::{Datelike, NaiveDateTime};
 use serde::{de::Error, Serialize, Deserialize, Deserializer};
-use bronze::mongo::evm::types::blocks::Block as MongoBlock;
+use bronze::mongo::evm::data_sets::blocks::Block as MongoBlock;
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Block<T> {

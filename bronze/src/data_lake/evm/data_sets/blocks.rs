@@ -16,7 +16,7 @@ use parquet::{
     }
 };
 
-use super::{GetSchema, WriteDFToFile, FileProperties};
+use crate::data_lake::types::{GetSchema, WriteDFToFile, FileProperties};
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct BlockSeries {

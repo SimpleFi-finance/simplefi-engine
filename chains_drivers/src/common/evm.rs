@@ -24,8 +24,8 @@ use std::clone::Clone;
 
 use bronze::mongo::{
     evm::{
-        types::logs::Log as MongoLog,
-        types::blocks::Block as MongoBlock,
+        data_sets::logs::Log as MongoLog,
+        data_sets::blocks::Block as MongoBlock,
     },
     common::types::decoding_errors::DecodingError
 };
