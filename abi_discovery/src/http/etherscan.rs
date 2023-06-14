@@ -1,11 +1,10 @@
-use http::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
-use log::{debug, error, info};
-use reqwest::{Error, StatusCode};
+use log::{ debug, error };
 use regex::Regex;
+use reqwest::{Error, StatusCode, header::{HeaderMap, CONTENT_TYPE, HeaderValue}};
 use serde::Deserialize;
 use std::collections::HashMap;
 
-use crate::http::fetch::fetch;
+use third_parties::http::fetch;
 
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
@@ -145,7 +144,7 @@ pub async fn get_source_code(
         StatusCode::OK => {
             let etherscan_response = response.json::<SourceCodeEtherscanResponse>().await?;
 
-            info!("result: {:?}", etherscan_response.result.len());
+            debug!("result: {:?}", etherscan_response.result.len());
 
             if etherscan_response.result.len() > 0 {
                 let source_code = etherscan_response.result[0].clone();
@@ -229,7 +228,7 @@ mod tests {
     use std::env;
 
     use super::*;
-    use log::info;
+    use log::debug;
     use serde_json::Value;
 
     #[tokio::test]
@@ -239,7 +238,7 @@ mod tests {
 
         let result = get_abi(contract_address.as_str(), &api_key).await.unwrap();
 
-        info!("result: {:?}", result);
+        debug!("result: {:?}", result);
 
         // if result is empty string, then assert false otherwise use serde_json to convert into a Value and do assertions
         if result == "" {
@@ -247,7 +246,7 @@ mod tests {
         } else {
             let abi = result.parse::<Value>().ok();
 
-            info!("ABI VALUE: {:?}", &abi);
+            debug!("ABI VALUE: {:?}", &abi);
 
             match abi {
                 Some(abi) => {

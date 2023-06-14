@@ -1,5 +1,3 @@
-pub mod abi;
-
 pub enum RedisSupportedLists {
     ABI,
     Blocks,

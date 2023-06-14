@@ -8,12 +8,9 @@ use crate::abi_discovery_proto::{
     ContractInfoResponse, DiscoverAddressesRequest, GetByChainRequest, GetProviderResponse,
     ListProvidersResponse, ProviderRequest, SuccessResponse, ContractsAddressRequest, ContractsInfoResponse,
 };
-use abi_discovery::helpers::{contracts, providers, providers::Provider};
+use abi_discovery::{helpers::{contracts, providers, providers::Provider}, mongo::types::{ContractAbiCollection, AbiCollection}};
 use third_parties::{
-    mongo::{
-        lib::abi_discovery::types::{AbiCollection, ContractAbiCollection},
-        Mongo, MongoConfig,
-    },
+    mongo::{ Mongo, MongoConfig },
     redis::connect,
 };
 

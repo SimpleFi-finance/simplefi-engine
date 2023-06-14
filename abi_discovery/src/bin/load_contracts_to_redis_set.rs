@@ -1,11 +1,14 @@
-use abi_discovery::helpers::contracts::copy_contracts_to_redis_set;
 use log::{ debug, error };
 use std::env;
 use tokio;
 
+use abi_discovery::{helpers::contracts::copy_contracts_to_redis_set, mongo::types::ContractAbiCollection};
 use settings::load_settings;
 use shared_utils::logger::init_logging;
-use third_parties::{redis::connect, mongo::{MongoConfig, Mongo, lib::abi_discovery::types::ContractAbiCollection}};
+use third_parties::{
+    mongo::{ MongoConfig, Mongo },
+    redis::connect,
+};
 
 
 #[tokio::main]

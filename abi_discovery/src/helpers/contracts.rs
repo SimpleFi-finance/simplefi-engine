@@ -3,12 +3,15 @@ use futures::StreamExt;
 use log::{error, debug};
 use mongodb::Collection;
 use redis::{aio::Connection, AsyncCommands, RedisError};
+use third_parties::redis::{is_in_set, add_to_set};
 use std::{collections::{HashMap, HashSet}, vec};
 
 use shared_types::abi_discovery::{AbiDiscoveryError, Abi, ContractAbi, ImplementationContractAbi, AbiStandards};
-use third_parties::{http::etherscan::{SourceCodeResponse, get_source_code}, mongo::lib::abi_discovery::{getters::{get_contracts_by_addresses, get_abis_by_ids}, types::{ContractAbiCollection, AbiCollection}}, redis::{is_in_set, add_to_set}};
+use crate::{http::etherscan::{SourceCodeResponse, get_source_code}, mongo::{types::{ContractAbiCollection, AbiCollection}, getters::{get_contracts_by_addresses, get_abis_by_ids}}};
+
 use super::providers::Provider;
 
+// use third_parties::{http::etherscan::{SourceCodeResponse, get_source_code}, mongo::lib::abi_discovery::{getters::{get_contracts_by_addresses, get_abis_by_ids}, types::{ContractAbiCollection, AbiCollection}}, redis::{is_in_set, add_to_set}};
 ///
 /// Get the contracts tracked name
 ///

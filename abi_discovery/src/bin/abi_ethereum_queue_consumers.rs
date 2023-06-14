@@ -3,13 +3,17 @@ use redis::{AsyncCommands, RedisError};
 use settings::load_settings;
 use tokio::{time::{ sleep, Duration }, spawn};
 
-use abi_discovery::helpers::{
-    providers::get_available_provider,
-    contracts::{get_contracts_queue_name, get_contract_abi}, abis::get_abi_standard
+use abi_discovery::{
+    helpers::{
+        abis::get_abi_standard,
+        contracts::{get_contracts_queue_name, get_contract_abi},
+        providers::get_available_provider,
+    },
+    mongo::{types::{AbiCollection, ContractAbiCollection, ImplementationContractAbiCollection}, setters::{insert_contract, insert_abi}}
 };
 use shared_utils::logger::init_logging;
 use third_parties::{
-    mongo::{ MongoConfig, Mongo, lib::abi_discovery::{types::{AbiCollection, ContractAbiCollection, ImplementationContractAbiCollection}, setters::{insert_contract, insert_abi}} },
+    mongo::{ MongoConfig, Mongo },
     redis::{connect, has_items_in_queue}
 };
 
