@@ -3,86 +3,107 @@ syntax = "proto3";
 package abi_discovery;
 
 service AbiDiscoveryService {
-  rpc CheckTrackedAddresses(TrackedAddressesRequest) returns (TrackedAddressesResponse) {}
-
-  rpc GetAddressesAbi(GetAddressesAbiRequest) returns (GetAddressesAbiResponse) {}
-
-  rpc GetAddressesAbiJSON(GetAddressesAbiRequest) returns (GetAddressesAbiJSONResponse) {}
-
-  rpc AddFactoryAddresses(AddFactoryAddressesRequest) returns (AddFactoryAddressesResponse) {}
-
-  rpc GetSignaturesEvent(GetAbiEventsRequest) returns (GetAbiEventsResponse) {}
-
-  rpc GetFourByteSignaturesEvent(GetFourByteEventsRequest) returns (GetFourByteEventsResponse) {}
+    // Providers
+    rpc AddProviderHandler(ProviderRequest) returns (SuccessResponse) {}
+    rpc ListProvidersHandler(GetByChainRequest) returns (ListProvidersResponse) {}
+    rpc GetProviderHandler(GetByChainRequest) returns (GetProviderResponse) {}
+    // Contracts
+    rpc DiscoverAddressesHandler(DiscoverAddressesRequest) returns (SuccessResponse) {}
+    rpc IsContractTrackedHandler(ContractAddressRequest) returns (SuccessResponse) {}
+    rpc AddContractTrackedHandler(ContractAddressRequest) returns (SuccessResponse) {}
+    rpc GetContractInfoHandler(ContractAddressRequest) returns (ContractInfoResponse) {}
+    rpc GetContractsInfoHandler(ContractsAddressRequest) returns (ContractsInfoResponse) {}
+    // ABIs
 }
 
-message TrackedAddressesRequest {
-  repeated string addresses = 1;
+enum ErrorCode {
+    UNKNOWN = 0;
+    INVALID_PROVIDER = 1;
+    INVALID_ADDRESS = 2;
+    INVALID_CHAIN = 3;
+    INVALID_API_KEY = 4;
+    INVALID_RATE_LIMIT = 5;
+    PROVIDER_ALREADY_EXISTS = 6;
+    PROVIDER_DOES_NOT_EXIST = 7;
 }
 
-message TrackedAddressesResponse {
-  repeated string addresses = 1;
-}
-
-message AddressAbi {
-    uint64 timestamp = 1;
-    string address = 2;
-    bytes abi = 3;
-}
-
-message GetAddressesAbiRequest {
-  repeated string addresses = 1;
-}
-
-message GetAddressesAbiResponse {
-    repeated AddressAbi addresses_abi = 1;
-}
-
-message AddFactoryAddressesRequest {
-    string factory_address = 1;
+message DiscoverAddressesRequest {
+    string chain = 1;
     repeated string addresses = 2;
 }
 
-message AddFactoryAddressesResponse {
+message SuccessResponse {
     bool success = 1;
 }
 
-message AddressAbiJSON {
-    uint64 timestamp = 1;
+message Provider {
+    string name = 1;
+    string chain = 2;
+    string provider_type = 3;
+    string api_key = 4;
+    map<string, string> rate_limits = 5;
+}
+
+message ProviderRequest {
+    Provider provider = 1;
+}
+
+message GetByChainRequest {
+    string chain = 1;
+}
+
+message ListProvidersResponse {
+    bool success = 1;
+    repeated Provider providers = 2;
+}
+
+message GetProviderResponse {
+    bool success = 1;
+    Provider provider = 2;
+}
+
+message ContractAddressRequest {
+    string chain = 1;
     string address = 2;
-    string abi = 3;
 }
 
-message GetAddressesAbiJSONResponse {
-    repeated AddressAbiJSON addresses_abi = 1;
+message ContractsAddressRequest {
+    string chain = 1;
+    repeated string addresses = 2;
 }
 
-message GetAbiEventsResponse {
-    repeated AbiEvent signatures_event = 1;
+message Abi {
+    string abi_hash = 1;
+    string abi = 2;
+    bool is_proxy = 3;
+    int32 standard = 4;
 }
 
-message GetAbiEventsRequest {
-    repeated string signatures = 1;
+message ContractImplementation {
+    string address = 1;
+    string name = 2;
+    Abi abi = 3;
+    string creation_block = 4;
+    bool verified = 5;
 }
 
-message AbiEvent {
-    uint64 timestamp = 1;
-    string signature = 2;
-    string event = 3;
-    string name = 4;
+message ContractInfo {
+    string chain = 1;
+    string address = 2;
+    string name = 3;
+    Abi abi = 4;
+    string creation_block = 5;
+    bool is_proxy = 6;
+    bool verified = 7;
+    repeated ContractImplementation implementations = 8;
 }
 
-message GetFourByteEventsRequest {
-    repeated string signatures = 1;
+message ContractInfoResponse {
+    bool success = 1;
+    ContractInfo contract_info = 2;
 }
 
-message GetFourByteEventsResponse {
-    repeated FourByteEvent signatures_event = 1;
-}
-
-message FourByteEvent {
-    uint32 id = 1;
-    uint64 timestamp = 2;
-    string text_signature = 4;
-    string hex_signature = 5;
+message ContractsInfoResponse {
+    bool success = 1;
+    repeated ContractInfo contracts_info = 2;
 }

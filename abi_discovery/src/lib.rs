@@ -1,3 +1,3 @@
 pub mod helpers;
-pub mod settings;
-pub mod types;
+pub mod http;
+pub mod mongo;

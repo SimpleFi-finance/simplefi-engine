@@ -7,25 +7,21 @@ edition = "2021"
 
 [dependencies]
 bson = { workspace = true }
-http = { workspace = true }
 futures = { workspace = true }
+http = { workspace = true }
 lapin = { workspace = true }
 log = { workspace = true }
 mongodb = { workspace = true }
-once_cell = { workspace = true }
 redis = { workspace = true, features = ["tokio-comp", "connection-manager"] }
 reqwest = { workspace = true, features = ["json"] }
 serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
 settings = { path = "../settings" }
-shared_types = { path = "../shared_types" }
 tokio = { workspace = true, features = ["full"] }
 chrono = { workspace = true }
 rand = { workspace = true }
 
 [dev-dependencies]
 mockito = { workspace = true }
-shared_utils = { path = "../shared_utils", features = ["with_tracing"] }
 tracing = { version = "^0.1" }
 tracing-subscriber = { version = "0.3" }
 

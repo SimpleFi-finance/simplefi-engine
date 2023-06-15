@@ -2,8 +2,6 @@ use clap::Parser;
 use confy::{load, store, ConfyError};
 use serde::{Deserialize, Serialize};
 
-pub mod helpers;
-
 #[derive(Parser, Debug)]
 #[command(author = "SimpleFi Finance")]
 #[command(version)]
@@ -14,27 +12,12 @@ pub mod helpers;
 #[command(next_line_help = true)]
 pub struct Settings {
     #[arg(
-        short = 'M',
-        long = "mq_url",
-        default_value = "amqp://guest:guest@localhost:5672",
-        help = "RabbitMQ URL"
-    )]
-    pub rabbit_mq_url: String,
-
-    #[arg(
-        long = "abi_discovery_exchange_name",
-        default_value = "abi_discovery_exchange",
-        help = "RabbitMQ exchange name for ABI Discovery"
-    )]
-    pub abi_discovery_exchange_name: String,
-
-    #[arg(
         long = "new_blocks_queue_name",
         help = "Rabbit MQ new Block queue name",
         default_value = "new_block_queue"
     )]
     pub new_blocks_queue_name: String,
-    
+
     #[arg(
         long = "new_block_exchange_name",
         help = "Rabbit MQ new Block exchange name",
@@ -83,10 +66,6 @@ pub struct Settings {
         default_value = "https://mainnet.infura.io/v3/"
     )]
     pub infura_mainnet_rpc: String,
-
-    // Etherscan API Key
-    #[arg(short = 'E', long = "etherscan_api_keys", help = "Etherscan API key")]
-    pub etherscan_api_keys: String,
 
     #[arg(
         long = "infura_mainnet_ws",
@@ -152,6 +131,20 @@ pub struct Settings {
     pub decoding_error_bronze_collection_name: String,
 
     #[arg(
+        long = "abi_collection_name",
+        help = "MongoDB abi collection name in mongo DB",
+        default_value = "abis"
+    )]
+    pub abi_collection_name: String,
+
+    #[arg(
+        long = "contract_abi_collection_name",
+        help = "MongoDB contract abi collection name in mongo DB",
+        default_value = "contract_abis"
+    )]
+    pub contract_abi_collection_name: String,
+
+    #[arg(
         long = "log_level",
         help = "Log level to filter the logs. Default is INFO",
         default_value = "INFO"
@@ -168,13 +161,10 @@ pub struct Settings {
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct MySettings {
-    pub rabbit_mq_url: String,
-    pub abi_discovery_exchange_name: String,
     pub new_blocks_queue_name: String,
     pub new_block_exchange_name: String,
     pub gooogle_service_account_file: std::path::PathBuf,
     pub infura_token: String,
-    pub etherscan_api_keys: String,
     pub cloud_bucket: String,
     pub local_storage: std::path::PathBuf,
     pub infura_mainnet_rpc: String,
@@ -187,6 +177,8 @@ pub struct MySettings {
     pub txs_bronze_collection_name: String,
     pub blocks_bronze_collection_name: String,
     pub decoding_error_bronze_collection_name: String,
+    pub abi_collection_name: String,
+    pub contract_abi_collection_name: String,
     pub redis_uri: String,
     pub log_level: String,
     pub log_file: String,
@@ -194,13 +186,10 @@ pub struct MySettings {
 
 impl MySettings {
     pub fn new(
-        rabbit_mq_url: String,
-        abi_discovery_exchange_name: String,
         new_blocks_queue_name: String,
         new_block_exchange_name: String,
         gooogle_service_account_file: std::path::PathBuf,
         infura_token: String,
-        etherscan_api_keys: String,
         cloud_bucket: String,
         local_storage: std::path::PathBuf,
         infura_mainnet_rpc: String,
@@ -213,18 +202,17 @@ impl MySettings {
         txs_bronze_collection_name: String,
         blocks_bronze_collection_name: String,
         decoding_error_bronze_collection_name: String,
+        abi_collection_name: String,
+        contract_abi_collection_name: String,
         redis_uri: String,
         log_level: String,
         log_file: String,
     ) -> Self {
         MySettings {
-            rabbit_mq_url,
-            abi_discovery_exchange_name,
             new_blocks_queue_name,
             new_block_exchange_name,
             gooogle_service_account_file,
             infura_token,
-            etherscan_api_keys,
             cloud_bucket,
             local_storage,
             infura_mainnet_rpc,
@@ -237,6 +225,8 @@ impl MySettings {
             txs_bronze_collection_name,
             blocks_bronze_collection_name,
             decoding_error_bronze_collection_name,
+            abi_collection_name,
+            contract_abi_collection_name,
             redis_uri,
             log_level,
             log_file,
@@ -246,29 +236,30 @@ impl MySettings {
 
 pub fn load_settings() -> Result<MySettings, ConfyError> {
     let default_settings = MySettings {
-        rabbit_mq_url: String::from("amqp://guest:guest@localhost:5672"),
-        abi_discovery_exchange_name: String::from("abi_discovery"),
         new_blocks_queue_name: String::from("new_blocks"),
         new_block_exchange_name: String::from("new_block"),
         gooogle_service_account_file: std::path::PathBuf::from(
             "default_google_service_account.json",
         ),
         infura_token: String::from("default_infura_token"),
-        etherscan_api_keys: String::from("change_etherscan_api_key_1,change_etherscan_api_key_2"),
         cloud_bucket: String::from("default_cloud_bucket"),
         local_storage: std::path::PathBuf::from("default_local_storage"),
         infura_mainnet_rpc: String::from("https://mainnet.infura.io/v3/"),
         infura_mainnet_ws: String::from("wss://mainnet.infura.io/ws/v3/"),
         local_mainnet_rpc: String::from("http://localhost:8545"),
         local_mainnet_ws: String::from("wss://localhost:8545"),
-        // mongo 
+        // mongo
         mongodb_uri: String::from("mongodb://localhost:27017/"),
         mongodb_database_name: String::from("engine"),
         logs_bronze_collection_name: String::from("logs_bronze"),
         txs_bronze_collection_name: String::from("txs_bronze"),
         blocks_bronze_collection_name: String::from("blocks_bronze"),
         decoding_error_bronze_collection_name: String::from("decoding_error_bronze"),
+        abi_collection_name: String::from("abis"),
+        contract_abi_collection_name: String::from("contract_abis"),
+        // redis
         redis_uri: String::from("redis://localhost:6379/"),
+        // logging
         log_level: String::from("INFO"),
         log_file: String::from(""),
     };

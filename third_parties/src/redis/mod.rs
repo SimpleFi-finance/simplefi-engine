@@ -63,6 +63,17 @@ pub async fn delete_set(
     Ok(())
 }
 
+pub async fn check_set_exists(connection: &mut Connection, set_key: &str) -> RedisResult<bool> {
+    let exists: bool = connection.exists(set_key).await?;
+    Ok(exists)
+}
+
+pub async fn has_items_in_queue(connection: &mut Connection, set_key: &str) -> RedisResult<bool> {
+    let size: i64 = connection.scard(set_key).await?;
+
+    Ok(size > 0)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

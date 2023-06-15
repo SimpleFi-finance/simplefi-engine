@@ -3,3 +3,4 @@ pub mod abi_discovery_proto {
 }
 
 pub mod client;
+pub mod service;
