@@ -5,7 +5,6 @@ use redis::{
     Client, AsyncCommands, RedisError, RedisResult,
     aio::{AsyncStream, Connection, ConnectionManager},
 };
-
 // create a helper to establish a connection to redis in async way
 pub async fn connect(redis_uri: &str) -> RedisResult<Connection<Pin<Box<dyn AsyncStream + Send + Sync>>>> {
     let client = redis::Client::open(redis_uri)?;

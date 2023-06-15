@@ -10,10 +10,12 @@ use chains_drivers::{
 use shared_types::data_lake::{SupportedDataLevels, SupportedDataTypes};
 use shared_utils::{logger::init_logging};
 use rayon::iter::ParallelIterator;
-use third_parties::{mongo::lib::bronze::{
-    txs::types::Tx as MongoTx, 
-    logs::types::Log as MongoLog,
-}, redis::{connect_client}};
+use bronze::mongo::evm::data_sets::{
+    txs::Tx as MongoTx, 
+    logs::Log as MongoLog,
+};
+
+use third_parties::redis::{connect_client};
 
 use mongodb::bson::doc;
 

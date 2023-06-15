@@ -1,3 +1,4 @@
+use chains_drivers::types::base::{EntityBlockNumber, EntityTimestamp, EntityContractAddress};
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug,PartialEq, Clone, Serialize, Deserialize, Default)]
@@ -28,4 +29,23 @@ pub struct Tx {
     pub v: i64,
     pub r: Option<String>,
     pub s: Option<String>,
+}
+
+
+impl EntityBlockNumber for Tx {
+    fn block_number(&self) -> i64 {
+        self.block_number
+    }
+}
+
+impl EntityTimestamp for Tx {
+    fn timestamp(&self) -> i64 {
+        self.timestamp
+    }
+}
+
+impl EntityContractAddress for Tx {
+    fn contract_address(&self) -> String {
+        self.from.clone().unwrap_or_default()
+    }
 }

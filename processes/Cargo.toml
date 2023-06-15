@@ -21,14 +21,15 @@ grpc_server = { path = "../grpc_server" }
 futures = { workspace = true }
 chrono = { workspace = true }
 mongodb = {workspace = true}
+bronze = { path = "../bronze" }
 
 [[bin]]
 name = "track_logs"
 path = "src/bin/track_logs.rs"
 
-[[bin]]
-name = "track_blocks"
-path = "src/bin/track_blocks.rs"
+# [[bin]]
+# name = "track_blocks"
+# path = "src/bin/track_blocks.rs"
 
 [[bin]]
 name = "index_blocks"

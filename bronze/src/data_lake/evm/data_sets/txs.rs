@@ -16,7 +16,7 @@ use parquet::{
     }
 };
 
-use crate::data_lake::types::{GetSchema, WriteDFToFile, FileProperties};
+use shared_types::data_lake::{GetSchema, WriteDFToFile, FileProperties};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct TxSeries {

@@ -1,4 +1,6 @@
+use chains_drivers::types::base::{EntityBlockNumber, EntityTimestamp, EntityContractAddress};
 use serde::{Serialize, Deserialize};
+use serde_json::Value;
 
 use crate::data_lake::evm::data_sets::logs::LogsSeries;
 
@@ -17,7 +19,7 @@ pub struct Log {
 
     pub data: Option<String>,
 
-    pub decoded_data: Option<Vec<DecodedData>>,
+    pub decoded_data: Option<Vec<Value>>,
     pub topics: Vec<String>,
     pub log_index: i64,
     pub transaction_log_index: i64,
@@ -40,7 +42,7 @@ impl Log {
 
         data: Option<String>,
 
-        decoded_data: Option<Vec<DecodedData>>,
+        decoded_data: Option<Vec<Value>>,
         topics: Vec<String>,
         log_index: i64,
         transaction_log_index: i64,
@@ -68,14 +70,23 @@ impl Log {
     }
 }
 
-#[derive(Debug,PartialEq, Clone, Serialize, Deserialize, Default)]
-pub struct DecodedData {
-    pub name: String,
-    pub value: String,
-    pub kind: String,
-    pub indexed: bool,
-    pub hash_signature: String,
-    pub signature: String,
+
+impl EntityBlockNumber for Log {
+    fn block_number(&self) -> i64 {
+        self.block_number
+    }
+}
+
+impl EntityTimestamp for Log {
+    fn timestamp(&self) -> i64 {
+        self.timestamp
+    }
+}
+
+impl EntityContractAddress for Log {
+    fn contract_address(&self) -> String {
+        self.address.clone().unwrap_or_default()
+    }
 }
 
 pub fn log_to_logs_series(logs: Vec<Log>) -> LogsSeries {

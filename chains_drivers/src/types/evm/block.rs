@@ -1,6 +1,8 @@
 use chrono::{Datelike, NaiveDateTime};
 use serde::{de::Error, Serialize, Deserialize, Deserializer};
-use bronze::mongo::evm::data_sets::blocks::Block as MongoBlock;
+use serde_json::{Value, json};
+
+use crate::types::base::RawToValue;
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Block<T> {
@@ -60,33 +62,33 @@ pub struct Block<T> {
     pub transactions: Option<Vec<T>>,
 }
 
-impl<T> Block<T> {
-    pub fn raw_to_mongo(&self) -> MongoBlock {
+impl<T> RawToValue for Block<T> {
+    fn raw_to_value(&self, timestamp: i64) -> Value {
         let date = NaiveDateTime::from_timestamp_opt(self.timestamp, 0).unwrap();
-
-        MongoBlock {
-            timestamp: date.timestamp_micros(),
-            year: date.year() as i16,
-            month: date.month() as i8,
-            day: date.day() as i8,
-            number: self.number,
-            hash: self.hash.clone(),
-            parent_hash: self.parent_hash.clone(),
-            transactions_root: self.transactions_root.clone(),
-            receipts_root: self.receipts_root.clone(),
-            mix_hash: self.mix_hash.clone(),
-            difficulty: self.difficulty,
-            extra_data: self.extra_data.clone(),
-            gas_used: self.gas_used,
-            gas_limit: self.gas_limit,
-            logs_bloom: self.logs_bloom.clone(),
-            miner: self.miner.clone(),
-            nonce: self.nonce,
-            uncles_hash: self.uncles_hash.clone(),
-            state_root: self.state_root.clone(),
-            base_fee_per_gas: self.base_fee_per_gas,
-            withdrawals_root: self.withdrawals_root.clone(),
-        }
+    
+        json!({
+            "timestamp": date.timestamp_micros(),
+            "year": date.year() as i16,
+            "month": date.month() as i8,
+            "day": date.day() as i8,
+            "number": self.number,
+            "hash": self.hash.clone(),
+            "parent_hash": self.parent_hash.clone(),
+            "transactions_root": self.transactions_root.clone(),
+            "receipts_root": self.receipts_root.clone(),
+            "mix_hash": self.mix_hash.clone(),
+            "difficulty": self.difficulty,
+            "extra_data": self.extra_data.clone(),
+            "gas_used": self.gas_used,
+            "gas_limit": self.gas_limit,
+            "logs_bloom": self.logs_bloom.clone(),
+            "miner": self.miner.clone(),
+            "nonce": self.nonce,
+            "uncles_hash": self.uncles_hash.clone(),
+            "state_root": self.state_root.clone(),
+            "base_fee_per_gas": self.base_fee_per_gas,
+            "withdrawals_root": self.withdrawals_root.clone(),
+        })
     }
 }
 

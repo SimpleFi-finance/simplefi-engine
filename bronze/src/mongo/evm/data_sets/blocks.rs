@@ -1,3 +1,4 @@
+use chains_drivers::types::base::{EntityTimestamp, EntityBlockNumber};
 use serde::{Serialize, Deserialize};
 
 
@@ -10,6 +11,7 @@ pub struct Block {
     pub month: i8,
 
     pub day: i8,
+
     pub number: i64,
 
     pub hash: Option<String>,
@@ -43,4 +45,17 @@ pub struct Block {
     pub base_fee_per_gas: i64,
 
     pub withdrawals_root: Option<String>,
+}
+
+
+impl EntityTimestamp for Block {
+    fn timestamp(&self) -> i64 {
+        self.timestamp
+    }
+}
+
+impl EntityBlockNumber for Block {
+    fn block_number(&self) -> i64 {
+        self.number
+    }
 }

@@ -1,7 +1,8 @@
 use chrono::{NaiveDateTime, Datelike};
 use serde::{de::Error, Serialize, Deserialize, Deserializer};
+use serde_json::{Value, json};
 
-use bronze::mongo::evm::data_sets::txs::Tx as MongoTx;
+use crate::types::base::RawToValue;
 
 #[derive(Debug,PartialEq, Clone, Serialize, Deserialize, Default)]
 pub struct Tx {
@@ -55,29 +56,28 @@ where
 }
 
 
-impl Tx {
-    pub fn raw_to_mongo(&self, timestamp: i64) -> MongoTx {
+impl RawToValue for Tx {
+    fn raw_to_value(&self, timestamp: i64) -> Value {
         let date = NaiveDateTime::from_timestamp_opt(timestamp, 0).unwrap();
-    
-        MongoTx {
-            timestamp: date.timestamp_micros(),
-            year: date.year() as i16,
-            month: date.month() as i8,
-            day: date.day() as i8,
-            block_number: self.block_number,
-            hash: self.hash.clone(),
-            transaction_index: self.transaction_index,
-            nonce: self.nonce.clone(),
-            block_hash: self.block_hash.clone(),
-            from: self.from.clone(),
-            to: self.to.clone(),
-            value: self.value.clone(),
-            gas_price: self.gas_price,
-            gas: self.gas,
-            input: self.input.clone(),
-            v: self.v,
-            r: self.r.clone(),
-            s: self.s.clone(),
-        }
+        json!({
+            "timestamp": date.timestamp_micros(),
+            "year": date.year() as i16,
+            "month": date.month() as i8,
+            "day": date.day() as i8,
+            "block_number": self.block_number,
+            "hash": self.hash.clone(),
+            "transaction_index": self.transaction_index,
+            "nonce": self.nonce.clone(),
+            "block_hash": self.block_hash.clone(),
+            "from": self.from.clone(),
+            "to": self.to.clone(),
+            "value": self.value.clone(),
+            "gas_price": self.gas_price,
+            "gas": self.gas,
+            "input": self.input.clone(),
+            "v": self.v,
+            "r": self.r.clone(),
+            "s": self.s.clone(),
+        })
     }
 }

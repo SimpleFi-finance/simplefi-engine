@@ -16,7 +16,7 @@ use parquet::{
     }
 };
 
-use crate::data_lake::types::{GetSchema, WriteDFToFile, FileProperties};
+use shared_types::data_lake::{GetSchema, WriteDFToFile, FileProperties};
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct BlockSeries {
@@ -272,7 +272,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote total_difficulty column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -281,7 +281,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote seal_fields column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -290,11 +290,11 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote uncles column");
-        let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
 
+        let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
+        // todo check
         col_writer.close().unwrap();
-        println!("Wrote transactions column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
