@@ -42,7 +42,7 @@ use super::providers::Provider;
 /// This function will return an error if the chain name is empty
 ///
 pub fn get_contracts_tracked_name(chain: &str) -> String {
-    format!("abi:test:{}:contracts:tracked", chain)
+    format!("abi:{}:contracts:tracked", chain)
 }
 
 ///
@@ -79,7 +79,7 @@ pub fn get_contracts_queue_name(chain: &str) -> String {
 }
 
 pub fn get_contracts_cache_name(chain: &str, address: &str) -> String {
-    format!("abi:test:{}:contract:{}", chain, address)
+    format!("abi:{}:contract:{}", chain, address)
 }
 
 ///

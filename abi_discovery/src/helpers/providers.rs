@@ -98,8 +98,7 @@ fn get_provider_rate_key_name(chain: &str, provider_name: &str, rate: &str) -> S
 /// * If `chain` is empty
 ///
 fn get_provider_list_name(chain: &str) -> String {
-    format!("abi:test:{}:providers", chain)
-    // format!("abi:{}:providers", chain)
+    format!("abi:{}:providers", chain)
 }
 
 ///
