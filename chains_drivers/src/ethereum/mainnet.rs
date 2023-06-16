@@ -120,7 +120,7 @@ pub async fn subscribe_blocks(redis_uri: String, rpc_method: Value, rpc_node: St
                         &chain.info().symbol.to_lowercase(),
                         "blocks".to_string()
                     );
-
+                    // todo convert from pub/sub to redis stream
                     publish_message(&mut redis_conn, &redis_channel, &bn)
                         .await
                         .unwrap();

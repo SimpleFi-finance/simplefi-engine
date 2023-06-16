@@ -95,18 +95,18 @@ pub trait ChainDB {
     fn db(&self) -> Mongo;
 }
 
-struct Chain {
-    pub chain_id: String,
-    pub name: String,
-    pub symbol: String,
-    pub network: String,
-    pub engine_type: String,
-    pub native_currency: String,
-    pub nodes: String,
-    pub rpc_methods: String,
-    pub db: String,
-    pub confirmation_time: String,
-}
+// struct Chain {
+//     pub chain_id: String,
+//     pub name: String,
+//     pub symbol: String,
+//     pub network: String,
+//     pub engine_type: String,
+//     pub native_currency: String,
+//     pub nodes: String,
+//     pub rpc_methods: String,
+//     pub db: String,
+//     pub confirmation_time: String,
+// }
 
 // impl Chain {
 //     pub async fn new(
@@ -223,19 +223,30 @@ struct Chain {
 
 // subscribe to selected node, listens to new heads and pushes to redis stream
 pub trait SubscribeBlocks {
-    fn subscribe_blocks<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default + Clone>(
+    fn subscribe_blocks
+    // <T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default + Clone>
+    (
         &self, 
         redis_uri: String
     );
 }
 
-// connects to redis stream and saves data into db
+pub trait IndexFullBlocks {
+    fn index_full_blocks<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default + Clone>(
+        &self,
+        redis_uri: &String,
+        confirmed: bool,
+        from_block_number: u64,
+        to_block_number: Option<u64>,
+    ) -> Result<Vec<T>>;
+}
+
 pub trait IndexBlocks {
     fn index_blocks<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default + Clone>(
         &self,
-        from_block_number: u64,
-        to_block_number: u64,
         with_txs: bool,
+        from_block_number: u64,
+        to_block_number: Option<u64>,
     ) -> Result<Vec<T>>;
 }
 
@@ -243,7 +254,7 @@ pub trait IndexLogs {
     fn index_logs<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default + Clone>(
         &self,
         from_block_number: u64,
-        to_block_number: u64,
+        to_block_number: Option<u64>,
     ) -> Result<Vec<T>>;
 }
 

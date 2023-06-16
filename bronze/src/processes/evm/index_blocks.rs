@@ -11,8 +11,12 @@ async fn main() {
     match chain_id {
         "1" => {
             let uri = glob_settings.redis_uri.clone();
-            SupportedChains::EthereumMainnet.subscribe_blocks(uri);
+
+            // connect to redis pub sub, get blocks to index, pass blocks to chain
+
+            
+            SupportedChains::EthereumMainnet.index_blocks(uri);
         },
-        _ => panic!("Chain not implemented to subscribe to blocks"),
+        _ => panic!("Chain not implemented to index blocks"),
     };
 }
