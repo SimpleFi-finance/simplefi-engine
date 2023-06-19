@@ -1,16 +1,10 @@
-use futures::{TryStreamExt};
-use mongodb::bson::{doc, Document};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
-use shared_types::data_lake::{SupportedDataLevels, SupportedDataTypes};
 use std::clone::Clone;
 use std::fmt::Debug;
 use std::io::Result;
 use std::{collections::HashMap, fmt};
-use third_parties::mongo::{Mongo, MongoConfig};
-
-use super::base::{EntityBlockNumber, EntityContractAddress, RawToValue, EntityTimestamp};
-
+use third_parties::mongo::Mongo;
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy, Hash)]
 pub enum ConnectionType {
