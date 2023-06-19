@@ -1,9 +1,9 @@
-use std::fmt::{self, Result};
+use std::fmt;
 use log::info;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
-use redis::{AsyncCommands, Client, cmd};
+use redis::{Client, cmd};
 use serde_json::Value;
-use third_parties::{mongo::lib::bronze::logs, redis::{connect as redis_connect, publish_message, connect_client}};
+// use third_parties::{mongo::lib::bronze::logs};
 use tungstenite::connect;
 
 use crate::{
