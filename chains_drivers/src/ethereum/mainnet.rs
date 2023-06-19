@@ -107,13 +107,6 @@ pub async fn subscribe_blocks(redis_uri: String, rpc_method: Value, rpc_node: St
                 Some(block) => {
                     let mut redis_conn = redis_connect(&redis_uri).await.unwrap();
                     let bn = block.number.clone().to_string();
-                    // chain
-                    //     .save_to_db::<MongoBlock>(
-                    //         block,
-                    //         &SupportedDataTypes::Blocks,
-                    //         &SupportedDataLevels::Bronze,
-                    //     )
-                    //     .await;
 
                     let redis_channel = format!(
                         "{}_{}",

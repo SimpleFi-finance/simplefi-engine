@@ -26,4 +26,3 @@ ethabi = { workspace = true }
 reqwest = { workspace = true }
 hex = {workspace = true}
 redis = {workspace = true}
-# bronze = {path = "../bronze"}

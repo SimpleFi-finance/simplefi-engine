@@ -4,9 +4,8 @@ use clap::{ValueEnum};
 use std::fs::File;
 
 use parquet::{
-    schema::{
-        types::Type
-    }, file::{writer::SerializedFileWriter, properties::WriterProperties}, 
+    schema::types::Type, 
+    file::{writer::SerializedFileWriter, properties::WriterProperties}, 
 };
 
 pub trait GetSchema {
@@ -36,8 +35,8 @@ impl fmt::Display for SupportedPartitionIntervals {
         }
     }
 }
-
 impl SupportedPartitionIntervals {
+    #[allow(dead_code)]
     fn get_seconds(&self) -> u64 {
         match self {
             SupportedPartitionIntervals::Day => 86400,
@@ -45,6 +44,7 @@ impl SupportedPartitionIntervals {
             SupportedPartitionIntervals::Month => 2592000,
         }
     }
+    #[allow(dead_code)]
     fn get_ms(&self) -> u64 {
         match self {
             SupportedPartitionIntervals::Day => 86400000,
