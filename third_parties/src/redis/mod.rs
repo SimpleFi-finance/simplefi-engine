@@ -34,7 +34,7 @@ pub async fn add_to_set(
 
     Ok(())
 }
-
+// helper to add string to pubsub
 pub async fn publish_message(
     con: &mut Connection,
     channel: &str,

@@ -90,13 +90,14 @@ pub trait ChainDB {
 }
 
 // subscribe to selected node, listens to new heads and pushes to redis stream
+#[async_trait::async_trait]
 pub trait SubscribeBlocks {
-    fn subscribe_blocks
+    async fn subscribe_blocks
     // <T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default + Clone>
     (
         &self, 
         redis_uri: String
-    );
+    )-> Result<()>;
 }
 
 #[async_trait::async_trait]

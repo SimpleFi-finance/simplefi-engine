@@ -1,12 +1,8 @@
 use std::collections::HashMap;
-use log::info;
 use serde_json::Value;
 use settings::load_settings;
-use third_parties::redis::{publish_message, connect as redis_connect};
-use tungstenite::connect;
 
-use crate::{types::{chain::{SupportedMethods, ConnectionType, Info}, evm::{new_heads::NewHeadsEvent, transaction::Tx}}, chains::get_chain};
-
+use crate::types::chain::{SupportedMethods, ConnectionType};
 
 pub fn rpc_methods() -> HashMap<SupportedMethods, Value> {
 
@@ -82,49 +78,3 @@ pub fn nodes() -> HashMap<(String, ConnectionType), String> {
 
     nodes_hm
 }
-
-pub async fn subscribe_blocks(redis_uri: String, rpc_method: Value, rpc_node: String) {
-    // todo save to mongo db
-    let request_str = serde_json::to_string(&rpc_method).unwrap();
-
-    let (mut socket, _response) = connect(&rpc_node)
-        .expect("can't connect to wss node");
-    socket.write_message(tungstenite::Message::Text(request_str)).unwrap();
-
-    let chain = get_chain("1")
-        .unwrap();
-
-    loop {
-        let msg = socket.read_message().unwrap();
-        let msg_str = msg.into_text().unwrap();
-        let decoded_msg = match serde_json::from_str::<NewHeadsEvent<Tx>>(&msg_str) {
-            Ok(decoded) => decoded,
-            Err(e) => panic!("{:?}", e),
-        };
-
-        match decoded_msg.params {
-            Some(data) => match data.result {
-                Some(block) => {
-                    let mut redis_conn = redis_connect(&redis_uri).await.unwrap();
-                    let bn = block.number.clone().to_string();
-
-                    let redis_channel = format!(
-                        "{}_{}",
-                        &chain.info().symbol.to_lowercase(),
-                        "blocks".to_string()
-                    );
-                    // todo convert from pub/sub to redis stream
-                    publish_message(&mut redis_conn, &redis_channel, &bn)
-                        .await
-                        .unwrap();
-                }
-                None => info!("No block data")
-            },
-            None => info!("No result data")
-        }
-    }
-}
-
-pub async fn index_blocks() {}
-
-pub async fn index_logs() {}

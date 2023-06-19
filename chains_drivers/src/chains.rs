@@ -1,19 +1,22 @@
-use std::fmt;
-use futures::executor::block_on;
+use std::fmt::{self, Result};
+use log::info;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use redis::{AsyncCommands, Client, cmd};
 use serde_json::Value;
-use third_parties::mongo::lib::bronze::logs;
+use third_parties::{mongo::lib::bronze::logs, redis::{connect as redis_connect, publish_message, connect_client}};
+use tungstenite::connect;
+
 use crate::{
     ethereum::mainnet::{
         rpc_methods as ethereum_rpc_methods, 
-        nodes as ethereum_nodes, subscribe_blocks
+        nodes as ethereum_nodes
     },
     types::{
         chain::{
             ChainDetails, ChainMethods, ChainNodes, Engine, Info, NativeCurrency, SupportedMethods, ConnectionType, SubscribeBlocks, IndexBlocks, IndexLogs, IndexFullBlocks,
         },
         evm::{
-            chain_log::Log, generic::GenericNodeResponse, block::Block, transaction::Tx
+            chain_log::Log, generic::GenericNodeResponse, block::Block, transaction::Tx, new_heads::NewHeadsEvent
         }, base::RawToValue
     }
 };
@@ -153,11 +156,12 @@ impl IndexLogs for SupportedChains {
     }
 }
 
+#[async_trait::async_trait]
 impl SubscribeBlocks for SupportedChains {
-    fn subscribe_blocks(
+    async fn subscribe_blocks(
         &self, 
         redis_uri: String
-    ) {
+    )-> std::io::Result<()> {
         match self {
             SupportedChains::EthereumMainnet => {
                 let rpc_method = self.get_method(&SupportedMethods::SubscribeNewHeads);
@@ -173,11 +177,55 @@ impl SubscribeBlocks for SupportedChains {
                 // todo load provider name from config
 
                 let rpc_node = self.get_node("infura", &ConnectionType::WSS);
+
                 match rpc_node {
                     Some(rpc_node) => {
-                        block_on(async {
-                            subscribe_blocks(redis_uri, rpc_method, rpc_node).await;
-                        });
+                        let request_str = serde_json::to_string(&rpc_method).unwrap();
+
+                        let (mut socket, _response) = connect(&rpc_node)
+                            .expect("can't connect to wss node");
+
+                        socket.write_message(tungstenite::Message::Text(request_str)).unwrap();
+
+                        let chain = get_chain("1")
+                            .unwrap();
+
+                        let stream_name = format!("{}_blocks", &chain.info().symbol.to_lowercase());
+
+                        loop {
+                            let msg = socket.read_message().unwrap();
+                            let msg_str = msg.into_text().unwrap();
+                            let decoded_msg = match serde_json::from_str::<NewHeadsEvent<Tx>>(&msg_str) {
+                                Ok(decoded) => decoded,
+                                Err(e) => panic!("{:?}", e),
+                            };
+
+                            match decoded_msg.params {
+                                Some(data) => match data.result {
+                                    Some(block) => {
+                                        let redis_cli = Client::open(redis_uri.clone())
+                                            .unwrap();
+                                        let mut redis_conn = redis_cli.get_connection().unwrap();
+
+                                        let bn = block.number.clone().to_string();
+                                        
+                                        let kv = [("block_number", bn.clone().to_string())];
+                                        
+                                        cmd("XADD")
+                                            .arg(stream_name.clone())
+                                            .arg("*")
+                                            .arg(&kv)
+                                            .execute(&mut redis_conn);
+                                    }
+                                    None => {
+                                        info!("No block data");
+                                    }
+                        
+                                },
+                                None => {info!("No result data");
+                                }
+                            }
+                        }
                     },
                     None => {
                         panic!("No wss node found for chain: {}", self.info().name);
@@ -224,7 +272,7 @@ impl IndexFullBlocks for SupportedChains {
                 let mut final_logs = vec![];
                 let mut final_txs = vec![];
                 let mut final_blocks = vec![];
-                
+
                 let logs = logs.unwrap();
 
                 for bn in blocks.unwrap() {
