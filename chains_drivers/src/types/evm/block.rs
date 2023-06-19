@@ -63,6 +63,7 @@ pub struct Block<T> {
 }
 
 impl<T> RawToValue for Block<T> {
+    #[allow(unused_variables)]
     fn raw_to_value(&self, timestamp: i64) -> Value {
         let date = NaiveDateTime::from_timestamp_opt(self.timestamp, 0).unwrap();
     
