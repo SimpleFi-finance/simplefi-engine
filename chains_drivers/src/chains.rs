@@ -1,6 +1,6 @@
 use std::fmt;
 
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Datelike};
 use futures::executor::block_on;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use serde_json::{Value, json};
@@ -97,77 +97,17 @@ impl IndexBlocks for SupportedChains {
                             true => self.get_method(&SupportedMethods::GetBlockWithTxs).unwrap(),
                             false => self.get_method(&SupportedMethods::GetBlock).unwrap(),
                         };
-
                         
                         let method = serde_json::to_string(&method).unwrap();
 
                         let query = method.replace("__insert_block_number__", &format!("0x{:x}", block_number));
 
-                        let request = client.post(node).body(query).send().await.unwrap();
+                        let request = client.post(node.clone()).body(query).send().await.unwrap();
 
                         let response = request.text().await.unwrap();
+                        let data: GenericNodeResponse<T> = serde_json::from_str(&response).unwrap();
 
-                        match with_txs {
-                            true => {
-                                let data: GenericNodeResponse<Block<Tx>> = serde_json::from_str(&response).unwrap();
-                                // loop through txs to add ts and return as value
-                                let ts = NaiveDateTime::from_timestamp_opt(data.result.timestamp as i64, 0).unwrap();
-                                let txs = data.result.transactions.unwrap().par_iter().map(|tx| {
-                                    tx.raw_to_value(ts.timestamp())
-                                }).collect::<Vec<Value>>();
-
-                                let block = Block::<Value> {
-                                    number: data.result.number,
-                                    hash: data.result.hash,
-                                    parent_hash: data.result.parent_hash,
-                                    nonce: data.result.nonce,
-                                    mix_hash: data.result.mix_hash,
-                                    logs_bloom: data.result.logs_bloom,
-                                    transactions_root: data.result.transactions_root,
-                                    state_root: data.result.state_root,
-                                    receipts_root: data.result.receipts_root,
-                                    miner: data.result.miner,
-                                    difficulty: data.result.difficulty,
-                                    uncles_hash: data.result.uncles_hash,
-                                    extra_data: data.result.extra_data,
-                                    base_fee_per_gas: data.result.base_fee_per_gas,
-                                    gas_limit: data.result.gas_limit,
-                                    gas_used: data.result.gas_used,
-                                    timestamp: data.result.timestamp,
-                                    transactions: Some(txs),
-                                    withdrawals_root: data.result.withdrawals_root,
-                                };
-
-                                blocks_data.push(block);
-                            }
-                            false => {
-                                let data: GenericNodeResponse<Block<String>> = serde_json::from_str(&response).unwrap();
-                                
-                                let block = Block::<Value> {
-                                    number: data.result.number,
-                                    hash: data.result.hash,
-                                    parent_hash: data.result.parent_hash,
-                                    nonce: data.result.nonce,
-                                    mix_hash: data.result.mix_hash,
-                                    logs_bloom: data.result.logs_bloom,
-                                    transactions_root: data.result.transactions_root,
-                                    state_root: data.result.state_root,
-                                    receipts_root: data.result.receipts_root,
-                                    miner: data.result.miner,
-                                    difficulty: data.result.difficulty,
-                                    uncles_hash: data.result.uncles_hash,
-                                    extra_data: data.result.extra_data,
-                                    base_fee_per_gas: data.result.base_fee_per_gas,
-                                    gas_limit: data.result.gas_limit,
-                                    gas_used: data.result.gas_used,
-                                    timestamp: data.result.timestamp,
-                                    transactions: None,
-                                    withdrawals_root: data.result.withdrawals_root,
-                                };
-
-                                blocks_data.push(block);
-                            }
-                        };
+                        blocks_data.push(data.result);
                     })
                 }
             
@@ -184,7 +124,7 @@ impl IndexLogs for SupportedChains {
         to_block_number: Option<u64>,
     ) -> std::io::Result<Vec<T>> {
         let client = reqwest::Client::new();
-
+        // todo add filters
         match self {
             SupportedChains::EthereumMainnet => {
                 let node = self.get_node("infura", &ConnectionType::RPC).unwrap();
@@ -217,9 +157,7 @@ impl IndexLogs for SupportedChains {
 }
 
 impl SubscribeBlocks for SupportedChains {
-    fn subscribe_blocks<
-        // T: serde::de::DeserializeOwned + Unpin + Sync + Send + serde::Serialize + 'static + std::default::Default + Clone
-    >(
+    fn subscribe_blocks(
         &self, 
         redis_uri: String
     ) {
@@ -254,34 +192,55 @@ impl SubscribeBlocks for SupportedChains {
 }
 
 impl IndexFullBlocks for SupportedChains {
-    fn index_full_blocks<
-        T: serde::de::DeserializeOwned + Unpin + Sync + Send + serde::Serialize + 'static + std::default::Default + Clone
-    >(
+    fn index_full_blocks(
         &self,
-        redis_uri: &String,
         confirmed: bool,
         from_block_number: u64,
         to_block_number: Option<u64>,
-    ) -> std::io::Result<Vec<T>> {
+    ) -> std::io::Result<(Vec<Value>, Vec<Value>, Vec<Value>)> {
         match self {
             SupportedChains::EthereumMainnet => {
-                // returns struct of block {logs, txs}
-                // connect to node
-                // query blocks in range and logs in range
-
-
-                // connect to redis and listen to blocks emitted
                 if to_block_number.is_some() {
                     if to_block_number.unwrap() < from_block_number {
                         panic!("to_block_number must be greater than from_block_number");
                     }
                 }
 
-                // call self.index_blocks
-                // call self.index_logs
+                let mut start_bn = from_block_number;
+                let mut end_bn = to_block_number;
 
+                if confirmed {
+                    start_bn = from_block_number - self.info().confirmation_time;
+                    end_bn = match to_block_number {
+                        Some(bn) => Some(bn - self.info().confirmation_time),
+                        None => None
+                    }
+                }
 
-                Ok(vec![])
+                let blocks = self.index_blocks::<Block<Tx>>(true, start_bn, end_bn).unwrap();
+                let logs = self.index_logs::<Log>(start_bn, end_bn).unwrap();
+
+                let mut final_logs = vec![];
+                let mut final_txs = vec![];
+                let mut final_blocks = vec![];
+
+                for bn in blocks {
+                    let block = bn.clone().raw_to_value(0);
+
+                    let logs_in_bn = logs.par_iter().filter(|log| log.block_number == bn.number).map(|l| {
+                        l.raw_to_value(bn.timestamp)
+                    }).collect::<Vec<Value>>();
+
+                    let txs = bn.transactions.unwrap().par_iter().map(|tx| {
+                        tx.raw_to_value(bn.timestamp)
+                    }).collect::<Vec<Value>>();
+
+                    final_blocks.push(block);
+                    final_txs.extend(txs);
+                    final_logs.extend(logs_in_bn);
+                }
+
+                Ok((final_blocks, final_txs, final_logs))
             }
         }
     }

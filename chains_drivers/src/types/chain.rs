@@ -95,132 +95,6 @@ pub trait ChainDB {
     fn db(&self) -> Mongo;
 }
 
-// struct Chain {
-//     pub chain_id: String,
-//     pub name: String,
-//     pub symbol: String,
-//     pub network: String,
-//     pub engine_type: String,
-//     pub native_currency: String,
-//     pub nodes: String,
-//     pub rpc_methods: String,
-//     pub db: String,
-//     pub confirmation_time: String,
-// }
-
-// impl Chain {
-//     pub async fn new(
-//         chain_id: String,
-//         name: String,
-//         network: String,
-//         symbol: String,
-//         engine_type: Engine,
-//         native_currency: Vec<NativeCurrency>,
-//         nodes: Vec<(String, ConnectionType, String)>,
-//         rpc_methods: Vec<(SupportedMethods, Value)>,
-//         db_config: MongoConfig,
-//         confirmation_time: u64,
-//     ) -> Self {
-//         let nodes = nodes
-//             .iter()
-//             .map(|(provider, connection, url)| {
-//                 let provider = provider;
-//                 let connection = ConnectionType::from(connection.clone()); // SupportedChains::from_str(chain).unwrap();
-//                 let url = url.to_string();
-//                 ((provider.clone(), connection), url)
-//             })
-//             .collect();
-
-//         let methods = rpc_methods
-//             .iter()
-//             .map(|(method, value)| (method.clone(), value.clone()))
-//             .collect();
-
-//         let mongo = Mongo::new(&db_config).await.unwrap();
-
-//         Self {
-//             chain_id,
-//             name,
-//             symbol,
-//             network,
-//             engine_type,
-//             native_currency,
-//             nodes,
-//             rpc_methods: methods,
-//             db: mongo,
-//             confirmation_time,
-//         }
-//     }
-
-//     pub fn get_node(
-//         &self,
-//         provider: &String,
-//         connection: &ConnectionType,
-//     ) -> Option<&String> {
-//         self.nodes.get(&(provider.clone(), connection.clone()))
-//     }
-
-//     pub fn get_method(
-//         &self,
-//         method: &SupportedMethods,
-//     ) -> Option<&Value> {
-//         self.rpc_methods.get(method)
-//     }
-
-//     fn resolve_collection_name(&self, 
-//         data_type: &SupportedDataTypes,
-//         data_level: &SupportedDataLevels,
-//     ) -> String {
-
-//         format!("{}_{}_{}", self.symbol.to_lowercase(), data_type.to_string(), data_level.to_string())
-//     }
-
-//     pub async fn save_to_db<R>(
-//         &self,
-//         items: Vec<R>,
-//         collection_name: &SupportedDataTypes,
-//         data_level: &SupportedDataLevels
-//     ) where
-//         for<'a> R: Deserialize<'a> + Serialize,
-//     {   
-
-//         if items.len() == 0 {
-//             return;
-//         }
-        
-//         let collection_name = self.resolve_collection_name(collection_name, &data_level);
-
-//         let collection = self.db.collection::<R>(&collection_name);
-
-//         collection.insert_many(items, None).await.unwrap();
-//     }
-
-//     pub async fn get_items<R>(
-//         &self,
-//         collection_name: &SupportedDataTypes,
-//         data_level: &SupportedDataLevels,
-//         filter: Option<Document>,
-//     ) -> Vec<R>
-//     where
-//         R: DeserializeOwned + Unpin + Sync + Send + Serialize,
-//     {
-//         let collection_name = self.resolve_collection_name(collection_name, data_level);
-
-//         let collection = self.db.collection::<R>(&collection_name);
-//         // todo implement filters
-//         let filter = filter.unwrap_or(doc! {});
-
-//         let mut results = vec![];
-//         let mut items = collection.find(filter, None).await.unwrap();
-
-//         while let Some(item) = items.try_next().await.unwrap() {
-//             results.push(item);
-//         }
-
-//         results
-//     }
-// }
-
 // subscribe to selected node, listens to new heads and pushes to redis stream
 pub trait SubscribeBlocks {
     fn subscribe_blocks
@@ -232,13 +106,12 @@ pub trait SubscribeBlocks {
 }
 
 pub trait IndexFullBlocks {
-    fn index_full_blocks<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default + Clone>(
+    fn index_full_blocks(
         &self,
-        redis_uri: &String,
         confirmed: bool,
         from_block_number: u64,
         to_block_number: Option<u64>,
-    ) -> Result<Vec<T>>;
+    ) -> Result<(Vec<Value>, Vec<Value>, Vec<Value>)>;
 }
 
 pub trait IndexBlocks {
@@ -257,15 +130,5 @@ pub trait IndexLogs {
         to_block_number: Option<u64>,
     ) -> Result<Vec<T>>;
 }
-
-// pub trait SubscribeLogs {
-//     fn subscribe_logs<
-//     // RawLog
-//     T: EntityBlockNumber + EntityContractAddress + RawToValue + DeserializeOwned + Serialize + Clone + Send + Sync + 'static,
-//     // MongoBlock
-//     R: DeserializeOwned + Serialize + Clone + Send + Sync + Unpin + EntityTimestamp,
-// >(&self);
-// }
-
 
 
