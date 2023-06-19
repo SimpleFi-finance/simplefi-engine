@@ -1,9 +1,7 @@
 use std::fmt;
-
-use chrono::{NaiveDateTime, Datelike};
 use futures::executor::block_on;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
-use serde_json::{Value, json};
+use serde_json::Value;
 use crate::{
     ethereum::mainnet::{
         rpc_methods as ethereum_rpc_methods, 
