@@ -15,8 +15,9 @@ async fn main() {
             // connect to redis stream or pubsub, get blocks to index, pass blocks to chain
 
             // can be range of blocks or single block
+        
             loop {
-                SupportedChains::EthereumMainnet.index_full_blocks(true, 0, None);
+                let data = SupportedChains::EthereumMainnet.index_full_blocks(true, 17_000_000, None).await.unwrap();
                 // receives values back, convert to mongodb documents, insert into mongodb
             }
         },

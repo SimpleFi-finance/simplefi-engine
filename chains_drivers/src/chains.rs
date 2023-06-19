@@ -2,6 +2,7 @@ use std::fmt;
 use futures::executor::block_on;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use serde_json::Value;
+use third_parties::mongo::lib::bronze::logs;
 use crate::{
     ethereum::mainnet::{
         rpc_methods as ethereum_rpc_methods, 
@@ -74,8 +75,9 @@ impl ChainMethods for SupportedChains {
     }
 }
 
+#[async_trait::async_trait]
 impl IndexBlocks for SupportedChains {
-    fn index_blocks<T: serde::de::DeserializeOwned + Unpin + Sync + Send + serde::Serialize + 'static + std::default::Default + Clone>(
+    async fn index_blocks<T: serde::de::DeserializeOwned + Unpin + Sync + Send + serde::Serialize + 'static + std::default::Default + Clone>(
         &self,
         with_txs: bool,
         from_block_number: u64,
@@ -90,23 +92,21 @@ impl IndexBlocks for SupportedChains {
                 let mut blocks_data = vec![];
 
                 for block_number in from_block_number..=to_block_number.unwrap_or(from_block_number) {
-                    block_on(async {
-                        let method = match with_txs {
-                            true => self.get_method(&SupportedMethods::GetBlockWithTxs).unwrap(),
-                            false => self.get_method(&SupportedMethods::GetBlock).unwrap(),
-                        };
-                        
-                        let method = serde_json::to_string(&method).unwrap();
+                    let method = match with_txs {
+                        true => self.get_method(&SupportedMethods::GetBlockWithTxs).unwrap(),
+                        false => self.get_method(&SupportedMethods::GetBlock).unwrap(),
+                    };
+                    
+                    let method = serde_json::to_string(&method).unwrap();
 
-                        let query = method.replace("__insert_block_number__", &format!("0x{:x}", block_number));
+                    let query = method.replace("__insert_block_number__", &format!("0x{:x}", block_number));
 
-                        let request = client.post(node.clone()).body(query).send().await.unwrap();
+                    let request = client.post(node.clone()).body(query).send().await.unwrap();
 
-                        let response = request.text().await.unwrap();
-                        let data: GenericNodeResponse<T> = serde_json::from_str(&response).unwrap();
+                    let response = request.text().await.unwrap();
+                    let data: GenericNodeResponse<T> = serde_json::from_str(&response).unwrap();
 
-                        blocks_data.push(data.result);
-                    })
+                    blocks_data.push(data.result);
                 }
             
                 Ok(blocks_data)
@@ -115,8 +115,9 @@ impl IndexBlocks for SupportedChains {
     }
 }
 
+#[async_trait::async_trait]
 impl IndexLogs for SupportedChains {
-    fn index_logs<T: serde::de::DeserializeOwned + Unpin + Sync + Send + serde::Serialize + 'static + std::default::Default + Clone>(
+    async fn index_logs<T: serde::de::DeserializeOwned + Unpin + Sync + Send + serde::Serialize + 'static + std::default::Default + Clone>(
         &self,
         from_block_number: u64,
         to_block_number: Option<u64>,
@@ -130,23 +131,21 @@ impl IndexLogs for SupportedChains {
                 let mut logs_data: Vec<T> = vec![];
 
                 for bn in from_block_number..=to_block_number.unwrap_or(from_block_number) {
-                    block_on(async {
-                        let get_logs_method = serde_json::to_string(&self.get_method(&SupportedMethods::GetLogs)
-                            .unwrap())
-                        .unwrap();
+                    let get_logs_method = serde_json::to_string(&self.get_method(&SupportedMethods::GetLogs)
+                        .unwrap())
+                    .unwrap();
 
-                        let get_logs = get_logs_method
-                            .replace("__insert_from_block_number__", &format!("0x{:x}", bn))
-                            .replace("__insert_to_block_number__", &format!("0x{:x}", bn));
+                    let get_logs = get_logs_method
+                        .replace("__insert_from_block_number__", &format!("0x{:x}", bn))
+                        .replace("__insert_to_block_number__", &format!("0x{:x}", bn));
 
-                        // todo handle errors
-                        let request = client.post(node.clone()).body(get_logs).send().await.unwrap();
-                        let data = request.text().await.unwrap();
+                    // todo handle errors
+                    let request = client.post(node.clone()).body(get_logs).send().await.unwrap();
+                    let data = request.text().await.unwrap();
 
-                        let logs: GenericNodeResponse<Vec<T>> = serde_json::from_str(&data).unwrap();
+                    let logs: GenericNodeResponse<Vec<T>> = serde_json::from_str(&data).unwrap();
 
-                        logs_data.extend(logs.result);
-                    });
+                    logs_data.extend(logs.result);
                 }
                 Ok(logs_data)
             }
@@ -189,8 +188,10 @@ impl SubscribeBlocks for SupportedChains {
     }
 }
 
+
+#[async_trait::async_trait]
 impl IndexFullBlocks for SupportedChains {
-    fn index_full_blocks(
+    async fn index_full_blocks(
         &self,
         confirmed: bool,
         from_block_number: u64,
@@ -215,14 +216,18 @@ impl IndexFullBlocks for SupportedChains {
                     }
                 }
 
-                let blocks = self.index_blocks::<Block<Tx>>(true, start_bn, end_bn).unwrap();
-                let logs = self.index_logs::<Log>(start_bn, end_bn).unwrap();
+                let (blocks, logs) = tokio::join!(
+                    self.index_blocks::<Block<Tx>>(true, start_bn, end_bn),
+                    self.index_logs::<Log>(start_bn, end_bn)
+                );
 
                 let mut final_logs = vec![];
                 let mut final_txs = vec![];
                 let mut final_blocks = vec![];
+                
+                let logs = logs.unwrap();
 
-                for bn in blocks {
+                for bn in blocks.unwrap() {
                     let block = bn.clone().raw_to_value(0);
 
                     let logs_in_bn = logs.par_iter().filter(|log| log.block_number == bn.number).map(|l| {

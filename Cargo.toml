@@ -8,7 +8,6 @@ members = [
     "shared_utils",
     "third_parties",
     "chains_drivers",
-    "processes",
     "gold",
     "silver",
     "bronze"

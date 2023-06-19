@@ -99,8 +99,9 @@ pub trait SubscribeBlocks {
     );
 }
 
+#[async_trait::async_trait]
 pub trait IndexFullBlocks {
-    fn index_full_blocks(
+    async fn index_full_blocks(
         &self,
         confirmed: bool,
         from_block_number: u64,
@@ -108,8 +109,9 @@ pub trait IndexFullBlocks {
     ) -> Result<(Vec<Value>, Vec<Value>, Vec<Value>)>;
 }
 
+#[async_trait::async_trait]
 pub trait IndexBlocks {
-    fn index_blocks<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default + Clone>(
+    async fn index_blocks<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default + Clone>(
         &self,
         with_txs: bool,
         from_block_number: u64,
@@ -117,8 +119,10 @@ pub trait IndexBlocks {
     ) -> Result<Vec<T>>;
 }
 
+
+#[async_trait::async_trait]
 pub trait IndexLogs {
-    fn index_logs<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default + Clone>(
+    async fn index_logs<T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default + Clone>(
         &self,
         from_block_number: u64,
         to_block_number: Option<u64>,
