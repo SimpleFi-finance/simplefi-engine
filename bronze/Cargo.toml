@@ -17,3 +17,7 @@ chains_drivers = { path = "../chains_drivers"}
 [[bin]]
 name = "track_blocks"
 path = "src/processes/evm/track_blocks.rs"
+
+[[bin]]
+name = "index_blocks"
+path = "src/processes/evm/index_blocks.rs"

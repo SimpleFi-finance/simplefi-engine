@@ -1,4 +1,4 @@
-use chains_drivers::{chains::SupportedChains, types::chain::SubscribeBlocks};
+use chains_drivers::{chains::SupportedChains, types::chain::IndexFullBlocks};
 use settings::load_settings;
 
 #[tokio::main]
@@ -12,8 +12,13 @@ async fn main() {
         "1" => {
             let uri = glob_settings.redis_uri.clone();
 
-            // connect to redis pub sub, get blocks to index, pass blocks to chain
-            SupportedChains::EthereumMainnet.index_blocks(uri);
+            // connect to redis stream or pubsub, get blocks to index, pass blocks to chain
+
+            // can be range of blocks or single block
+            loop {
+                SupportedChains::EthereumMainnet.index_full_blocks(true, 0, None);
+                // receives values back, convert to mongodb documents, insert into mongodb
+            }
         },
         _ => panic!("Chain not implemented to index blocks"),
     };
