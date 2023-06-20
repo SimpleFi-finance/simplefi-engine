@@ -1,10 +1,11 @@
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
+use shared_types::data_lake::{SupportedDataTypes, SupportedDataLevels};
 use std::clone::Clone;
 use std::fmt::Debug;
 use std::io::Result;
 use std::{collections::HashMap, fmt};
-use third_parties::mongo::Mongo;
+use third_parties::mongo::MongoConfig;
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy, Hash)]
 pub enum ConnectionType {
@@ -68,7 +69,7 @@ pub struct ChainDetails {
     pub engine_type: Engine,
     pub native_currency: Vec<NativeCurrency>,
     pub confirmation_time: u64,
-    // pub db: Mongo,
+    pub db: MongoConfig,
     pub nodes: HashMap<(String, ConnectionType), String>,
     pub rpc_methods: HashMap<SupportedMethods, Value>,
 }
@@ -86,7 +87,8 @@ pub trait ChainMethods {
 }
 
 pub trait ChainDB {
-    fn db(&self) -> Mongo;
+    fn get_db(&self) -> MongoConfig;
+    fn resolve_collection_name(&self, collection_type: &SupportedDataTypes, collection_level: &SupportedDataLevels) -> String;
 }
 
 // subscribe to selected node, listens to new heads and pushes to redis stream

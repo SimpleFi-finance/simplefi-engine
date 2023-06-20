@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{fmt, str::FromStr};
 use clap::{ValueEnum};
 
 use std::fs::File;
@@ -86,6 +86,18 @@ impl fmt::Display for SupportedDataLevels {
             SupportedDataLevels::Bronze => write!(f, "bronze"),
             SupportedDataLevels::Silver => write!(f, "silver"),
             SupportedDataLevels::Gold => write!(f, "gold"),
+        }
+    }
+}
+
+impl FromStr for SupportedDataLevels {
+    type Err = ();
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        match input {
+            "bronze" => Ok(SupportedDataLevels::Bronze),
+            "silver" => Ok(SupportedDataLevels::Silver),
+            "gold" => Ok(SupportedDataLevels::Gold),
+            _ => Err(()),
         }
     }
 }

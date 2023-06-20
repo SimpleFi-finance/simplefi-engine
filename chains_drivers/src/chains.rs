@@ -1,19 +1,20 @@
 use std::fmt;
 use log::info;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
-use redis::{Client, cmd};
 use serde_json::Value;
-// use third_parties::{mongo::lib::bronze::logs};
+use settings::load_settings;
+use shared_types::data_lake::{SupportedDataTypes, SupportedDataLevels};
+use third_parties::{redis::{connect as redis_connect, queue_message}, mongo::MongoConfig};
 use tungstenite::connect;
 
 use crate::{
-    ethereum::mainnet::{
+    ethereum::{mainnet::{
         rpc_methods as ethereum_rpc_methods, 
         nodes as ethereum_nodes
-    },
+    }, mongo_setup::{init_blocks_bronze, init_decoding_error_bronze, init_logs_bronze, init_txs_bronze}},
     types::{
         chain::{
-            ChainDetails, ChainMethods, ChainNodes, Engine, Info, NativeCurrency, SupportedMethods, ConnectionType, SubscribeBlocks, IndexBlocks, IndexLogs, IndexFullBlocks,
+            ChainDetails, ChainMethods, ChainNodes, Engine, Info, NativeCurrency, SupportedMethods, ConnectionType, SubscribeBlocks, IndexBlocks, IndexLogs, IndexFullBlocks, ChainDB,
         },
         evm::{
             chain_log::Log, generic::GenericNodeResponse, block::Block, transaction::Tx, new_heads::NewHeadsEvent
@@ -38,6 +39,9 @@ impl std::fmt::Display for SupportedChains {
 
 impl Info for SupportedChains {
     fn info(&self) -> ChainDetails {
+        //load global settings
+        let glob_settings = load_settings().unwrap();
+
         match self {
             SupportedChains::EthereumMainnet => ChainDetails {
                 chain_id: "1".to_string(),
@@ -50,6 +54,10 @@ impl Info for SupportedChains {
                     decimals: 18,
                     address: "0x0000000000".to_string(),
                 }],
+                db: MongoConfig {
+                    uri: glob_settings.mongodb_uri,
+                    database: glob_settings.mongodb_database_name,
+                },
                 network: "mainnet".to_string(),
                 engine_type: Engine::EVM,
                 nodes: ethereum_nodes(),
@@ -75,6 +83,16 @@ impl ChainMethods for SupportedChains {
         method: &SupportedMethods,
     ) -> Option<Value> {
         self.info().rpc_methods.get(&method).cloned()
+    }
+}
+
+impl ChainDB for SupportedChains {
+    fn get_db(&self) -> MongoConfig {
+        self.info().db
+    }
+
+    fn resolve_collection_name(&self, collection_type: &SupportedDataTypes, collection_level: &SupportedDataLevels) -> String {
+        format!("{}_{}_{}", self.info().symbol.to_lowercase(), collection_type, collection_level)
     }
 }
 
@@ -190,7 +208,9 @@ impl SubscribeBlocks for SupportedChains {
                         let chain = get_chain("1")
                             .unwrap();
 
-                        let stream_name = format!("{}_blocks", &chain.info().symbol.to_lowercase());
+                        let queue_name = format!("{}_blocks", &chain.info().symbol.to_lowercase());
+
+                        let mut redis_conn = redis_connect(&redis_uri).await.unwrap();
 
                         loop {
                             let msg = socket.read_message().unwrap();
@@ -203,19 +223,9 @@ impl SubscribeBlocks for SupportedChains {
                             match decoded_msg.params {
                                 Some(data) => match data.result {
                                     Some(block) => {
-                                        let redis_cli = Client::open(redis_uri.clone())
-                                            .unwrap();
-                                        let mut redis_conn = redis_cli.get_connection().unwrap();
-
                                         let bn = block.number.clone().to_string();
                                         
-                                        let kv = [("block_number", bn.clone().to_string())];
-                                        
-                                        cmd("XADD")
-                                            .arg(stream_name.clone())
-                                            .arg("*")
-                                            .arg(&kv)
-                                            .execute(&mut redis_conn);
+                                        let _:() = queue_message(&mut redis_conn, &queue_name, &bn).await.unwrap();
                                     }
                                     None => {
                                         info!("No block data");
@@ -235,7 +245,6 @@ impl SubscribeBlocks for SupportedChains {
         }
     }
 }
-
 
 #[async_trait::async_trait]
 impl IndexFullBlocks for SupportedChains {
