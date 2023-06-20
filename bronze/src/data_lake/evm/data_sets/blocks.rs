@@ -122,7 +122,7 @@ impl WriteDFToFile for BlockSeries {
             .write_batch(&self.timestamp, None, None)
             .unwrap();
         col_writer.close().unwrap();
-        println!("Wrote timestamp column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -130,7 +130,7 @@ impl WriteDFToFile for BlockSeries {
             .write_batch(&self.year.iter().map(|x| i32::from(*x)).collect::<Vec<i32>>(), None, None)
             .unwrap();
         col_writer.close().unwrap();
-        println!("Wrote year column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -138,7 +138,7 @@ impl WriteDFToFile for BlockSeries {
             .write_batch(&self.month.iter().map(|x| *x as i32).collect::<Vec<i32>>(), None, None)
             .unwrap();
         col_writer.close().unwrap();
-        println!("Wrote month column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -146,7 +146,7 @@ impl WriteDFToFile for BlockSeries {
             .write_batch(&self.day.iter().map(|x| *x as i32).collect::<Vec<i32>>(), None, None)
             .unwrap();
         col_writer.close().unwrap();
-        println!("Wrote day column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -155,7 +155,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote number column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -164,7 +164,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote hash column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -173,7 +173,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote parent_hash column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -182,7 +182,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote uncles_hash column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -191,7 +191,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote author column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -200,7 +200,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote state_root column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -209,7 +209,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote transactions_root column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -227,7 +227,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote gas_used column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -236,7 +236,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote gas_limit column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -245,7 +245,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote extra_data column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -254,7 +254,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote logs_bloom column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -263,7 +263,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote difficulty column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -291,9 +291,9 @@ impl WriteDFToFile for BlockSeries {
     
         col_writer.close().unwrap();
 
-        let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
-        // todo check
-        col_writer.close().unwrap();
+        // let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
+        // // todo check
+        // col_writer.close().unwrap();
 
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
@@ -303,7 +303,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote size column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -312,7 +312,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote mix_hash column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
@@ -321,7 +321,7 @@ impl WriteDFToFile for BlockSeries {
             .unwrap();
     
         col_writer.close().unwrap();
-        println!("Wrote nonce column");
+
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
     
         col_writer
