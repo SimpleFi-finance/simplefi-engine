@@ -11,7 +11,7 @@ use crate::{
     ethereum::{mainnet::{
         rpc_methods as ethereum_rpc_methods, 
         nodes as ethereum_nodes
-    }, mongo_setup::{init_blocks_bronze, init_decoding_error_bronze, init_logs_bronze, init_txs_bronze}},
+    }},
     types::{
         chain::{
             ChainDetails, ChainMethods, ChainNodes, Engine, Info, NativeCurrency, SupportedMethods, ConnectionType, SubscribeBlocks, IndexBlocks, IndexLogs, IndexFullBlocks, ChainDB,
