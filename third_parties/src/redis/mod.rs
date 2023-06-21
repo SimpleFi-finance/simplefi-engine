@@ -5,7 +5,6 @@ use redis::{
     Client, AsyncCommands, RedisError, RedisResult,
     aio::{AsyncStream, Connection, ConnectionManager},
 };
-
 // create a helper to establish a connection to redis in async way
 pub async fn connect(redis_uri: &str) -> RedisResult<Connection<Pin<Box<dyn AsyncStream + Send + Sync>>>> {
     let client = redis::Client::open(redis_uri)?;
@@ -25,7 +24,7 @@ pub async fn connect_client(redis_uri: &str) -> Result<Client, redis::RedisError
     Client::open(redis_uri)
 }
 
-// create a helper to add a String into a redis list in async way
+// create a helper to add a String into a redis set in async way
 pub async fn add_to_set(
     con: &mut Connection,
     list_name: &str,
@@ -36,6 +35,19 @@ pub async fn add_to_set(
     Ok(())
 }
 
+pub async fn queue_message(
+    con: &mut Connection,
+    list_name: &str,
+    value: &str,
+) -> RedisResult<()> {
+    let _: () = con.rpush(list_name, value).await?;
+
+    let _: () = con.publish(list_name, value).await?;
+
+    Ok(())
+}
+
+// helper to add string to pubsub
 pub async fn publish_message(
     con: &mut Connection,
     channel: &str,

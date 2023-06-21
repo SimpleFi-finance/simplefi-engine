@@ -1,7 +1,24 @@
-use std::fmt;
+use std::{fmt, str::FromStr};
 use clap::{ValueEnum};
 
-pub mod bronze;
+use std::fs::File;
+
+use parquet::{
+    schema::types::Type, 
+    file::{writer::SerializedFileWriter, properties::WriterProperties}, 
+};
+
+pub trait GetSchema {
+    fn get_schema() -> Type;
+}
+
+pub trait WriteDFToFile {
+    fn write_to_file(&self, writer: &mut SerializedFileWriter<File>)  -> Result<(), Box<dyn std::error::Error>>;
+}
+
+pub trait FileProperties {
+    fn file_properties() -> WriterProperties;
+}
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
 pub enum SupportedPartitionIntervals {
@@ -18,8 +35,8 @@ impl fmt::Display for SupportedPartitionIntervals {
         }
     }
 }
-
 impl SupportedPartitionIntervals {
+    #[allow(dead_code)]
     fn get_seconds(&self) -> u64 {
         match self {
             SupportedPartitionIntervals::Day => 86400,
@@ -27,6 +44,7 @@ impl SupportedPartitionIntervals {
             SupportedPartitionIntervals::Month => 2592000,
         }
     }
+    #[allow(dead_code)]
     fn get_ms(&self) -> u64 {
         match self {
             SupportedPartitionIntervals::Day => 86400000,
@@ -68,6 +86,18 @@ impl fmt::Display for SupportedDataLevels {
             SupportedDataLevels::Bronze => write!(f, "bronze"),
             SupportedDataLevels::Silver => write!(f, "silver"),
             SupportedDataLevels::Gold => write!(f, "gold"),
+        }
+    }
+}
+
+impl FromStr for SupportedDataLevels {
+    type Err = ();
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        match input {
+            "bronze" => Ok(SupportedDataLevels::Bronze),
+            "silver" => Ok(SupportedDataLevels::Silver),
+            "gold" => Ok(SupportedDataLevels::Gold),
+            _ => Err(()),
         }
     }
 }

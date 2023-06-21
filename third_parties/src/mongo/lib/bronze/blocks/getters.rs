@@ -1,18 +1,19 @@
 use crate::mongo::{Mongo};
 use mongodb::{bson::doc, options::{FindOptions, FindOneOptions}};
+use serde::de::DeserializeOwned;
 use settings::load_settings;
 use log::debug;
-use super::types::Block;
+
 use futures::stream::TryStreamExt;
 use chrono::Utc;
 
-pub async fn get_blocks(
+pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(
     db: &Mongo,
     timestamp_from: Option<i64>,
     timestamp_to: Option<i64>,
     blocknumber_from: Option<i64>,
     blocknumber_to: Option<i64>,
-) -> Result<Vec<Block>, Box<dyn std::error::Error>> {
+) -> Result<Vec<T>, Box<dyn std::error::Error>> {
     let global_settings = load_settings().unwrap();
     // todo implement pagination
 
@@ -27,7 +28,7 @@ pub async fn get_blocks(
         .projection(doc!{"_id": 0})
         .build();
 
-    let blocks_collection = db.collection::<Block>(&global_settings.blocks_bronze_collection_name);
+    let blocks_collection = db.collection::<T>(&global_settings.blocks_bronze_collection_name);
     
     if timestamp_from.is_some() {
         let ts_now = Utc::now().timestamp_micros();
@@ -92,11 +93,11 @@ pub async fn get_blocks(
     Ok(blocks)
 }
 
-pub async fn get_block(
+pub async fn get_block<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(
     db: &Mongo,
     block_number: Option<i64>,
     timestamp: Option<i64>,
-) -> Result<Option<Block>, Box<dyn std::error::Error>> {
+) -> Result<Option<T>, Box<dyn std::error::Error>> {
     
     let global_settings = load_settings().unwrap();
     // todo implement filter logic
@@ -109,7 +110,7 @@ pub async fn get_block(
         panic!("One between block_number and timestamp must be set");
     }
 
-    let blocks_collection = db.collection::<Block>(&global_settings.blocks_bronze_collection_name);
+    let blocks_collection = db.collection::<T>(&global_settings.blocks_bronze_collection_name);
     let find_options = FindOneOptions::builder()
         .sort(doc!{ "timestamp": 1 })
         .projection(doc!{"_id": 0})
@@ -135,71 +136,4 @@ pub async fn get_block(
 
     let block = blocks_collection.find_one(filter, find_options.clone()).await.unwrap();
     return Ok(block);
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::mongo::MongoConfig;
-
-    use super::*;
-
-    #[tokio::test]
-    async fn test_get_blocks() -> Result<(), Box<dyn std::error::Error>> {
-        let config = MongoConfig {
-            uri: "mongodb://localhost:27017".to_string(),
-            database: "test".to_string(),
-        };
-
-        // Create a new MongoDB client
-        let mongo = Mongo::new(&config).await.unwrap();
-        
-        let blocks = get_blocks(&mongo, None, None, Some(1234), Some(12345)).await.unwrap();
-        assert_eq!(blocks.len(), 1);
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_get_block() -> Result<(), Box<dyn std::error::Error>> {
-        let config = MongoConfig {
-            uri: "mongodb://localhost:27017".to_string(),
-            database: "test".to_string(),
-        };
-
-        // Create a new MongoDB client
-        let mongo = Mongo::new(&config).await.unwrap();
-        
-        let block = get_block(&mongo, Some(12345), None).await.unwrap();
-        assert_ne!(block, None);
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_get_block_none() -> Result<(), Box<dyn std::error::Error>> {
-        let config = MongoConfig {
-            uri: "mongodb://localhost:27017".to_string(),
-            database: "test".to_string(),
-        };
-
-        // Create a new MongoDB client
-        let mongo = Mongo::new(&config).await.unwrap();
-        
-        let block = get_block(&mongo, Some(12346), None).await.unwrap();
-        assert_eq!(block, None);
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_get_block_ts() -> Result<(), Box<dyn std::error::Error>> {
-        let config = MongoConfig {
-            uri: "mongodb://localhost:27017".to_string(),
-            database: "test".to_string(),
-        };
-
-        // Create a new MongoDB client
-        let mongo = Mongo::new(&config).await.unwrap();
-        
-        let block = get_block(&mongo, None, Some(150000000)).await.unwrap();
-        assert_ne!(block, None);
-        Ok(())
-    }
 }

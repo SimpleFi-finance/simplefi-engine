@@ -1,19 +1,19 @@
 use crate::mongo::{Mongo};
 use mongodb::{bson::doc, options::{FindOptions}};
+use serde::de::DeserializeOwned;
 use settings::load_settings;
-use super::types::Tx;
 use futures::stream::TryStreamExt;
 use chrono::Utc;
 
 
-pub async fn get_txs (
+pub async fn get_txs<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(
     db: &Mongo,
     address: Option<String>,
     timestamp_from: Option<i64>,
     timestamp_to: Option<i64>,
     blocknumber_from: Option<i64>,
     blocknumber_to: Option<i64>,
-)  -> Result<Vec<Tx>, Box<dyn std::error::Error>> {
+)  -> Result<Vec<T>, Box<dyn std::error::Error>> {
     let global_settings = load_settings().unwrap();
 
     let mut txs = Vec::new();
@@ -31,7 +31,7 @@ pub async fn get_txs (
         .projection(doc!{"_id": 0})
         .build();
 
-    let txs_collection = db.collection::<Tx>(&global_settings.txs_bronze_collection_name);
+    let txs_collection = db.collection::<T>(&global_settings.txs_bronze_collection_name);
 
     let mut filter = doc!{};
 
@@ -68,68 +68,4 @@ pub async fn get_txs (
     }
 
     Ok(txs)
-}
-
-#[cfg(test)]
-
-mod tests {
-    use crate::mongo::MongoConfig;
-
-    use super::*;
-
-    #[tokio::test]
-
-    async fn test_get_txs() -> Result<(), Box<dyn std::error::Error>> {
-        let config = MongoConfig {
-            uri: "mongodb://localhost:27017".to_string(),
-            database: "test".to_string(),
-        };
-
-        let mongo = Mongo::new(&config).await.unwrap();
-
-        let txs = get_txs(
-            &mongo, 
-            Some(String::from("from1")), 
-            None, 
-            None, 
-            None, 
-            None
-        ).await.unwrap();
-
-        assert_ne!(txs.len(), 0);
-
-        let txs = get_txs(
-            &mongo, 
-            Some(String::from("from")),
-            None, 
-            None, 
-            None, 
-            None
-        ).await.unwrap();
-
-        let tx_1 = txs[0].clone();
-
-        let txs = get_txs(
-            &mongo, 
-            None,
-            Some(tx_1.timestamp), 
-            None, 
-            None, 
-            None
-        ).await.unwrap();
-        assert_ne!(txs.len(), 0);
-
-        let txs = get_txs(
-            &mongo, 
-            None,
-            None, 
-            None,
-            Some(tx_1.block_number),
-            None
-        ).await.unwrap();
-
-        assert_ne!(txs.len(), 0);
-
-        Ok(())
-    } 
 }

@@ -21,11 +21,17 @@ use std::{collections::HashMap, fmt::Debug};
 use log::{debug, info};
 use serde_json::Value;
 use std::clone::Clone;
-use third_parties::mongo::lib::bronze::{
-    blocks::types::Block as MongoBlock, logs::types::Log as MongoLog,
+
+use bronze::mongo::{
+    evm::{
+        data_sets::logs::Log as MongoLog,
+        data_sets::blocks::Block as MongoBlock,
+    },
+    common::types::decoding_errors::DecodingError
 };
+
 use third_parties::{
-    mongo::{lib::bronze::decoding_error::types::DecodingError, MongoConfig},
+    mongo::MongoConfig,
     redis::{connect as redis_connect, publish_message},
 };
 use tungstenite::{connect, Message};

@@ -6,3 +6,24 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+serde_json = { workspace = true }
+serde = { workspace = true}
+parquet = {workspace = true}
+shared_types = { path = "../shared_types"}
+settings = { path = "../settings"}
+tokio = { workspace = true }
+chains_drivers = { path = "../chains_drivers"}
+third_parties = { path = "../third_parties"}
+redis ={workspace = true}
+
+[[bin]]
+name = "track_blocks"
+path = "src/processes/evm/track_blocks.rs"
+
+[[bin]]
+name = "index_blocks"
+path = "src/processes/evm/index_blocks.rs"
+
+[[bin]]
+name = "set_up_db"
+path = "src/processes/evm/set_up_db.rs"

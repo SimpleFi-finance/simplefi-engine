@@ -1,8 +1,6 @@
 use clap::{ValueEnum};
 use std::{fmt};
 
-
-
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug, Hash)]
 pub enum SupportedProviders {
     Infura,
