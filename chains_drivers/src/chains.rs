@@ -1,6 +1,8 @@
-use std::fmt;
+use std::{fmt, collections::HashMap};
+use grpc_server::client::AbiDiscoveryClient;
 use log::info;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
 use settings::load_settings;
 use shared_types::data_lake::{SupportedDataTypes, SupportedDataLevels};
@@ -11,14 +13,14 @@ use crate::{
     ethereum::{mainnet::{
         rpc_methods as ethereum_rpc_methods, 
         nodes as ethereum_nodes
-    }},
+    }, utils::decode_logs::decode_logs as decode_logs_eth},
     types::{
         chain::{
-            ChainDetails, ChainMethods, ChainNodes, Engine, Info, NativeCurrency, SupportedMethods, ConnectionType, SubscribeBlocks, IndexBlocks, IndexLogs, IndexFullBlocks, ChainDB,
+            ChainDetails, ChainMethods, ChainNodes, Engine, Info, NativeCurrency, SupportedMethods, ConnectionType, SubscribeBlocks, IndexBlocks, IndexLogs, IndexFullBlocks, ChainDB, DecodeLogs,
         },
         evm::{
             chain_log::Log, generic::GenericNodeResponse, block::Block, transaction::Tx, new_heads::NewHeadsEvent
-        }, base::RawToValue
+        }, base::{RawToValue, EntityBlockNumber, EntityContractAddress}
     }
 };
 
@@ -307,6 +309,59 @@ impl IndexFullBlocks for SupportedChains {
 }
 
 // decode logs
+#[async_trait::async_trait]
+impl DecodeLogs for SupportedChains {
+    async fn decode_logs<
+        T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default + Clone + EntityBlockNumber + EntityContractAddress,
+    >(
+        &self,
+        logs: Vec<Value>,
+    ) -> std::io::Result<(Vec<Value>, Vec<Value>)> {
+        match self {
+            SupportedChains::EthereumMainnet => {
+                let logs_by_address = logs
+                    .par_iter()
+                    .fold(
+                        || HashMap::new(),
+                        |mut acc, log| {
+                            // let log: Log = serde_json::from_value(*log).unwrap();
+
+                            acc.entry(log["address"].clone().to_string())
+                                .or_insert(vec![])
+                                .push(log.clone());
+
+                            acc
+                        },
+                    )
+                    .reduce(
+                        || HashMap::new(),
+                        |mut acc, hm| {
+                            for (key, value) in hm {
+                                acc.entry(key).or_insert(vec![]).extend(value);
+                            }
+                            acc
+                        },
+                    );
+
+                let unique_addresses: Vec<String> = logs_by_address.keys().cloned().collect();
+
+                let mut abi_discovery_client =
+                    AbiDiscoveryClient::new("http://[::1]:50051".to_string()).await;
+
+                // TODO: Add chain as parameter
+                let chain = "ethereum".to_string();
+
+                let response = abi_discovery_client.get_addresses_abi_json(unique_addresses).await;
+
+                let abis = response.into_inner();
+                // todo complete abi decoding
+                // let decoded = decode_logs_eth(logs_by_address, abis).await.unwrap();
+
+                Ok((vec![], vec![]))
+            }
+        }
+    }
+}
 
 // decode txs
 

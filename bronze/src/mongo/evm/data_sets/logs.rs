@@ -1,8 +1,16 @@
 use chains_drivers::types::base::{EntityBlockNumber, EntityTimestamp, EntityContractAddress};
 use serde::{Serialize, Deserialize};
-use serde_json::Value;
-
 use crate::data_lake::evm::data_sets::logs::LogsSeries;
+
+#[derive(Debug,PartialEq, Clone, Serialize, Deserialize, Default)]
+pub struct DecodedData {
+    pub name: String,
+    pub value: String,
+    pub kind: String,
+    pub indexed: bool,
+    pub hash_signature: String,
+    pub signature: String,
+}
 
 #[derive(Debug,Default, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Log {
@@ -19,7 +27,7 @@ pub struct Log {
 
     pub data: Option<String>,
 
-    pub decoded_data: Option<Vec<Value>>,
+    pub decoded_data: Option<Vec<DecodedData>>,
     pub topics: Vec<String>,
     pub log_index: i64,
     pub transaction_log_index: i64,
@@ -42,7 +50,7 @@ impl Log {
 
         data: Option<String>,
 
-        decoded_data: Option<Vec<Value>>,
+        decoded_data: Option<Vec<DecodedData>>,
         topics: Vec<String>,
         log_index: i64,
         transaction_log_index: i64,
