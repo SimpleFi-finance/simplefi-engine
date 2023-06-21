@@ -1,7 +1,7 @@
 use std::{thread, time::Duration};
 
 use bronze::mongo::evm::data_sets::{blocks::Block, txs::Tx, logs::Log};
-use chains_drivers::{chains::{SupportedChains, get_chain}, types::chain::{IndexFullBlocks, Info, ChainDB}};
+use chains_drivers::{chains::get_chain, types::chain::{IndexFullBlocks, Info, ChainDB}};
 use settings::load_settings;
 use shared_types::data_lake::{SupportedDataTypes, SupportedDataLevels};
 use third_parties::{redis::connect_client, mongo::{lib::bronze::setters::save_to_db, Mongo}};
