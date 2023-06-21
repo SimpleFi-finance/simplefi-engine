@@ -1,10 +1,9 @@
 use std::{error::Error, collections::HashMap};
 use log::info;
-use bronze::mongo::common::types::decoding_errors::{DecodingError, ErrorType};
+use serde_json::{json, Value};
 use std::str::FromStr;
 use rayon::{iter::ParallelIterator};
 use rayon::prelude::{IntoParallelRefIterator};
-use bronze::mongo::evm::data_sets::logs::{Log, DecodedData};
 use ethabi::ethereum_types::H256;
 use ethabi::{RawLog, Contract, Token};
 
@@ -47,16 +46,23 @@ fn get_token_type(token: Token) -> Result<TokenWType, Box<dyn Error>> {
     })
 }
 
-pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Log>>, abis: Vec<grpc_server::abi_discovery_proto::AddressAbiJson>) -> Result<(Vec<Log>, Vec<DecodingError>), Box<dyn Error>>{
+pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Value>>, abis: Vec<grpc_server::abi_discovery_proto::ContractInfo>) -> Result<(Vec<Value>, Vec<Value>), Box<dyn Error>>{
 
     let mut eventhm = HashMap::new();
 
     let contracts_with_abi = abis.iter().map(|a| {
         let abi = &a.abi;
-        let contract: Contract = serde_json::from_str(abi.as_str()).unwrap();
+
+        if abi.is_none() {
+            return a.address.clone()
+        }
+
+        let abi = abi.clone().unwrap();
+
+        let contract: Contract = serde_json::from_str(abi.abi.as_str()).unwrap();
         for event in &contract.events {
             let e = event.1[0].clone();
-    
+
             eventhm.insert(e.signature(), e);
         }
         a.address.clone()
@@ -84,10 +90,12 @@ pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Log>>, abis: Vec<gr
             .map(|log| {
 
                 let log = log.clone();
-                let tx_hash = log.transaction_hash.clone().unwrap();
+                let tx_hash = log["transaction_hash"].clone();
 
-                let h256_topics = log.topics.iter().map(|t| H256::from_str(t).unwrap()).collect::<Vec<H256>>();
-                let bytes = hex::decode(log.data.clone().unwrap().strip_prefix("0x").unwrap()).unwrap();
+                let topics :Vec<String>= serde_json::from_value(log["topics"].clone()).unwrap();
+                let h256_topics = topics.iter().map(|t| H256::from_str(t).unwrap()).collect::<Vec<H256>>();
+
+                let bytes = hex::decode(log["data"].to_string().clone().strip_prefix("0x").unwrap()).unwrap();
                 let raw_log = RawLog {
                     topics: h256_topics.clone(),
                     data: bytes,
@@ -105,91 +113,91 @@ pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Log>>, abis: Vec<gr
 
                                     match token_type {
                                         Ok(token_type) => {
-                                            let decoded_data = DecodedData {
-                                                name: d.name.clone(),
-                                                value: token_type.value,
-                                                kind: token_type.token_type,
-                                                indexed: event.inputs[i].indexed,
-                                                hash_signature: format!("0x{:x}", event.signature()),
-                                                signature: event.name.clone(),
-                                            };
+                                            let decoded_data = json!({
+                                                "name": d.name.clone(),
+                                                "value": token_type.value,
+                                                "kind": token_type.token_type,
+                                                "indexed": event.inputs[i].indexed,
+                                                "hash_signature": format!("0x{:x}", event.signature()),
+                                                "signature": event.name.clone(),
+                                            });
                                             decoded_data
                                         },
                                         Err(e) => {
                                             info!("unsupported_data_type: {:?}", e);
                                             // push error to mongo
-                                            let error = DecodingError {
-                                                timestamp: log.timestamp,
-                                                error: ErrorType::UnsupportedDataType,
-                                                contract_address: log.address.clone().unwrap(),
-                                                log: format!("{}|{}|{}", tx_hash, log.transaction_index, log.log_index),
-                                            };
+                                            let error = json!({
+                                                "timestamp": log["timestamp"].clone(),
+                                                "error": "unsupported_data_type",
+                                                "contract_address": log["address"].clone(),
+                                                "log": format!("{}|{}|{}", tx_hash, log["transaction_index"], log["log_index"]),
+                                            });
 
                                             errors.push(error);
 
-                                            DecodedData {
-                                                name: d.name.clone(),
-                                                value: d.value.to_string(),
-                                                kind: event.inputs[i].kind.to_string(),
-                                                indexed: event.inputs[i].indexed,
-                                                hash_signature: format!("0x{:x}", event.signature()),
-                                                signature: event.name.clone(),
-                                            }
+                                            json!({
+                                                "name": d.name.clone(),
+                                                "value": d.value.to_string(),
+                                                "kind": event.inputs[i].kind.to_string(),
+                                                "indexed": event.inputs[i].indexed,
+                                                "hash_signature": format!("0x{:x}", event.signature()),
+                                                "signature": event.name.clone(),
+                                            })
                                         }
                                     }
-                                }).collect::<Vec<DecodedData>>();    
+                                }).collect::<Vec<Value>>();    
 
-                                let decoded_log = Log {
-                                    address: log.address,
-                                    log_type: log.log_type,
-                                    block_number: log.block_number,
-                                    block_hash: log.block_hash,
-                                    data: log.data,
-                                    log_index: log.log_index,
-                                    removed: log.removed,
-                                    topics: log.topics,
-                                    transaction_hash: log.transaction_hash,
-                                    transaction_index: log.transaction_index.clone(),
-                                    transaction_log_index: log.transaction_log_index.clone(),
-                                    decoded_data: Some(decoded_data),
-                                    timestamp: log.timestamp,
-                                    year: log.year,
-                                    month: log.month,
-                                    day: log.day,
-                                };
+                                let decoded_log = json!({
+                                    "address": log["address"],
+                                    "log_type": log["log_type"],
+                                    "block_number": log["block_number"],
+                                    "block_hash": log["block_hash"],
+                                    "data": log["data"],
+                                    "log_index": log["log_index"],
+                                    "removed": log["removed"],
+                                    "topics": log["topics"],
+                                    "transaction_hash": log["transaction_hash"],
+                                    "transaction_index": log["transaction_index"].clone(),
+                                    "transaction_log_index": log["transaction_log_index"].clone(),
+                                    "decoded_data": Some(decoded_data),
+                                    "timestamp": log["timestamp"],
+                                    "year": log["year"],
+                                    "month": log["month"],
+                                    "day": log["day"],
+                                });
                                 decoded_log
                             },
                             Err(e) => {
                                 info!("error invalid data: {:?}", e);
-                                let error = DecodingError {
-                                    timestamp: log.timestamp,
-                                    error: ErrorType::InvalidData,
-                                    contract_address: log.address.clone().unwrap(),
-                                    log: format!("{}|{}|{}", tx_hash, log.transaction_index, log.log_index),
-                                };
+                                let error = json!({
+                                    "timestamp": log["timestamp"],
+                                    "error": "invalid_data",
+                                    "contract_address": log["address"].clone(),
+                                    "log": format!("{}|{}|{}", tx_hash, log["transaction_index"], log["log_index"]),
+                                });
                                 errors.push(error);
                                 log.clone()
                             }
                         }
                     },
                     None => {
-                        info!("event not found for address {:?}", &log.address);
-                        let error = DecodingError {
-                            timestamp: log.timestamp,
-                            error: ErrorType::EventNotFound,
-                            contract_address: log.address.clone().unwrap(),
-                            log: format!("{}|{}|{}", tx_hash, log.transaction_index, log.log_index),
-                        };
+                        info!("event not found for address {:?}", &log["address"]);
+                        let error = json!({
+                            "timestamp": log["timestamp"],
+                            "error": "event_not_found",
+                            "contract_address": log["address"].clone(),
+                            "log": format!("{}|{}|{}", tx_hash, log["transaction_index"], log["log_index"]),
+                        });
                         errors.push(error);
                         log.clone()
                     }
                 }
             })
-            .collect::<Vec<Log>>();
+            .collect::<Vec<Value>>();
 
             (decoded, errors)
         })
-        .collect::<Vec<(Vec<Log>, Vec<DecodingError>)>>();
+        .collect::<Vec<(Vec<Value>, Vec<Value>)>>();
     
     let mut decoding_errors = vec![];
     let mut decoded = vec![];
@@ -207,9 +215,9 @@ pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Log>>, abis: Vec<gr
             Vec::from_iter(logs_of_address.clone())
         })
         .flatten()
-        .collect::<Vec<Log>>();
+        .collect::<Vec<Value>>();
 
-    let decoded_logs: Vec<Log> = [decoded, undecoded].concat();
+    let decoded_logs: Vec<Value> = [decoded, undecoded].concat();
 
     Ok((decoded_logs, decoding_errors))
 }

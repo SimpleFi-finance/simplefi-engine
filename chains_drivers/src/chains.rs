@@ -13,7 +13,7 @@ use crate::{
     ethereum::{mainnet::{
         rpc_methods as ethereum_rpc_methods, 
         nodes as ethereum_nodes
-    }, utils::decode_logs::decode_logs as decode_logs_eth},
+    }, utils::decode_logs::evm_logs_decoder as decode_logs_eth},
     types::{
         chain::{
             ChainDetails, ChainMethods, ChainNodes, Engine, Info, NativeCurrency, SupportedMethods, ConnectionType, SubscribeBlocks, IndexBlocks, IndexLogs, IndexFullBlocks, ChainDB, DecodeLogs,
@@ -351,11 +351,11 @@ impl DecodeLogs for SupportedChains {
                 // TODO: Add chain as parameter
                 let chain = "ethereum".to_string();
 
-                let response = abi_discovery_client.get_addresses_abi_json(unique_addresses).await;
+                let response = abi_discovery_client.get_contracts_info_handler(chain, unique_addresses).await;
 
                 let abis = response.into_inner();
                 // todo complete abi decoding
-                // let decoded = decode_logs_eth(logs_by_address, abis).await.unwrap();
+                let decoded = decode_logs_eth(logs_by_address, abis.contracts_info).unwrap();
 
                 Ok((vec![], vec![]))
             }
