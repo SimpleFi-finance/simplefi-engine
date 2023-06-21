@@ -69,6 +69,8 @@ async fn main() {
                         
                         // todo add decoding
 
+                        
+
                         let(_,_,_) = tokio::join!(
                             save_to_db::<Block>(mongo_blocks, &mongo_db, chain.resolve_collection_name(&SupportedDataTypes::Blocks, &SupportedDataLevels::Bronze)),
                             save_to_db::<Log>(mongo_logs, &mongo_db, chain.resolve_collection_name(&SupportedDataTypes::Logs, &SupportedDataLevels::Bronze)),
