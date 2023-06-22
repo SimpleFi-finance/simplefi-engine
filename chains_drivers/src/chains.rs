@@ -2,7 +2,6 @@ use std::{fmt, collections::HashMap};
 use grpc_server::client::AbiDiscoveryClient;
 use log::info;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
-use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
 use settings::load_settings;
 use shared_types::data_lake::{SupportedDataTypes, SupportedDataLevels};
@@ -20,7 +19,7 @@ use crate::{
         },
         evm::{
             chain_log::Log, generic::GenericNodeResponse, block::Block, transaction::Tx, new_heads::NewHeadsEvent
-        }, base::{RawToValue, EntityBlockNumber, EntityContractAddress}
+        }, base::RawToValue
     }
 };
 
