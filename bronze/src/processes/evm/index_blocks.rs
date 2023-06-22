@@ -1,7 +1,5 @@
-use std::{thread, time::Duration};
-
-use bronze::mongo::evm::data_sets::{blocks::Block, txs::Tx, logs::Log};
-use chains_drivers::{chains::get_chain, types::chain::{IndexFullBlocks, Info, ChainDB}};
+use bronze::mongo::{evm::data_sets::{blocks::Block, txs::Tx, logs::Log}, common::types::decoding_errors::DecodingError};
+use chains_drivers::{chains::get_chain, types::chain::{IndexFullBlocks, Info, ChainDB, DecodeLogs}};
 use settings::load_settings;
 use shared_types::data_lake::{SupportedDataTypes, SupportedDataLevels};
 use third_parties::{redis::connect_client, mongo::{lib::bronze::setters::save_to_db, Mongo}};
@@ -25,6 +23,7 @@ async fn main() {
 
             let mut redis_conn = redis_cli.get_connection().unwrap();
             let mut redis_async_conn = redis_cli.get_async_connection().await.unwrap();
+            
             let mut pubsub = redis_conn.as_pubsub();
             pubsub.subscribe(&queue_name).unwrap();
 
@@ -33,56 +32,52 @@ async fn main() {
             let mongo_db = Mongo::new(&db).await.unwrap();
 
             loop {
-                let mut len: isize = redis_async_conn.llen(&queue_name).await.unwrap();
-                while len > 0 {
-                    let data: Vec<isize> = redis_async_conn.lpop(&queue_name, None).await.unwrap();
-                    if data.len() > 0 {
-                        len = redis_async_conn.llen(&queue_name).await.unwrap();
+                loop {
+                    let data: Vec<isize> = redis_async_conn.lpop(&queue_name, None).await.unwrap_or_default();
 
-                        let data = chain
-                            .index_full_blocks(
-                                true, 
-                                data[0] as u64, 
-                                None)
-                            .await
-                            .unwrap();
+                    if data.len() == 0 { break }
 
-                        // todo save to mongo
-                        let blocks = data.0;
-                        let transactions = data.1;
-                        let logs = data.2;
-                        
-                        let mongo_blocks = blocks.into_iter().map(|block| {
-                            let block : Block = serde_json::from_value(block).unwrap();
-                            block
-                        }).collect::<Vec<Block>>();
-                        
-                        let mongo_txs = transactions.into_iter().map(|tx| {
-                            let tx : Tx = serde_json::from_value(tx).unwrap();
-                            tx
-                        }).collect::<Vec<Tx>>();
+                    let data = chain
+                        .index_full_blocks(
+                            true, 
+                            data[0] as u64, 
+                            None)
+                        .await
+                        .unwrap();
 
-                        let mongo_logs = logs.into_iter().map(|log| {
-                            let log : Log= serde_json::from_value(log).unwrap();
-                            log
-                        }).collect::<Vec<Log>>();
-                        
-                        // todo add decoding
+                    let blocks = data.0;
+                    let transactions = data.1;
+                    let logs = data.2;
+                    
+                    let mongo_blocks = blocks.into_iter().map(|block| {
+                        let block : Block = serde_json::from_value(block).unwrap();
+                        block
+                    }).collect::<Vec<Block>>();
+                    
+                    let mongo_txs = transactions.into_iter().map(|tx| {
+                        let tx : Tx = serde_json::from_value(tx).unwrap();
+                        tx
+                    }).collect::<Vec<Tx>>();
 
-                        
+                    let decoded = chain.decode_logs(logs).await.unwrap();
 
-                        let(_,_,_) = tokio::join!(
-                            save_to_db::<Block>(mongo_blocks, &mongo_db, chain.resolve_collection_name(&SupportedDataTypes::Blocks, &SupportedDataLevels::Bronze)),
-                            save_to_db::<Log>(mongo_logs, &mongo_db, chain.resolve_collection_name(&SupportedDataTypes::Logs, &SupportedDataLevels::Bronze)),
-                            save_to_db::<Tx>(mongo_txs, &mongo_db, chain.resolve_collection_name(&SupportedDataTypes::Transactions, &SupportedDataLevels::Bronze)),
-                        );
+                    let mongo_logs = decoded.0.into_iter().map(|log| {
+                        let log : Log= serde_json::from_value(log).unwrap();
+                        log
+                    }).collect::<Vec<Log>>();
 
-                        thread::sleep(Duration::from_millis(300));
-                    } else {
-                        len = 0;
-                    }
+                    let decoding_errors = decoded.1.into_iter().map(|error| {
+                        let error : DecodingError = serde_json::from_value(error).unwrap();
+                        error
+                    }).collect::<Vec<DecodingError>>();
+
+                    let(_,_,_,_) = tokio::join!(
+                        save_to_db::<Block>(mongo_blocks, &mongo_db, chain.resolve_collection_name(&SupportedDataTypes::Blocks, &SupportedDataLevels::Bronze)),
+                        save_to_db::<Log>(mongo_logs, &mongo_db, chain.resolve_collection_name(&SupportedDataTypes::Logs, &SupportedDataLevels::Bronze)),
+                        save_to_db::<Tx>(mongo_txs, &mongo_db, chain.resolve_collection_name(&SupportedDataTypes::Transactions, &SupportedDataLevels::Bronze)),
+                        save_to_db(decoding_errors, &mongo_db, chain.resolve_collection_name(&SupportedDataTypes::DecodingError, &SupportedDataLevels::Bronze))
+                    );
                 }
-                // receives values back, convert to mongodb documents, insert into mongodb
             }
         },
         _ => panic!("Chain not implemented to index blocks"),

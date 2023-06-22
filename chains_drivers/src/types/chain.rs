@@ -7,8 +7,6 @@ use std::io::Result;
 use std::{collections::HashMap, fmt};
 use third_parties::mongo::MongoConfig;
 
-use super::base::{EntityBlockNumber, EntityContractAddress};
-
 #[derive(Debug, Eq, PartialEq, Clone, Copy, Hash)]
 pub enum ConnectionType {
     RPC,
@@ -136,9 +134,7 @@ pub trait IndexLogs {
 
 #[async_trait::async_trait]
 pub trait DecodeLogs {
-    async fn decode_logs<
-        T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default + Clone + EntityBlockNumber + EntityContractAddress,
-    >(
+    async fn decode_logs(
         &self,
         logs: Vec<Value>,
     ) -> Result<(Vec<Value>, Vec<Value>)>;

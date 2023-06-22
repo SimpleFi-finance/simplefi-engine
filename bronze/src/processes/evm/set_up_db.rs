@@ -16,7 +16,7 @@ use third_parties::mongo::Mongo;
 
 #[tokio::main]
 async fn main() {
-    let chain_id = "1"; //todo switch to env
+    let chain_id = "1"; //TODO: switch to env
     let data_level = SupportedDataLevels::from_str("bronze").unwrap(); 
     
     match chain_id {

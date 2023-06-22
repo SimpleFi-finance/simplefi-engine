@@ -292,7 +292,7 @@ impl WriteDFToFile for BlockSeries {
         col_writer.close().unwrap();
 
         // let mut col_writer = row_group_writer.next_column().unwrap().unwrap();
-        // // todo check
+        // // TODO: check
         // col_writer.close().unwrap();
 
         let mut col_writer = row_group_writer.next_column().unwrap().unwrap();

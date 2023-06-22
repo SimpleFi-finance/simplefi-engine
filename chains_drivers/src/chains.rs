@@ -2,7 +2,6 @@ use std::{fmt, collections::HashMap};
 use grpc_server::client::AbiDiscoveryClient;
 use log::info;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
-use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
 use settings::load_settings;
 use shared_types::data_lake::{SupportedDataTypes, SupportedDataLevels};
@@ -20,7 +19,7 @@ use crate::{
         },
         evm::{
             chain_log::Log, generic::GenericNodeResponse, block::Block, transaction::Tx, new_heads::NewHeadsEvent
-        }, base::{RawToValue, EntityBlockNumber, EntityContractAddress}
+        }, base::RawToValue
     }
 };
 
@@ -146,7 +145,7 @@ impl IndexLogs for SupportedChains {
         to_block_number: Option<u64>,
     ) -> std::io::Result<Vec<T>> {
         let client = reqwest::Client::new();
-        // todo add filters
+        // TODO: add filters
         match self {
             SupportedChains::EthereumMainnet => {
                 let node = self.get_node("infura", &ConnectionType::RPC).unwrap();
@@ -162,7 +161,7 @@ impl IndexLogs for SupportedChains {
                         .replace("__insert_from_block_number__", &format!("0x{:x}", bn))
                         .replace("__insert_to_block_number__", &format!("0x{:x}", bn));
 
-                    // todo handle errors
+                    // TODO: handle errors
                     let request = client.post(node.clone()).body(get_logs).send().await.unwrap();
                     let data = request.text().await.unwrap();
 
@@ -194,7 +193,7 @@ impl SubscribeBlocks for SupportedChains {
                     }
                 };
 
-                // todo load provider name from config
+                // TODO: load provider name from config
 
                 let rpc_node = self.get_node("infura", &ConnectionType::WSS);
 
@@ -311,9 +310,7 @@ impl IndexFullBlocks for SupportedChains {
 // decode logs
 #[async_trait::async_trait]
 impl DecodeLogs for SupportedChains {
-    async fn decode_logs<
-        T: DeserializeOwned + Unpin + Sync + Send + Serialize + 'static + std::default::Default + Clone + EntityBlockNumber + EntityContractAddress,
-    >(
+    async fn decode_logs(
         &self,
         logs: Vec<Value>,
     ) -> std::io::Result<(Vec<Value>, Vec<Value>)> {
@@ -349,15 +346,15 @@ impl DecodeLogs for SupportedChains {
                     AbiDiscoveryClient::new("http://[::1]:50051".to_string()).await;
 
                 // TODO: Add chain as parameter
+                // let chain = self.info().symbol.to_lowercase();
                 let chain = "ethereum".to_string();
 
                 let response = abi_discovery_client.get_contracts_info_handler(chain, unique_addresses).await;
 
                 let abis = response.into_inner();
-                // todo complete abi decoding
                 let decoded = decode_logs_eth(logs_by_address, abis.contracts_info).unwrap();
 
-                Ok((vec![], vec![]))
+                Ok(decoded)
             }
         }
     }
