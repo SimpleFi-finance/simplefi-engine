@@ -207,7 +207,7 @@ impl SubscribeLogs for EvmChain {
                     match data {
                         Some(data) => {
                             if data.block_number() > last_bn {
-                                // todo add recursive reading of previous blocks (check keys)
+                                // TODO: add recursive reading of previous blocks (check keys)
                                 let prev_block_data = logs_hm.get(&last_bn);
                                 match prev_block_data {
                                     Some(prev_block_data) => {
@@ -434,3 +434,4 @@ impl GetLogs for EvmChain {
         })
     }
 }
+

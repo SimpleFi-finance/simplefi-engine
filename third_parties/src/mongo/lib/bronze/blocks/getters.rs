@@ -15,7 +15,7 @@ pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + U
     blocknumber_to: Option<i64>,
 ) -> Result<Vec<T>, Box<dyn std::error::Error>> {
     let global_settings = load_settings().unwrap();
-    // todo implement pagination
+    // TODO: implement pagination
 
     let mut blocks = Vec::new();
 
@@ -100,7 +100,7 @@ pub async fn get_block<T: serde::Serialize + DeserializeOwned + Sync + Send + Un
 ) -> Result<Option<T>, Box<dyn std::error::Error>> {
     
     let global_settings = load_settings().unwrap();
-    // todo implement filter logic
+    // TODO: implement filter logic
 
     if block_number.is_some() && timestamp.is_some() {
         panic!("Only one bteween block_number and timestamp can be set");
