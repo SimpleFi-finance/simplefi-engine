@@ -36,8 +36,8 @@ pub enum SupportedChains {
 impl std::fmt::Display for SupportedChains {
     fn fmt(
         &self,
-        f: &mut fmt::Formatter,
-    ) -> fmt::Result {
+        f: &mut std::fmt::Formatter,
+    ) -> std::fmt::Result {
         match self {
             SupportedChains::EthereumMainnet => write!(f, "ethereum_mainnet"),
         }
