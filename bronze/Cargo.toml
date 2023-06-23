@@ -12,8 +12,7 @@ parquet = {workspace = true}
 shared_types = { path = "../shared_types"}
 settings = { path = "../settings"}
 tokio = { workspace = true }
-chains_drivers = { path = "../chains_drivers"}
-third_parties = { path = "../third_parties"}
+shared_utils = { path = "../shared_utils"}
 redis ={workspace = true}
 
 [[bin]]

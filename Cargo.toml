@@ -6,11 +6,9 @@ members = [
     "settings",
     "shared_types",
     "shared_utils",
-    "third_parties",
-    "chains_drivers",
     "gold",
     "silver",
-    "bronze"
+    "bronze",
 ]
 
 [workspace.dependencies]

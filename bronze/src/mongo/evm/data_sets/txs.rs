@@ -1,4 +1,4 @@
-use chains_drivers::types::base::{EntityBlockNumber, EntityTimestamp, EntityContractAddress};
+use shared_types::chains::common::{EntityBlockNumber, EntityTimestamp, EntityContractAddress};
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug,PartialEq, Clone, Serialize, Deserialize, Default)]

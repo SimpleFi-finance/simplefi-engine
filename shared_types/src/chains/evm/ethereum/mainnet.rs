@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use serde_json::Value;
 use settings::load_settings;
 
-use crate::types::chain::{SupportedMethods, ConnectionType};
+use crate::chains::common::chain::{SupportedMethods, ConnectionType};
 
 pub fn rpc_methods() -> HashMap<SupportedMethods, Value> {
 

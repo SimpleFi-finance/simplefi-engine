@@ -1,11 +1,11 @@
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
-use shared_types::data_lake::{SupportedDataTypes, SupportedDataLevels};
+use crate::data_lake::{SupportedDataTypes, SupportedDataLevels};
+use crate::mongo::MongoConfig;
 use std::clone::Clone;
 use std::fmt::Debug;
 use std::io::Result;
 use std::{collections::HashMap, fmt};
-use third_parties::mongo::MongoConfig;
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy, Hash)]
 pub enum ConnectionType {
@@ -76,21 +76,11 @@ pub struct ChainDetails {
 
 pub trait Info {
     fn info(&self) -> ChainDetails;
-}
-
-pub trait ChainNodes {
     fn get_node(&self, provider: &str, connection: &ConnectionType) -> Option<String>;
-}
-
-pub trait ChainMethods {
     fn get_method(&self, method: &SupportedMethods) -> Option<Value>;
-}
-
-pub trait ChainDB {
     fn get_db(&self) -> MongoConfig;
     fn resolve_collection_name(&self, collection_type: &SupportedDataTypes, collection_level: &SupportedDataLevels) -> String;
 }
-
 // subscribe to selected node, listens to new heads and pushes to redis stream
 #[async_trait::async_trait]
 pub trait SubscribeBlocks {

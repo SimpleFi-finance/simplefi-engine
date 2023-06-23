@@ -12,10 +12,11 @@ use abi_discovery::{
     mongo::{types::{AbiCollection, ContractAbiCollection, ImplementationContractAbiCollection}, setters::{insert_contract, insert_abi}}
 };
 use shared_utils::logger::init_logging;
-use third_parties::{
-    mongo::{ MongoConfig, Mongo },
+use shared_utils::{
     redis::{connect, has_items_in_queue}
 };
+
+use shared_types::mongo::{ MongoConfig, Mongo };
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
