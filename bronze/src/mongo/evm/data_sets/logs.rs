@@ -1,4 +1,4 @@
-use chains_drivers::types::base::{EntityBlockNumber, EntityTimestamp, EntityContractAddress};
+use shared_types::chains::common::{EntityBlockNumber, EntityTimestamp, EntityContractAddress};
 use serde::{Serialize, Deserialize};
 use crate::data_lake::evm::data_sets::logs::LogsSeries;
 

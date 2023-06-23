@@ -13,7 +13,6 @@ serde_json = { workspace = true }
 settings = { path = "../settings" }
 shared_types = { path = "../shared_types" }
 shared_utils = { path = "../shared_utils" }
-third_parties = { path = "../third_parties" }
 tokio = { workspace = true, features = ["full"] }
 tonic = { workspace = true }
 

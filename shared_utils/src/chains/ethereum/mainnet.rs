@@ -2,8 +2,8 @@ use std::{error::Error, collections::HashMap};
 use log::info;
 use serde_json::{json, Value};
 use std::str::FromStr;
-use rayon::{iter::ParallelIterator};
-use rayon::prelude::{IntoParallelRefIterator};
+use rayon::iter::ParallelIterator;
+use rayon::prelude::IntoParallelRefIterator;
 use ethabi::ethereum_types::H256;
 use ethabi::{RawLog, Contract, Token};
 
@@ -65,6 +65,7 @@ pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Value>>, abis: Vec<
 
             eventhm.insert(e.signature(), e);
         }
+        
         a.address.clone()
     })
     .collect::<Vec<String>>();

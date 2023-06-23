@@ -1,8 +1,12 @@
 use bronze::mongo::{evm::data_sets::{blocks::Block, txs::Tx, logs::Log}, common::types::decoding_errors::DecodingError};
-use chains_drivers::{chains::get_chain, types::chain::{IndexFullBlocks, Info, ChainDB, DecodeLogs}};
+use shared_types::{chains::get_chain};
 use settings::load_settings;
-use shared_types::data_lake::{SupportedDataTypes, SupportedDataLevels};
-use third_parties::{redis::connect_client, mongo::{lib::bronze::setters::save_to_db, Mongo}};
+use shared_types::{
+    data_lake::{SupportedDataTypes, SupportedDataLevels},
+    mongo::Mongo
+};
+use shared_utils::{redis::connect_client, mongo::{lib::bronze::setters::save_to_db}};
+
 use redis::{AsyncCommands};
 
 #[tokio::main]

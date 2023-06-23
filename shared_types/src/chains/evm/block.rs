@@ -2,7 +2,7 @@ use chrono::{Datelike, NaiveDateTime};
 use serde::{de::Error, Serialize, Deserialize, Deserializer};
 use serde_json::{Value, json};
 
-use crate::types::base::RawToValue;
+use crate::chains::common::RawToValue;
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Block<T> {

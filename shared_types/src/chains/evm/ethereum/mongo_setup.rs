@@ -2,7 +2,7 @@
 
 use mongodb::{options::IndexOptions, IndexModel, bson::doc};
 use serde::de::DeserializeOwned;
-use third_parties::mongo::Mongo;
+use crate::mongo::Mongo;
 
 pub async fn init_blocks_bronze<T: serde::Serialize + DeserializeOwned>(db: &Mongo, collection_name: &String) -> Result<(), Box<dyn std::error::Error>> {
     let blocks_db = db;

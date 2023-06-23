@@ -2,7 +2,17 @@ use chrono::{Datelike, NaiveDateTime};
 use serde::{de::Error, Serialize, Deserialize, Deserializer};
 use serde_json::{json, Value};
 
-use crate::types::base::{RawToValue, EntityBlockNumber, EntityContractAddress, DecodedData};
+use crate::chains::common::{RawToValue, EntityBlockNumber, EntityContractAddress};
+
+#[derive(Debug,PartialEq, Clone, Serialize, Deserialize, Default)]
+pub struct DecodedData {
+    pub name: String,
+    pub value: String,
+    pub kind: String,
+    pub indexed: bool,
+    pub hash_signature: String,
+    pub signature: String,
+}
 
 #[derive(Debug,Default, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Log {

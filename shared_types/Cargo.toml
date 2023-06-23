@@ -13,3 +13,12 @@ serde = { workspace = true, features = ["derive"] }
 settings = { path="../settings" }
 serde_json = { workspace = true }
 parquet = { workspace = true }
+chrono = { workspace = true }
+async-trait = { workspace = true }
+shared_utils = { path="../shared_utils" }
+log = { workspace = true }
+rayon = { workspace = true }
+tungstenite = { workspace = true }
+ethabi = { workspace = true } 
+tokio = { workspace = true }
+reqwest = { workspace = true }

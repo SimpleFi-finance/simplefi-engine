@@ -1,10 +1,10 @@
 use std::str::FromStr;
 
 use bronze::mongo::{evm::data_sets::{blocks::Block, logs::Log, txs::Tx}, common::types::decoding_errors::DecodingError};
-use chains_drivers::{
+use shared_types::{
     chains::{SupportedChains, get_chain}, 
-    types::chain::{ChainDB}, 
-    ethereum::mongo_setup::{
+    chains::common::chain::{ChainDB}, 
+    chains::ethereum::mongo_setup::{
         init_logs_bronze, 
         init_txs_bronze, 
         init_blocks_bronze,

@@ -4,7 +4,7 @@ use reqwest::{Error, StatusCode, header::{HeaderMap, CONTENT_TYPE, HeaderValue}}
 use serde::Deserialize;
 use std::collections::HashMap;
 
-use third_parties::http::fetch;
+use shared_utils::http::fetch;
 
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]

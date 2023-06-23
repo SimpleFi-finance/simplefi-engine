@@ -5,10 +5,10 @@ use tokio;
 use abi_discovery::{helpers::contracts::copy_contracts_to_redis_set, mongo::types::ContractAbiCollection};
 use settings::load_settings;
 use shared_utils::logger::init_logging;
-use third_parties::{
-    mongo::{ MongoConfig, Mongo },
+use shared_utils::{
     redis::connect,
 };
+use shared_types::mongo::{ MongoConfig, Mongo };
 
 
 #[tokio::main]
