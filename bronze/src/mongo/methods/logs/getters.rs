@@ -5,8 +5,7 @@ use mongodb::{
 };
 use serde::de::DeserializeOwned;
 use settings::load_settings;
-
-use crate::mongo::Mongo;
+use shared_types::mongo::Mongo;
 
 pub async fn get_logs<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(
     db: &Mongo,

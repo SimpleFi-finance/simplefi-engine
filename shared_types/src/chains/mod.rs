@@ -2,22 +2,14 @@ pub mod common;
 pub mod evm;
 
 use std::{collections::HashMap, fmt};
-// use grpc_server::client::AbiDiscoveryClient;
 use log::info;
 use rayon::{iter::ParallelIterator, prelude::IntoParallelRefIterator};
 use settings::load_settings;
-// use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use serde_json::Value;
-// use settings::load_settings;
-// use crate::data_lake::{SupportedDataTypes, SupportedDataLevels};
-use shared_utils::redis::{connect as redis_connect, queue_message};
+use shared_utils::{redis::{connect as redis_connect, queue_message}};
 use tungstenite::connect;
 
 use crate::{
-    // chains::ethereum::{mainnet::{
-    //     rpc_methods as ethereum_rpc_methods,
-    //     nodes as ethereum_nodes
-    // }, utils::decode_logs::evm_logs_decoder as decode_logs_eth},
     chains::common::{
         chain::{
             ChainDetails, ConnectionType, DecodeLogs, Engine, IndexBlocks, IndexFullBlocks,
@@ -35,7 +27,7 @@ use crate::{
 
 use self::{
     common::chain::Info,
-    evm::ethereum::mainnet::{nodes as mainnet_nodes, rpc_methods as mainnet_rpc_methods},
+    evm::ethereum::{mainnet::{nodes as mainnet_nodes, rpc_methods as mainnet_rpc_methods}},
 };
 
 pub enum SupportedChains {
@@ -410,7 +402,7 @@ impl IndexFullBlocks for SupportedChains {
 //                 let response = abi_discovery_client.get_contracts_info_handler(chain, unique_addresses).await;
 
 //                 let abis = response.into_inner();
-//                 let decoded = decode(logs_by_address, abis.contracts_info).unwrap();
+//                 let decoded = evm_logs_decoder(logs_by_address, abis.contracts_info).unwrap();
 
 //                 Ok(decoded)
 //             }

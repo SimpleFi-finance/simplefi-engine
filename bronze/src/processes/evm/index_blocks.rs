@@ -1,13 +1,21 @@
-use bronze::mongo::{
+use std::collections::HashMap;
+
+use bronze::{mongo::{
     common::types::decoding_errors::DecodingError,
     evm::data_sets::{blocks::Block, logs::Log, txs::Tx},
     methods::setters::save_to_db,
-};
+}, processes::evm::utils::decoding::evm_logs_decoder};
+use grpc_server::client::AbiDiscoveryClient;
+use rayon::{prelude::{IntoParallelRefIterator, IntoParallelIterator}, iter::ParallelIterator};
 use settings::load_settings;
 use shared_types::chains::get_chain;
 use shared_types::{
     data_lake::{SupportedDataLevels, SupportedDataTypes},
     mongo::Mongo,
+    chains::common::chain::{
+        IndexFullBlocks,
+        Info,
+    },
 };
 use shared_utils::redis::connect_client;
 
@@ -60,7 +68,7 @@ async fn main() {
                     let logs = data.2;
 
                     let mongo_blocks = blocks
-                        .into_iter()
+                        .into_par_iter()
                         .map(|block| {
                             let block: Block = serde_json::from_value(block).unwrap();
                             block
@@ -68,14 +76,49 @@ async fn main() {
                         .collect::<Vec<Block>>();
 
                     let mongo_txs = transactions
-                        .into_iter()
+                        .into_par_iter()
                         .map(|tx| {
                             let tx: Tx = serde_json::from_value(tx).unwrap();
                             tx
                         })
                         .collect::<Vec<Tx>>();
 
-                    let decoded = chain.decode_logs(logs).await.unwrap();
+                    let logs_by_address = logs
+                        .par_iter()
+                        .fold(
+                            || HashMap::new(),
+                            |mut acc, log| {
+                                // let log: Log = serde_json::from_value(*log).unwrap();
+    
+                                acc.entry(log["address"].clone().to_string())
+                                    .or_insert(vec![])
+                                    .push(log.clone());
+    
+                                acc
+                            },
+                        )
+                        .reduce(
+                            || HashMap::new(),
+                            |mut acc, hm| {
+                                for (key, value) in hm {
+                                    acc.entry(key).or_insert(vec![]).extend(value);
+                                }
+                                acc
+                            },
+                        );
+    
+                    let unique_addresses: Vec<String> = logs_by_address.keys().cloned().collect();
+    
+                    let mut abi_discovery_client =
+                        AbiDiscoveryClient::new("http://[::1]:50051".to_string()).await;
+    
+                    // TODO: Add chain as parameter
+                    let chain_name = "ethereum".to_string();
+    
+                    let response = abi_discovery_client.get_contracts_info_handler(chain_name, unique_addresses).await;
+    
+                    let abis = response.into_inner();
+                    let decoded = evm_logs_decoder(logs_by_address, abis.contracts_info).unwrap();
 
                     let mongo_logs = decoded
                         .0

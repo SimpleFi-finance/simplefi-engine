@@ -20,7 +20,8 @@ reqwest = { workspace = true }
 redis = { workspace = true, features = ["tokio-comp", "connection-manager"] }
 tokio = { workspace = true}
 serde = { workspace = true }
-mockito = { workspace = true }
+hex = { workspace = true }
+# grpc_server = { path = "../grpc-server" }
 
 [features]
 with_tracing = ["tracing", "tracing-subscriber"]

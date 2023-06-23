@@ -1,6 +1,5 @@
 use serde::{Serialize, Deserialize};
-
-use crate::mongo::Mongo;
+use shared_types::mongo::Mongo;
 
 pub async fn save_to_db<R>(
     items: Vec<R>,
