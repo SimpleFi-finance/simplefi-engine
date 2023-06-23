@@ -1,7 +1,6 @@
 pub mod common;
 pub mod evm;
 
-use std::{collections::HashMap, fmt};
 use log::info;
 use rayon::{iter::ParallelIterator, prelude::IntoParallelRefIterator};
 use settings::load_settings;

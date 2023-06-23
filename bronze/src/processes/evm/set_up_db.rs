@@ -1,5 +1,4 @@
 use std::str::FromStr;
-
 use bronze::mongo::{
     common::types::decoding_errors::DecodingError,
     evm::data_sets::{blocks::Block, logs::Log, txs::Tx},
