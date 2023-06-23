@@ -1,4 +1,3 @@
-use crate::mongo::{Mongo};
 use mongodb::{bson::doc, options::{FindOptions, FindOneOptions}};
 use serde::de::DeserializeOwned;
 use settings::load_settings;
@@ -6,7 +5,7 @@ use log::debug;
 
 use futures::stream::TryStreamExt;
 use chrono::Utc;
-
+use shared_types::mongo::Mongo;
 pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(
     db: &Mongo,
     timestamp_from: Option<i64>,

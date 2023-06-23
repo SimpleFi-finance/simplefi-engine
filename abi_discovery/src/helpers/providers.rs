@@ -4,7 +4,7 @@ use redis::AsyncCommands;
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 
-use third_parties::redis::check_set_exists;
+use shared_utils::redis::check_set_exists;
 use shared_types::abi_discovery::AbiDiscoveryError;
 
 pub struct RateLimit {
