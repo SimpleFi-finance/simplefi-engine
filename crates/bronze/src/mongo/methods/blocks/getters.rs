@@ -1,11 +1,14 @@
 use chains_types::SupportedChains;
-use mongodb::{bson::doc, options::{FindOptions, FindOneOptions}};
-use serde::de::DeserializeOwned;
 use log::debug;
+use mongodb::{
+    bson::doc,
+    options::{FindOneOptions, FindOptions},
+};
+use serde::de::DeserializeOwned;
 
 use chains_types::common::chain::Info;
-use futures::stream::TryStreamExt;
 use chrono::Utc;
+use futures::stream::TryStreamExt;
 use mongo_types::Mongo;
 
 pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(
@@ -26,13 +29,16 @@ pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + U
 
     let find_options = FindOptions::builder()
         .sort(doc! { "timestamp": -1 })
-        .projection(doc!{"_id": 0})
+        .projection(doc! {"_id": 0})
         .build();
 
-    let collection_name = chain.resolve_collection_name(&data_lake_types::SupportedDataTypes::Blocks, &data_lake_types::SupportedDataLevels::Bronze);
+    let collection_name = chain.resolve_collection_name(
+        &data_lake_types::SupportedDataTypes::Blocks,
+        &data_lake_types::SupportedDataLevels::Bronze,
+    );
 
     let blocks_collection = db.collection::<T>(&collection_name);
-    
+
     if timestamp_from.is_some() {
         let ts_now = Utc::now().timestamp_micros();
 
@@ -43,7 +49,6 @@ pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + U
             },
         };
 
-
         let mut cursor = blocks_collection.find(doc, find_options.clone()).await?;
 
         while let Some(block) = cursor.try_next().await? {
@@ -52,7 +57,6 @@ pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + U
     }
 
     if blocknumber_from.is_some() {
-        
         let filter = if blocknumber_to.is_some() {
             doc! {
                 "number": {
@@ -76,13 +80,15 @@ pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + U
     }
 
     if blocknumber_from.is_none() && timestamp_from.is_none() {
-
         let find_options = FindOneOptions::builder()
             .sort(doc! { "timestamp": -1 })
-            .projection(doc!{"_id": 0})
+            .projection(doc! {"_id": 0})
             .build();
 
-        let block = blocks_collection.find_one(None, find_options.clone()).await.unwrap();
+        let block = blocks_collection
+            .find_one(None, find_options.clone())
+            .await
+            .unwrap();
         match block {
             Some(block) => {
                 blocks.push(block);
@@ -112,23 +118,28 @@ pub async fn get_block<T: serde::Serialize + DeserializeOwned + Sync + Send + Un
         panic!("One between block_number and timestamp must be set");
     }
 
-    let collection_name = chain.resolve_collection_name(&data_lake_types::SupportedDataTypes::Blocks, &data_lake_types::SupportedDataLevels::Bronze);
+    let collection_name = chain.resolve_collection_name(
+        &data_lake_types::SupportedDataTypes::Blocks,
+        &data_lake_types::SupportedDataLevels::Bronze,
+    );
 
     let blocks_collection = db.collection::<T>(&collection_name);
     let find_options = FindOneOptions::builder()
-        .sort(doc!{ "timestamp": 1 })
-        .projection(doc!{"_id": 0})
+        .sort(doc! { "timestamp": 1 })
+        .projection(doc! {"_id": 0})
         .build();
 
     if block_number.is_some() {
-
         let filter = doc! {
             "number": {
                 "$gte": block_number,
             }
         };
 
-        let block= blocks_collection.find_one(filter, find_options.clone()).await.unwrap();
+        let block = blocks_collection
+            .find_one(filter, find_options.clone())
+            .await
+            .unwrap();
         return Ok(block);
     }
 
@@ -138,6 +149,9 @@ pub async fn get_block<T: serde::Serialize + DeserializeOwned + Sync + Send + Un
         }
     };
 
-    let block = blocks_collection.find_one(filter, find_options.clone()).await.unwrap();
+    let block = blocks_collection
+        .find_one(filter, find_options.clone())
+        .await
+        .unwrap();
     return Ok(block);
 }
