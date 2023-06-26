@@ -1,7 +1,8 @@
 pub mod common;
 pub mod evm;
 
-use std::{collections::HashMap, hash::Hash, str::FromStr};
+use std::collections::HashMap;
+use std::str::FromStr;
 
 use common::chain::DecodeLogs;
 use grpc_server::client::AbiDiscoveryClient;
