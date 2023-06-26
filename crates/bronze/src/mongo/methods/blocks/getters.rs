@@ -1,19 +1,21 @@
+use chains_types::SupportedChains;
 use mongodb::{bson::doc, options::{FindOptions, FindOneOptions}};
 use serde::de::DeserializeOwned;
-use simplefi_engine_settings::load_settings;
 use log::debug;
 
+use chains_types::common::chain::Info;
 use futures::stream::TryStreamExt;
 use chrono::Utc;
 use mongo_types::Mongo;
+
 pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(
     db: &Mongo,
+    chain: SupportedChains,
     timestamp_from: Option<i64>,
     timestamp_to: Option<i64>,
     blocknumber_from: Option<i64>,
     blocknumber_to: Option<i64>,
 ) -> Result<Vec<T>, Box<dyn std::error::Error>> {
-    let global_settings = load_settings().unwrap();
     // TODO: implement pagination
 
     let mut blocks = Vec::new();
@@ -27,7 +29,9 @@ pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + U
         .projection(doc!{"_id": 0})
         .build();
 
-    let blocks_collection = db.collection::<T>(&global_settings.blocks_bronze_collection_name);
+    let collection_name = chain.resolve_collection_name(&data_lake_types::SupportedDataTypes::Blocks, &data_lake_types::SupportedDataLevels::Bronze);
+
+    let blocks_collection = db.collection::<T>(&collection_name);
     
     if timestamp_from.is_some() {
         let ts_now = Utc::now().timestamp_micros();
@@ -94,11 +98,10 @@ pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + U
 
 pub async fn get_block<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(
     db: &Mongo,
+    chain: SupportedChains,
     block_number: Option<i64>,
     timestamp: Option<i64>,
 ) -> Result<Option<T>, Box<dyn std::error::Error>> {
-    
-    let global_settings = load_settings().unwrap();
     // TODO: implement filter logic
 
     if block_number.is_some() && timestamp.is_some() {
@@ -109,7 +112,9 @@ pub async fn get_block<T: serde::Serialize + DeserializeOwned + Sync + Send + Un
         panic!("One between block_number and timestamp must be set");
     }
 
-    let blocks_collection = db.collection::<T>(&global_settings.blocks_bronze_collection_name);
+    let collection_name = chain.resolve_collection_name(&data_lake_types::SupportedDataTypes::Blocks, &data_lake_types::SupportedDataLevels::Bronze);
+
+    let blocks_collection = db.collection::<T>(&collection_name);
     let find_options = FindOneOptions::builder()
         .sort(doc!{ "timestamp": 1 })
         .projection(doc!{"_id": 0})

@@ -4,7 +4,7 @@ use data_lake_types::{SupportedDataTypes, SupportedDataLevels};
 use mongo_types::MongoConfig;
 use std::clone::Clone;
 use std::fmt::Debug;
-use std::io::Result;
+// use std::io::Result;
 use std::{collections::HashMap, fmt};
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy, Hash)]
@@ -21,6 +21,18 @@ impl fmt::Display for ConnectionType {
         match self {
             ConnectionType::RPC => write!(f, "rpc"),
             ConnectionType::WSS => write!(f, "wss"),
+        }
+    }
+}
+
+impl std::str::FromStr for ConnectionType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "rpc" => Ok(ConnectionType::RPC),
+            "wss" => Ok(ConnectionType::WSS),
+            _ => Err(()),
         }
     }
 }
@@ -60,6 +72,24 @@ pub enum SupportedMethods {
     SubscribeTransactions,
 }
 
+
+impl std::str::FromStr for SupportedMethods {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "getLogs" => Ok(SupportedMethods::GetLogs),
+            "getBlock" => Ok(SupportedMethods::GetBlock),
+            "getBlockWithTxs" => Ok(SupportedMethods::GetBlockWithTxs),
+            "subscribeLogs" => Ok(SupportedMethods::SubscribeLogs),
+            "subscribeBlocks" => Ok(SupportedMethods::SubscribeBlocks),
+            "subscribeNewHeads" => Ok(SupportedMethods::SubscribeNewHeads),
+            "subscribeTransactions" => Ok(SupportedMethods::SubscribeTransactions),
+            _ => Err(()),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct ChainDetails {
     pub chain_id: String,
@@ -89,7 +119,7 @@ pub trait SubscribeBlocks {
     (
         &self, 
         redis_uri: String
-    )-> Result<()>;
+    )-> std::io::Result<()>;
 }
 
 #[async_trait::async_trait]
@@ -99,7 +129,7 @@ pub trait IndexFullBlocks {
         confirmed: bool,
         from_block_number: u64,
         to_block_number: Option<u64>,
-    ) -> Result<(Vec<Value>, Vec<Value>, Vec<Value>)>;
+    ) -> std::io::Result<(Vec<Value>, Vec<Value>, Vec<Value>)>;
 }
 
 #[async_trait::async_trait]
@@ -109,7 +139,7 @@ pub trait IndexBlocks {
         with_txs: bool,
         from_block_number: u64,
         to_block_number: Option<u64>,
-    ) -> Result<Vec<T>>;
+    ) -> std::io::Result<Vec<T>>;
 }
 
 
@@ -119,7 +149,7 @@ pub trait IndexLogs {
         &self,
         from_block_number: u64,
         to_block_number: Option<u64>,
-    ) -> Result<Vec<T>>;
+    ) -> std::io::Result<Vec<T>>;
 }
 
 #[async_trait::async_trait]
@@ -127,5 +157,5 @@ pub trait DecodeLogs {
     async fn decode_logs(
         &self,
         logs: Vec<Value>,
-    ) -> Result<(Vec<Value>, Vec<Value>)>;
+    ) -> std::io::Result<(Vec<Value>, Vec<Value>)>;
 }

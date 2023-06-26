@@ -7,5 +7,3 @@ pub mod block;
 pub mod transaction;
 
 pub mod generic;
-
-pub mod ethereum;

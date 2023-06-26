@@ -1,12 +1,20 @@
 pub mod common;
 pub mod evm;
 
+use std::{collections::HashMap, hash::Hash, str::FromStr};
+
+use common::chain::DecodeLogs;
+use grpc_server::client::AbiDiscoveryClient;
 use log::info;
 use rayon::{iter::ParallelIterator, prelude::IntoParallelRefIterator};
 use simplefi_engine_settings::load_settings;
 use serde_json::Value;
 use simplefi_redis::{connect as redis_connect, queue_message};
 use tungstenite::connect;
+use simplefi_chains::ethereum::{mainnet::{
+    rpc_methods as mainnet_methods, 
+    nodes as mainnet_nodes,
+}, decoding::evm_logs_decoder};
 
 use crate::{
     common::{
@@ -26,7 +34,6 @@ use mongo_types::MongoConfig;
 
 use self::{
     common::chain::Info,
-    evm::ethereum::{mainnet::{nodes as mainnet_nodes, rpc_methods as mainnet_rpc_methods}},
 };
 
 pub enum SupportedChains {
@@ -50,26 +57,47 @@ impl Info for SupportedChains {
         let glob_settings = load_settings().unwrap();
 
         match self {
-            SupportedChains::EthereumMainnet => ChainDetails {
-                chain_id: "1".to_string(),
-                name: "Ethereum Mainnet".to_string(),
-                symbol: "ETH".to_string(),
-                confirmation_time: 13,
-                native_currency: vec![NativeCurrency {
-                    name: "Ether".to_string(),
+            SupportedChains::EthereumMainnet => {
+                let m_nodes = mainnet_nodes();
+                let keys = m_nodes.keys();
+                let mut nodes = HashMap::new();
+                for key in keys {
+                    let node = m_nodes.get(key).unwrap();
+                    nodes.insert((key.0.clone(), ConnectionType::from_str(&key.1).unwrap()), node.clone());
+                }
+                
+                let mut rpc_methods = HashMap::new();
+                let m_rpc_methods = mainnet_methods();
+
+                let keys = m_rpc_methods.keys();
+                for key in keys {
+                    let node = m_rpc_methods.get(key).unwrap();
+                    rpc_methods.insert(SupportedMethods::from_str(&key).unwrap(), node.clone());
+                }
+
+                println!("rpc methods {:?}", rpc_methods);
+
+                ChainDetails {
+                    chain_id: "1".to_string(),
+                    name: "Ethereum Mainnet".to_string(),
                     symbol: "ETH".to_string(),
-                    decimals: 18,
-                    address: "0x0000000000".to_string(),
-                }],
-                db: MongoConfig {
-                    uri: glob_settings.mongodb_uri,
-                    database: glob_settings.mongodb_database_name,
-                },
-                network: "mainnet".to_string(),
-                engine_type: Engine::EVM,
-                nodes: mainnet_nodes(),
-                rpc_methods: mainnet_rpc_methods(),
-            },
+                    confirmation_time: 13,
+                    native_currency: vec![NativeCurrency {
+                        name: "Ether".to_string(),
+                        symbol: "ETH".to_string(),
+                        decimals: 18,
+                        address: "0x0000000000".to_string(),
+                    }],
+                    db: MongoConfig {
+                        uri: glob_settings.mongodb_uri,
+                        database: glob_settings.mongodb_database_name,
+                    },
+                    network: "mainnet".to_string(),
+                    engine_type: Engine::EVM,
+                    nodes,
+                    rpc_methods,
+                }
+            }
         }
     }
 
@@ -349,10 +377,55 @@ impl IndexFullBlocks for SupportedChains {
                     final_txs.extend(txs);
                     final_logs.extend(logs_in_bn);
                 }
+                // potentially decode logs here
 
                 Ok((final_blocks, final_txs, final_logs))
             }
         }
+    }
+}
+
+#[async_trait::async_trait]
+impl DecodeLogs for SupportedChains {
+    async fn decode_logs(&self, logs:Vec<Value> ,) -> std::io::Result<(Vec<Value>, Vec<Value>)> {
+        let logs_by_address = logs
+            .par_iter()
+            .fold(
+                || HashMap::new(),
+                |mut acc, log| {
+                    // let log: Log = serde_json::from_value(*log).unwrap();
+
+                    acc.entry(log["address"].clone().to_string())
+                        .or_insert(vec![])
+                        .push(log.clone());
+
+                    acc
+                },
+            )
+            .reduce(
+                || HashMap::new(),
+                |mut acc, hm| {
+                    for (key, value) in hm {
+                        acc.entry(key).or_insert(vec![]).extend(value);
+                    }
+                    acc
+                },
+            );
+
+        let unique_addresses: Vec<String> = logs_by_address.keys().cloned().collect();
+
+        let mut abi_discovery_client =
+            AbiDiscoveryClient::new("http://[::1]:50051".to_string()).await;
+
+        // TODO: Add chain as parameter
+        let chain_name = "ethereum".to_string();
+
+        let response = abi_discovery_client.get_contracts_info_handler(chain_name, unique_addresses).await;
+
+        let abis = response.into_inner();
+        let decoded = evm_logs_decoder(logs_by_address, abis.contracts_info).unwrap();
+
+        Ok(decoded)
     }
 }
 

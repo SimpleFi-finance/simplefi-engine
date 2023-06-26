@@ -1,16 +1,16 @@
-use std::str::FromStr;
 use bronze::mongo::{
     common::types::decoding_errors::DecodingError,
     evm::data_sets::{blocks::Block, logs::Log, txs::Tx},
 };
-use chains_types::{
-        common::chain::Info,
-        evm::ethereum::mongo_setup::{
-            init_blocks_bronze, init_decoding_error_bronze, init_logs_bronze, init_txs_bronze,
-        },
-        get_chain, 
-        SupportedChains
-    };
+use simplefi_chains::ethereum::mongo_setup::{
+    init_blocks_bronze, 
+    init_decoding_error_bronze, 
+    init_logs_bronze, 
+    init_txs_bronze,
+};
+use std::str::FromStr;
+
+use chains_types::{common::chain::Info, get_chain, SupportedChains};
 use data_lake_types::{SupportedDataLevels, SupportedDataTypes};
 use mongo_types::Mongo;
 
