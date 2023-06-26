@@ -2,25 +2,25 @@
 
 members = [
     # services
-    "abi_discovery",
-    "grpc_server",
+    "crates/abi_discovery",
+    "crates/grpc_server",
     # pipelines
-    "gold",
-    "silver",
-    "bronze",
+    "crates/gold",
+    "crates/silver",
+    "crates/bronze",
     # utils
-    "utils/http",
-    "utils/logger",
-    "utils/redis",
-    "utils/chains",
-    "utils/settings",
+    "crates/utils/http",
+    "crates/utils/logger",
+    "crates/utils/redis",
+    "crates/utils/chains",
+    "crates/utils/settings",
     # types
-    "types/abi_discovery",
-    "types/chains",
-    "types/data_lake",
-    "types/mongo",
-    "types/redis",
-    "types/providers"
+    "crates/types/abi_discovery",
+    "crates/types/chains",
+    "crates/types/data_lake",
+    "crates/types/mongo",
+    "crates/types/redis",
+    "crates/types/providers"
 ]
 
 [workspace.package]
