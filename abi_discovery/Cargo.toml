@@ -20,13 +20,17 @@ reqwest =       { workspace = true }
 ring =          { workspace = true }
 serde =         { workspace = true, default_features = false, features = ["derive"] }
 serde_json =    { workspace = true }
-settings =      { path = "../settings" }
+tokio =         { workspace = true, features = ["full"] }
+
+# shared types
 mongo_types =  { path = "../types/mongo" }
 abi_discovery_types = { path = "../types/abi_discovery" }
+
+#shared utils
+simplefi_engine_settings = { path = "../utils/settings" }
 simplefi-logger =  { path = "../utils/logger" }
 simplefi-redis =  { path = "../utils/redis" }
 simplefi-http =  { path = "../utils/http" }
-tokio =         { workspace = true, features = ["full"] }
 
 [[bin]]
 name = "abi_ethereum_queue_consumers"

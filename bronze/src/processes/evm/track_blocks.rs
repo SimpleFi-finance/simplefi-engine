@@ -1,5 +1,5 @@
 use chains_types::{SupportedChains, common::chain::SubscribeBlocks};
-use settings::load_settings;
+use simplefi_engine_settings::load_settings;
 
 #[tokio::main]
 async fn main() {

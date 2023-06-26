@@ -11,16 +11,20 @@ repository.workspace = true
 [dependencies]
 log = { workspace = true }
 rayon = { workspace = true }
-settings = { path = "../../settings"}
 serde_json = { workspace = true }
-simplefi-redis = { path = "../../utils/redis" }
 tungstenite = { workspace = true }
 serde = { workspace = true}
-data_lake_types = { path = "../../types/data_lake"}
-mongo_types = { path = "../../types/mongo"}
-
 async-trait = { workspace = true }
 mongodb = { workspace = true }
 chrono = { workspace = true }
 reqwest={workspace=true}
 tokio = { workspace = true }
+
+settings = { path = "../../settings"}
+
+# shared types
+data_lake_types = { path = "../../types/data_lake"}
+mongo_types = { path = "../../types/mongo"}
+
+# shared utils
+simplefi-redis = { path = "../../utils/redis" }

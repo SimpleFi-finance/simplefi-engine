@@ -1,5 +1,5 @@
 use clap::Parser;
-use settings::{Settings, MySettings, store_settings};
+use simplefi_engine_settings::{MySettings, Settings, store_settings};
 
 fn main() {
     println!("**** Running Settings Generator ****");

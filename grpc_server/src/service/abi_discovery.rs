@@ -1,5 +1,5 @@
 use log::{debug, info};
-use settings::load_settings;
+use simplefi_engine_settings::load_settings;
 use std::collections::HashMap;
 use tonic::{Request, Response, Status};
 

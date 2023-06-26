@@ -7,7 +7,7 @@ use bronze::{mongo::{
 }, processes::evm::utils::decoding::evm_logs_decoder};
 use grpc_server::client::AbiDiscoveryClient;
 use rayon::{prelude::{IntoParallelRefIterator, IntoParallelIterator}, iter::ParallelIterator};
-use settings::load_settings;
+use simplefi_engine_settings::load_settings;
 use chains_types::get_chain;
 use data_lake_types::{SupportedDataLevels, SupportedDataTypes};
 use mongo_types::Mongo;

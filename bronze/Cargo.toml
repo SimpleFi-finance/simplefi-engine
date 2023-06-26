@@ -9,12 +9,8 @@ edition = "2021"
 serde_json = { workspace = true }
 serde = { workspace = true}
 parquet = {workspace = true}
-data_lake_types = { path = "../types/data_lake"}
-settings = { path = "../settings"}
 tokio = { workspace = true }
-simplefi-redis = { path = "../utils/redis"}
 redis ={workspace = true}
-grpc_server ={ path = "../grpc_server"}
 rayon = {workspace = true}
 ethabi = {workspace = true}
 log = {workspace = true}
@@ -22,8 +18,18 @@ hex = {workspace = true}
 mongodb = {workspace = true}
 futures = {workspace = true}
 chrono = {workspace = true}
+
+
+simplefi_engine_settings = { path = "../utils/settings"}
+grpc_server ={ path = "../grpc_server"}
+
+# shared utils
+simplefi-redis = { path = "../utils/redis"}
+
+# shared types
 chains_types = { path = "../types/chains"}
 mongo_types = { path = "../types/mongo"}
+data_lake_types = { path = "../types/data_lake"}
 
 [[bin]]
 name = "track_blocks"

@@ -4,7 +4,7 @@ use mongodb::{
     options::FindOptions
 };
 use serde::de::DeserializeOwned;
-use settings::load_settings;
+use simplefi_engine_settings::load_settings;
 use mongo_types::Mongo;
 
 pub async fn get_logs<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(
@@ -16,6 +16,7 @@ pub async fn get_logs<T: serde::Serialize + DeserializeOwned + Sync + Send + Unp
 
     let global_settings = load_settings().unwrap();
     let mut logs = Vec::new();
+    // todo change collection name to chain_type_level
     let logs_collection = db.collection::<T>(&global_settings.logs_bronze_collection_name);
     let find_options = FindOptions::builder()
         .sort(doc! { "timestamp": 1 })

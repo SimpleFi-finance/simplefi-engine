@@ -1,6 +1,6 @@
 use mongodb::{bson::doc, options::{FindOptions, FindOneOptions}};
 use serde::de::DeserializeOwned;
-use settings::load_settings;
+use simplefi_engine_settings::load_settings;
 use log::debug;
 
 use futures::stream::TryStreamExt;

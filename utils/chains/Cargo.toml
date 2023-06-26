@@ -13,4 +13,5 @@ serde_json = { workspace = true }
 rayon = { workspace = true }
 ethabi = { workspace = true }
 hex = { workspace = true }
+
 grpc_server = { path = "../../grpc_server" }
