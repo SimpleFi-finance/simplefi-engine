@@ -3,7 +3,7 @@ pub mod evm;
 
 use log::info;
 use rayon::{iter::ParallelIterator, prelude::IntoParallelRefIterator};
-use settings::load_settings;
+use simplefi_engine_settings::load_settings;
 use serde_json::Value;
 use simplefi_redis::{connect as redis_connect, queue_message};
 use tungstenite::connect;

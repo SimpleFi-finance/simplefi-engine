@@ -3,7 +3,7 @@ use log::LevelFilter;
 use fern::Dispatch;
 
 pub fn init_logging() {
-    let global_settings = settings::load_settings().expect("Failed to load settings");
+    let global_settings = simplefi_engine_settings::load_settings().expect("Failed to load settings");
 
     let binding = global_settings.log_level.to_lowercase();
     let log_level = binding.as_str();

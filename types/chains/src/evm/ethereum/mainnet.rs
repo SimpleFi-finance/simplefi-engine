@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use serde_json::Value;
-use settings::load_settings;
+use simplefi_engine_settings::load_settings;
 
 use crate::common::chain::{SupportedMethods, ConnectionType};
 

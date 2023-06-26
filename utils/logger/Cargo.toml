@@ -12,4 +12,4 @@ chrono = { workspace = true }
 log = { workspace = true }
 fern = { workspace = true }
 
-settings = { path = "../../settings" }
+simplefi_engine_settings = { path = "../../utils/settings" }
