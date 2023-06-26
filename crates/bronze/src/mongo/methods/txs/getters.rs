@@ -1,6 +1,7 @@
+use chains_types::SupportedChains;
+use chains_types::common::chain::Info;
 use mongodb::{bson::doc, options::{FindOptions}};
 use serde::de::DeserializeOwned;
-use simplefi_engine_settings::load_settings;
 use futures::stream::TryStreamExt;
 use chrono::Utc;
 use mongo_types::Mongo;
@@ -8,13 +9,13 @@ use mongo_types::Mongo;
 
 pub async fn get_txs<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(
     db: &Mongo,
+    chain: SupportedChains,
     address: Option<String>,
     timestamp_from: Option<i64>,
     timestamp_to: Option<i64>,
     blocknumber_from: Option<i64>,
     blocknumber_to: Option<i64>,
 )  -> Result<Vec<T>, Box<dyn std::error::Error>> {
-    let global_settings = load_settings().unwrap();
 
     let mut txs = Vec::new();
 
@@ -31,7 +32,12 @@ pub async fn get_txs<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpi
         .projection(doc!{"_id": 0})
         .build();
 
-    let txs_collection = db.collection::<T>(&global_settings.txs_bronze_collection_name);
+    let collection_name = chain.resolve_collection_name(
+        &data_lake_types::SupportedDataTypes::Transactions,
+        &data_lake_types::SupportedDataLevels::Bronze,
+    );
+
+    let txs_collection = db.collection::<T>(&collection_name);
 
     let mut filter = doc!{};
 

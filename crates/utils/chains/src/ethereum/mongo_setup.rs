@@ -1,5 +1,3 @@
-// command to init collection in database with indexes
-
 use mongodb::{options::IndexOptions, IndexModel, bson::doc};
 use serde::de::DeserializeOwned;
 use mongo_types::Mongo;

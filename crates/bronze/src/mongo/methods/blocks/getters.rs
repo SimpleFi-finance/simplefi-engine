@@ -1,19 +1,24 @@
-use mongodb::{bson::doc, options::{FindOptions, FindOneOptions}};
-use serde::de::DeserializeOwned;
-use simplefi_engine_settings::load_settings;
+use chains_types::SupportedChains;
 use log::debug;
+use mongodb::{
+    bson::doc,
+    options::{FindOneOptions, FindOptions},
+};
+use serde::de::DeserializeOwned;
 
-use futures::stream::TryStreamExt;
+use chains_types::common::chain::Info;
 use chrono::Utc;
+use futures::stream::TryStreamExt;
 use mongo_types::Mongo;
+
 pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(
     db: &Mongo,
+    chain: SupportedChains,
     timestamp_from: Option<i64>,
     timestamp_to: Option<i64>,
     blocknumber_from: Option<i64>,
     blocknumber_to: Option<i64>,
 ) -> Result<Vec<T>, Box<dyn std::error::Error>> {
-    let global_settings = load_settings().unwrap();
     // TODO: implement pagination
 
     let mut blocks = Vec::new();
@@ -24,11 +29,16 @@ pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + U
 
     let find_options = FindOptions::builder()
         .sort(doc! { "timestamp": -1 })
-        .projection(doc!{"_id": 0})
+        .projection(doc! {"_id": 0})
         .build();
 
-    let blocks_collection = db.collection::<T>(&global_settings.blocks_bronze_collection_name);
-    
+    let collection_name = chain.resolve_collection_name(
+        &data_lake_types::SupportedDataTypes::Blocks,
+        &data_lake_types::SupportedDataLevels::Bronze,
+    );
+
+    let blocks_collection = db.collection::<T>(&collection_name);
+
     if timestamp_from.is_some() {
         let ts_now = Utc::now().timestamp_micros();
 
@@ -39,7 +49,6 @@ pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + U
             },
         };
 
-
         let mut cursor = blocks_collection.find(doc, find_options.clone()).await?;
 
         while let Some(block) = cursor.try_next().await? {
@@ -48,7 +57,6 @@ pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + U
     }
 
     if blocknumber_from.is_some() {
-        
         let filter = if blocknumber_to.is_some() {
             doc! {
                 "number": {
@@ -72,13 +80,15 @@ pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + U
     }
 
     if blocknumber_from.is_none() && timestamp_from.is_none() {
-
         let find_options = FindOneOptions::builder()
             .sort(doc! { "timestamp": -1 })
-            .projection(doc!{"_id": 0})
+            .projection(doc! {"_id": 0})
             .build();
 
-        let block = blocks_collection.find_one(None, find_options.clone()).await.unwrap();
+        let block = blocks_collection
+            .find_one(None, find_options.clone())
+            .await
+            .unwrap();
         match block {
             Some(block) => {
                 blocks.push(block);
@@ -94,11 +104,10 @@ pub async fn get_blocks<T: serde::Serialize + DeserializeOwned + Sync + Send + U
 
 pub async fn get_block<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(
     db: &Mongo,
+    chain: SupportedChains,
     block_number: Option<i64>,
     timestamp: Option<i64>,
 ) -> Result<Option<T>, Box<dyn std::error::Error>> {
-    
-    let global_settings = load_settings().unwrap();
     // TODO: implement filter logic
 
     if block_number.is_some() && timestamp.is_some() {
@@ -109,21 +118,28 @@ pub async fn get_block<T: serde::Serialize + DeserializeOwned + Sync + Send + Un
         panic!("One between block_number and timestamp must be set");
     }
 
-    let blocks_collection = db.collection::<T>(&global_settings.blocks_bronze_collection_name);
+    let collection_name = chain.resolve_collection_name(
+        &data_lake_types::SupportedDataTypes::Blocks,
+        &data_lake_types::SupportedDataLevels::Bronze,
+    );
+
+    let blocks_collection = db.collection::<T>(&collection_name);
     let find_options = FindOneOptions::builder()
-        .sort(doc!{ "timestamp": 1 })
-        .projection(doc!{"_id": 0})
+        .sort(doc! { "timestamp": 1 })
+        .projection(doc! {"_id": 0})
         .build();
 
     if block_number.is_some() {
-
         let filter = doc! {
             "number": {
                 "$gte": block_number,
             }
         };
 
-        let block= blocks_collection.find_one(filter, find_options.clone()).await.unwrap();
+        let block = blocks_collection
+            .find_one(filter, find_options.clone())
+            .await
+            .unwrap();
         return Ok(block);
     }
 
@@ -133,6 +149,9 @@ pub async fn get_block<T: serde::Serialize + DeserializeOwned + Sync + Send + Un
         }
     };
 
-    let block = blocks_collection.find_one(filter, find_options.clone()).await.unwrap();
+    let block = blocks_collection
+        .find_one(filter, find_options.clone())
+        .await
+        .unwrap();
     return Ok(block);
 }
