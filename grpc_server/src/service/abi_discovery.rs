@@ -9,10 +9,9 @@ use crate::abi_discovery_proto::{
     ListProvidersResponse, ProviderRequest, SuccessResponse, ContractsAddressRequest, ContractsInfoResponse,
 };
 use abi_discovery::{helpers::{contracts, providers, providers::Provider}, mongo::types::{ContractAbiCollection, AbiCollection}};
-use shared_types::{
-    mongo::{ Mongo, MongoConfig },
-};
-use shared_utils::redis::connect;
+
+use mongo_types::{ Mongo, MongoConfig };
+use simplefi_redis::connect;
 
 #[derive(Default)]
 pub struct AbiDiscoveryServiceImpl {}
@@ -182,7 +181,7 @@ impl AbiDiscoveryService for AbiDiscoveryServiceImpl {
         let mysettings = load_settings().expect("Failed to load settings");
         let redis_uri = mysettings.redis_uri.to_string();
 
-        let mut con = shared_utils::redis::connect(&redis_uri.as_str())
+        let mut con = simplefi_redis::connect(&redis_uri.as_str())
             .await
             .expect("Failed to connect to redis");
 
@@ -236,7 +235,7 @@ impl AbiDiscoveryService for AbiDiscoveryServiceImpl {
         let mysettings = load_settings().expect("Failed to load settings");
         let redis_uri = mysettings.redis_uri.to_string();
 
-        let mut con = shared_utils::redis::connect(&redis_uri.as_str())
+        let mut con = simplefi_redis::connect(&redis_uri.as_str())
             .await
             .expect("Failed to connect to redis");
 
@@ -274,7 +273,7 @@ impl AbiDiscoveryService for AbiDiscoveryServiceImpl {
         let mysettings = load_settings().expect("Failed to load settings");
         let redis_uri = mysettings.redis_uri.to_string();
 
-        let mut con = shared_utils::redis::connect(&redis_uri.as_str())
+        let mut con = simplefi_redis::connect(&redis_uri.as_str())
             .await
             .expect("Failed to connect to redis");
 

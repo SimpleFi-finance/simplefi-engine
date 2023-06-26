@@ -4,11 +4,11 @@ use tokio;
 
 use abi_discovery::{helpers::contracts::copy_contracts_to_redis_set, mongo::types::ContractAbiCollection};
 use settings::load_settings;
-use shared_utils::logger::init_logging;
-use shared_utils::{
-    redis::connect,
-};
-use shared_types::mongo::{ MongoConfig, Mongo };
+
+use simplefi_logger::init_logging;
+use simplefi_redis::connect;
+
+use mongo_types::{ MongoConfig, Mongo };
 
 
 #[tokio::main]

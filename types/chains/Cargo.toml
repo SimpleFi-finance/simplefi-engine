@@ -1,0 +1,26 @@
+[package]
+name = "chains_types"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = { workspace = true }
+rayon = { workspace = true }
+settings = { path = "../../settings"}
+serde_json = { workspace = true }
+simplefi-redis = { path = "../../utils/redis" }
+tungstenite = { workspace = true }
+serde = { workspace = true}
+data_lake_types = { path = "../../types/data_lake"}
+mongo_types = { path = "../../types/mongo"}
+
+async-trait = { workspace = true }
+mongodb = { workspace = true }
+chrono = { workspace = true }
+reqwest={workspace=true}
+tokio = { workspace = true }

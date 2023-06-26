@@ -3,7 +3,7 @@ use serde::de::DeserializeOwned;
 use settings::load_settings;
 use futures::stream::TryStreamExt;
 use chrono::Utc;
-use shared_types::mongo::Mongo;
+use mongo_types::Mongo;
 
 
 pub async fn get_txs<T: serde::Serialize + DeserializeOwned + Sync + Send + Unpin>(

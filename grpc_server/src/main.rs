@@ -2,7 +2,7 @@ use log::info;
 use tonic::transport::Server;
 
 use grpc_server::{service::AbiDiscoveryServiceImpl, abi_discovery_proto::abi_discovery_service_server::AbiDiscoveryServiceServer};
-use shared_utils::logger::init_logging;
+use simplefi_logger::init_logging;
 
 
 #[tokio::main]

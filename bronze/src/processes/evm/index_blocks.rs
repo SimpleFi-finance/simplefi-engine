@@ -8,16 +8,14 @@ use bronze::{mongo::{
 use grpc_server::client::AbiDiscoveryClient;
 use rayon::{prelude::{IntoParallelRefIterator, IntoParallelIterator}, iter::ParallelIterator};
 use settings::load_settings;
-use shared_types::chains::get_chain;
-use shared_types::{
-    data_lake::{SupportedDataLevels, SupportedDataTypes},
-    mongo::Mongo,
-    chains::common::chain::{
-        IndexFullBlocks,
-        Info,
-    },
+use chains_types::get_chain;
+use data_lake_types::{SupportedDataLevels, SupportedDataTypes};
+use mongo_types::Mongo;
+use chains_types::common::chain::{
+    IndexFullBlocks,
+    Info,
 };
-use shared_utils::redis::connect_client;
+use simplefi_redis::connect_client;
 
 use redis::AsyncCommands;
 

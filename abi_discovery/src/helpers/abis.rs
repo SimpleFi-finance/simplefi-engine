@@ -2,7 +2,7 @@ use ethabi::Contract;
 use log::debug;
 use std::collections::HashMap;
 
-use shared_types::abi_discovery::AbiStandards;
+use abi_discovery_types::AbiStandards;
 
 ///
 /// Returns the ABI standard of the contract

@@ -21,8 +21,11 @@ ring =          { workspace = true }
 serde =         { workspace = true, default_features = false, features = ["derive"] }
 serde_json =    { workspace = true }
 settings =      { path = "../settings" }
-shared_types =  { path = "../shared_types" }
-shared_utils =  { path = "../shared_utils" }
+mongo_types =  { path = "../types/mongo" }
+abi_discovery_types = { path = "../types/abi_discovery" }
+simplefi-logger =  { path = "../utils/logger" }
+simplefi-redis =  { path = "../utils/redis" }
+simplefi-http =  { path = "../utils/http" }
 tokio =         { workspace = true, features = ["full"] }
 
 [[bin]]
