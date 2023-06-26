@@ -1,0 +1,18 @@
+[package]
+name = "simplefi-http"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+homepage.workspace = true
+repository.workspace = true
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+http ={ workspace = true }
+reqwest = { workspace = true }
+
+[dev-dependencies]
+serde = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+mockito = { workspace = true }

@@ -1,4 +1,4 @@
-use shared_types::{chains::SupportedChains, chains::common::chain::SubscribeBlocks};
+use chains_types::{SupportedChains, common::chain::SubscribeBlocks};
 use settings::load_settings;
 
 #[tokio::main]

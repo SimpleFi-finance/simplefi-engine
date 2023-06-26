@@ -3,17 +3,16 @@ use bronze::mongo::{
     common::types::decoding_errors::DecodingError,
     evm::data_sets::{blocks::Block, logs::Log, txs::Tx},
 };
-use shared_types::{
-    chains::{
+use chains_types::{
         common::chain::Info,
         evm::ethereum::mongo_setup::{
             init_blocks_bronze, init_decoding_error_bronze, init_logs_bronze, init_txs_bronze,
         },
-    },
-    chains::{get_chain, SupportedChains},
-    data_lake::{SupportedDataLevels, SupportedDataTypes},
-    mongo::Mongo,
-};
+        get_chain, 
+        SupportedChains
+    };
+use data_lake_types::{SupportedDataLevels, SupportedDataTypes};
+use mongo_types::Mongo;
 
 #[tokio::main]
 async fn main() {

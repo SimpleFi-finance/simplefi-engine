@@ -4,8 +4,8 @@ use redis::AsyncCommands;
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 
-use shared_utils::redis::check_set_exists;
-use shared_types::abi_discovery::AbiDiscoveryError;
+use simplefi_redis::check_set_exists;
+use abi_discovery_types::AbiDiscoveryError;
 
 pub struct RateLimit {
     pub second: Option<u32>,

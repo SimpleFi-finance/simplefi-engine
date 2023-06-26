@@ -4,12 +4,31 @@ members = [
     "abi_discovery",
     "grpc_server",
     "settings",
-    "shared_types",
-    "shared_utils",
     "gold",
     "silver",
     "bronze",
+    "utils/http",
+    "utils/logger",
+    "utils/redis",
+    "utils/chains",
+    "types/abi_discovery",
+    "types/chains",
+    "types/data_lake",
+    "types/mongo",
+    "types/redis",
+    "types/providers"
 ]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+rust-version = "1.70" # Remember to update .clippy.toml and README.md
+homepage = "https://github.com/SimpleFi-finance/simplefi-engine"
+repository = "https://github.com/SimpleFi-finance/simplefi-engine"
+
+# Explicitly set the resolver to version 2, which is the default for packages with edition >= 2021
+# https://doc.rust-lang.org/edition-guide/rust-2021/default-cargo-resolver.html
+resolver = "2"
 
 [workspace.dependencies]
 async-trait = "0.1"
