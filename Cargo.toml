@@ -1,22 +1,26 @@
 [workspace]
 
 members = [
-    "abi_discovery",
-    "grpc_server",
-    "settings",
-    "gold",
-    "silver",
-    "bronze",
-    "utils/http",
-    "utils/logger",
-    "utils/redis",
-    "utils/chains",
-    "types/abi_discovery",
-    "types/chains",
-    "types/data_lake",
-    "types/mongo",
-    "types/redis",
-    "types/providers"
+    # services
+    "crates/abi_discovery",
+    "crates/grpc_server",
+    # pipelines
+    "crates/gold",
+    "crates/silver",
+    "crates/bronze",
+    # utils
+    "crates/utils/http",
+    "crates/utils/logger",
+    "crates/utils/redis",
+    "crates/utils/chains",
+    "crates/utils/settings",
+    # types
+    "crates/types/abi_discovery",
+    "crates/types/chains",
+    "crates/types/data_lake",
+    "crates/types/mongo",
+    "crates/types/redis",
+    "crates/types/providers"
 ]
 
 [workspace.package]
@@ -70,4 +74,4 @@ google-cloud-default = "0.2.0"
 datafusion = "24.0.0"
 object_store = "0.5.6"
 url = "2.2.1"
-parquet = "41.0.0"
+parquet = "42.0.0"

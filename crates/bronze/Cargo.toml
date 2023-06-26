@@ -1,0 +1,44 @@
+[package]
+name = "bronze"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde_json = { workspace = true }
+serde = { workspace = true}
+parquet = {workspace = true}
+tokio = { workspace = true }
+redis ={workspace = true}
+rayon = {workspace = true}
+ethabi = {workspace = true}
+log = {workspace = true}
+hex = {workspace = true}
+mongodb = {workspace = true}
+futures = {workspace = true}
+chrono = {workspace = true}
+
+
+grpc_server ={ path = "../grpc_server"}
+
+# shared utils
+simplefi_engine_settings = { path = "../utils/settings"}
+simplefi-redis = { path = "../utils/redis"}
+
+# shared types
+chains_types = { path = "../types/chains"}
+mongo_types = { path = "../types/mongo"}
+data_lake_types = { path = "../types/data_lake"}
+
+[[bin]]
+name = "track_blocks"
+path = "src/processes/evm/track_blocks.rs"
+
+[[bin]]
+name = "index_blocks"
+path = "src/processes/evm/index_blocks.rs"
+
+[[bin]]
+name = "set_up_db"
+path = "src/processes/evm/set_up_db.rs"
