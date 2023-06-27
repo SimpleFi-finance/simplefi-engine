@@ -6,3 +6,7 @@
 *.lock
 
 .vscode
+
+.DS_Store
+
+.idea
