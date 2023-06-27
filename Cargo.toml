@@ -8,6 +8,7 @@ members = [
     "crates/gold",
     "crates/silver",
     "crates/bronze",
+    "crates/stages",
     # utils
     "crates/utils/http",
     "crates/utils/logger",
