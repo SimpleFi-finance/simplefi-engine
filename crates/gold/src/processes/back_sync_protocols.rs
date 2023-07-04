@@ -1,3 +1,55 @@
+use std::env;
+
+use chains_types::{get_chain, SupportedChains};
+use chrono::{Days, Utc};
+use mongo_types::{Mongo, MongoConfig};
+
+use crate::{
+    mongo::protocol_status::{getters::get_all_protocols, types::ProtocolStatus},
+    protocol_driver::protocol_driver::SupportedProtocolDrivers,
+};
+
+pub async fn back_sync_protocols() {
+    let chain_id = env::var("CHAIN_ID").unwrap();
+    let chain = get_chain(&chain_id).unwrap();
+    let config = MongoConfig {
+        uri: "mongodb://localhost:27017".to_string(),
+        database: "test".to_string(),
+    };
+    let db = Mongo::new(&config).await.unwrap();
+
+    // Create a new MongoDB client
+    let protocol_status = get_all_protocols(&db).await.unwrap();
+
+    // filter all that are within threshold
+    let threshold = Utc::now()
+        .checked_sub_days(Days::new(7))
+        .unwrap()
+        .timestamp_millis();
+    let outdated_protocols = protocol_status
+        .iter()
+        .cloned()
+        .filter(|x| {
+            !x.snapshot_fully_synced
+                || !x.volumetric_fully_synced
+                || x.snapshot_last_block_synced < threshold
+                || x.volumetric_last_block_synced < threshold
+        })
+        .collect::<Vec<ProtocolStatus>>();
+
+    let mut oldest_update = threshold;
+    outdated_protocols.iter().for_each(|x| {
+        if x.volumetric_last_block_synced < oldest_update {
+            oldest_update = x.volumetric_last_block_synced
+        }
+        if x.snapshot_last_block_synced < oldest_update {
+            oldest_update = x.volumetric_last_block_synced
+        }
+    });
+
+    todo!();
+}
+
 /*
  Load all protocol status
  filter for all protocol status that were last updated < threshold timestamp (snapshot or volumetric)

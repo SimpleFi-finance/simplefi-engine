@@ -19,7 +19,7 @@ chrono ={ workspace = true}
 ethers ={ workspace = true}
 serde = {workspace = true}
 redis = {workspace = true}
-
+futures = {workspace = true}
 
 
 # shared types
