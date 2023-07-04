@@ -1,22 +1,20 @@
+use crate::{
+    types::{protocols::ProtocolInfo, volumetrics::Volumes},
+    utils::{balance_strings::format_balance_string, big_number::add_big_from_strs},
+};
+use bronze::mongo::evm::data_sets::logs::Log;
+use chains_types::SupportedChains;
 use polars::{
     prelude::{DataFrame, NamedFrom},
     series::Series,
 };
-use shared_types::{
-    chains::SupportedChains, gold::volumetrics::Volumes, mongo::bronze::evm::logs::Log,
-};
-use shared_utils::{
-    big_number::sum::add_big_from_strs, gold::balance_strings::format_balance_string,
-};
-
-use crate::types::{ProtocolInfo, Row};
 
 // protocol info
 pub fn get_protocol_info() -> ProtocolInfo {
     ProtocolInfo {
         name: String::from("UniswapV2_mainnet"),
         factory_address: String::from("0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"),
-        chain: SupportedChains::Mainnet,
+        chain: SupportedChains::EthereumMainnet,
         creation_log_name: String::from("PairCreated"),
         protocol_start_year: 2020,
     }

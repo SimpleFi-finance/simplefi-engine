@@ -1,9 +1,9 @@
+use bronze::mongo::evm::data_sets::logs::Log;
 use polars::prelude::DataFrame;
-use shared_types::mongo::bronze::evm::logs::Log;
 
 use crate::{
-    protocols::uniswap::uniswap_v2_mainnet,
-    protocols_driver::protocols_driver::SupportedProtocolDrivers,
+    protocol_driver::protocol_driver::SupportedProtocolDrivers,
+    protocol_driver::protocols::uniswap::uniswap_v2_mainnet,
 };
 
 pub trait NormalizeLogs {

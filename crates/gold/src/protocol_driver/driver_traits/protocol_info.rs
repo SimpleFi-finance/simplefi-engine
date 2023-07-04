@@ -1,10 +1,10 @@
-use crate::protocols_driver::protocols_driver::SupportedProtocolDrivers;
-use crate::types::ProtocolInfo;
+use crate::types::protocols::ProtocolInfo;
 
 // protocol crates
-use crate::protocols::uniswap::uniswap_v2_mainnet;
+use crate::protocol_driver::protocol_driver::SupportedProtocolDrivers;
+use crate::protocol_driver::protocols::uniswap::uniswap_v2_mainnet;
 
-trait GetProtocolInfo {
+pub trait GetProtocolInfo {
     fn get_protocol_info(&self) -> ProtocolInfo;
 }
 

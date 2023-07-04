@@ -11,18 +11,21 @@ use crate::{
         },
         types::ProtocolStatus,
     },
-    protocols::uniswap::uniswap_v2_mainnet,
-    types::{ProtocolInfo, Row},
+    protocol_driver::driver_traits::protocol_info::GetProtocolInfo,
+    protocol_driver::protocols::uniswap::uniswap_v2_mainnet,
+    types::{
+        protocols::{ProtocolInfo, Row},
+        shared::Timeframe,
+        volumetrics::Volumes,
+    },
 };
 use async_trait::async_trait;
-use chains_drivers::common::base_chain::SupportedChains;
+use bronze::mongo::evm::data_sets::logs::Log;
+use chains_types::SupportedChains;
+use data_lake_types::SupportedDataTypes;
 use polars::prelude::DataFrame;
-use shared_types::{
-    data_lake::SupportedDataTypes,
-    gold::{shared::Timeframe, volumetrics::Volumes},
-    mongo::bronze::evm::logs::Log,
-};
 
+#[derive(Debug)]
 pub enum SupportedProtocolDrivers {
     UniswapV2Mainnet,
 }
@@ -54,6 +57,19 @@ impl SupportedProtocolDrivers {
             data_type.to_string(),
             timeframe.timeframe_in_text()
         )
+    }
+
+    pub fn match_protocol_from_factory_address(address: &str) -> SupportedProtocolDrivers {
+        match address {
+            "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f" => {
+                SupportedProtocolDrivers::UniswapV2Mainnet
+            }
+            _ => panic!("No corrosponding driver for factory address {}", address),
+        }
+    }
+
+    pub fn get_factory_address_list() -> Vec<String> {
+        return vec!["0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f".to_string()];
     }
 
     // pub async fn get_chain(&self) -> EvmChain {

@@ -21,9 +21,9 @@ chrono = {workspace = true}
 
 
 # shared utils
-simp-settings = { path = "../utils/settings"}
-simplefi-redis = { path = "../utils/redis"}
-simplefi-chains = { path = "../utils/chains"}
+simplefi_engine_settings = { path = "../utils/settings"}
+simplefi_redis = { path = "../utils/redis"}
+simplefi_chains = { path = "../utils/chains"}
 
 [[bin]]
 name = "track_blocks"

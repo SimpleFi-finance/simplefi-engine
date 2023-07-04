@@ -27,12 +27,13 @@ members = [
     "crates/utils/redis",
     "crates/utils/chains",
     "crates/utils/settings",
-    "crates/utils/etherscan",
-    "crates/utils/tokio",
-    # metrics
-    "crates/tracing",
-    "crates/metrics",
-    "crates/metrics/metrics-derive",
+    # types
+    "crates/types/abi_discovery",
+    "crates/types/chains",
+    "crates/types/data_lake",
+    "crates/types/mongo",
+    "crates/types/redis",
+    "crates/types/providers",
 ]
 
 default-members = ["bin/simp"]
@@ -112,45 +113,6 @@ google-cloud-default = "0.2.0"
 datafusion = "24.0.0"
 object_store = "0.5.6"
 url = "2.2.1"
-parquet = "43.0.0"
-aquamarine = "0.3"
-anyhow = "1"
-jsonrpsee = { version = "0.20", features = ["server", "http-client", "ws-client", "macros", "client-ws-transport-native-tls"] }
-metrics = "0.21.1"
-tracing-appender = "0.2"
-tracing-subscriber = { version = "0.3.3", features = ["env-filter"] }
-console-subscriber = "0.2.0"
-syn = "2.0"
-
-## proc-macros
-proc-macro2 = "1.0"
-quote = "1.0"
-
-## crypto
-secp256k1 = { version = "0.28.0", default-features = false, features = [
-    "global-context",
-    "rand-std",
-    "recovery",
-] }
-bytes = "1.5"
-thiserror = "1.0"
-rand = "0.8.5"
-rayon = "1.7"
-clap = "4"
-eyre = "0.6"
-alloy-primitives = "0.4"
-strum = "0.25"
-
-## async
-async-trait = "0.1.68"
-futures = "0.3.26"
-pin-project = "1.0.12"
-futures-util = "0.3.25"
-
-## misc-testing
-proptest = "1.0"
-proptest-derive = "0.3.0"
-serial_test = "2"
-
-[patch."https://github.com/ethereum/c-kzg-4844"]
-c-kzg = { git = "https://github.com/rjected/c-kzg-4844", branch = "dan/add-serde-feature" }
+parquet = "42.0.0"
+polars = {version = "^0.26.1", features=["lazy", "partition_by", "dtype-struct","polars-io", "dtype-binary", "parquet", "strings"]}
+polars-io = { version = "0.26.1", features = ["parquet"] }
