@@ -3,6 +3,7 @@ use chains_types::SupportedChains;
 pub struct ProtocolInfo {
     // pub id: SupportedProtocolDrivers,
     pub name: String,
+    pub chain_id: String,
     pub factory_address: String,
     pub chain: SupportedChains,
     pub creation_log_name: String,

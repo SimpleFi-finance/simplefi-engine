@@ -25,7 +25,7 @@ use chains_types::SupportedChains;
 use data_lake_types::SupportedDataTypes;
 use polars::prelude::DataFrame;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SupportedProtocolDrivers {
     UniswapV2Mainnet,
 }
@@ -59,19 +59,6 @@ impl SupportedProtocolDrivers {
         )
     }
 
-    pub fn match_protocol_from_factory_address(address: &str) -> SupportedProtocolDrivers {
-        match address {
-            "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f" => {
-                SupportedProtocolDrivers::UniswapV2Mainnet
-            }
-            _ => panic!("No corrosponding driver for factory address {}", address),
-        }
-    }
-
-    pub fn get_factory_address_list() -> Vec<String> {
-        return vec!["0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f".to_string()];
-    }
-
     // pub async fn get_chain(&self) -> EvmChain {
     //     match self.chain {
     //         SupportedChains::Mainnet => SupportedChains::Mainnet,
@@ -90,6 +77,17 @@ impl SupportedProtocolDrivers {
 //         }
 //     }
 // }
+
+pub fn match_protocol_from_factory_address(address: &str) -> SupportedProtocolDrivers {
+    match address {
+        "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f" => SupportedProtocolDrivers::UniswapV2Mainnet,
+        _ => panic!("No corrosponding driver for factory address {}", address),
+    }
+}
+
+pub fn get_factory_address_list() -> Vec<String> {
+    return vec!["0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f".to_string()];
+}
 
 /*
   Protocal status
@@ -132,7 +130,7 @@ impl ProtocolStatusMethods for SupportedProtocolDrivers {
     async fn create_protocol_status(&self) -> Result<ProtocolStatus, Box<dyn std::error::Error>> {
         let db = protocol_status_db().await?;
         let info = self.get_protocol_info();
-        create_protocol_status(info.name, info.factory_address, &db).await
+        create_protocol_status(info.name, info.factory_address, info.chain_id, &db).await
     }
 
     async fn updated_protocol_status(

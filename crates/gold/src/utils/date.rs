@@ -1,4 +1,4 @@
-use chrono::{Datelike, TimeZone, Timelike, Utc};
+use chrono::{DateTime, Datelike, NaiveDateTime, TimeZone, Timelike, Utc};
 
 pub fn is_same_day(
     timestamp_x: u64,
@@ -85,4 +85,20 @@ pub fn is_day_timestamp(timestamp: u64) -> bool {
     let hour = date.hour();
     let min = date.minute();
     min == 0 && hour == 0
+}
+
+pub fn round_timestamp(
+    nearest_minutes: u64,
+    ts: &u64,
+) -> u64 {
+    let round_to = 1000 * 60 * nearest_minutes;
+    let ceiled_div = ts / round_to + (ts & round_to != 0) as u64;
+    ceiled_div * round_to
+}
+
+pub fn datetime_from_ts(ts: u64) -> DateTime<Utc> {
+    let naive = NaiveDateTime::from_timestamp_millis(ts as i64).unwrap();
+    let datetime: DateTime<Utc> = DateTime::from_utc(naive, Utc);
+
+    datetime
 }

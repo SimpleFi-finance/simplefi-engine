@@ -26,14 +26,15 @@ pub async fn get_protocol_status(
 }
 
 pub async fn get_all_protocols(
-    db: &Mongo
+    db: &Mongo,
+    chain_id: &str,
 ) -> Result<Vec<ProtocolStatus>, Box<dyn std::error::Error>> {
     let global_settings = load_settings().unwrap();
 
     let collection =
         db.collection::<ProtocolStatus>(&global_settings.protocol_status_gold_collection_name);
 
-    let mut cursor = collection.find(doc! {}, None).await?;
+    let mut cursor = collection.find(doc! {chain_id: chain_id}, None).await?;
 
     let mut status_res = Vec::new();
     while let Some(status) = cursor.try_next().await? {

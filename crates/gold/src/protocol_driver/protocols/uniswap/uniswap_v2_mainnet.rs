@@ -1,5 +1,5 @@
 use crate::{
-    types::{protocols::ProtocolInfo, volumetrics::Volumes},
+    types::{protocols::ProtocolInfo, volumetrics::Volumetric},
     utils::{balance_strings::format_balance_string, big_number::add_big_from_strs},
 };
 use bronze::mongo::evm::data_sets::logs::Log;
@@ -13,6 +13,7 @@ use polars::{
 pub fn get_protocol_info() -> ProtocolInfo {
     ProtocolInfo {
         name: String::from("UniswapV2_mainnet"),
+        chain_id: String::from("1"),
         factory_address: String::from("0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"),
         chain: SupportedChains::EthereumMainnet,
         creation_log_name: String::from("PairCreated"),
@@ -21,7 +22,35 @@ pub fn get_protocol_info() -> ProtocolInfo {
 }
 
 // volumetric methods
-pub fn volumes_from_dataframe_slice(df: DataFrame) -> Volumes {
+pub fn volumes_from_dataframe_slice(df: &DataFrame) -> Volumetric {
+    let series = df
+        .columns([
+            "data1",
+            "data2",
+            "data3",
+            "data4",
+            "snapshot_timestamp",
+            "log_type",
+            "topic1",
+            "topic2",
+        ])
+        .unwrap();
+    let mut log_type_series = series[5].utf8().unwrap().into_iter();
+    let mut topic_1_series = series[6].utf8().unwrap().into_iter();
+    let mut topic_2_series = series[7].utf8().unwrap().into_iter();
+    let mut data_1_series = series[0].utf8().unwrap().into_iter();
+    let mut data_2_series = series[1].utf8().unwrap().into_iter();
+    let mut data_3_series = series[2].utf8().unwrap().into_iter();
+    let mut data_4_series = series[3].utf8().unwrap().into_iter();
+
+    let snap_timestamp = series[4]
+        .u64()
+        .unwrap()
+        .into_iter()
+        .next()
+        .unwrap()
+        .unwrap();
+
     let mut token_0_out_total = "0".to_string();
     let mut token_1_out_total = "0".to_string();
     let mut token_0_in_total = "0".to_string();
@@ -33,30 +62,6 @@ pub fn volumes_from_dataframe_slice(df: DataFrame) -> Volumes {
     let mut token_1_deposit_total = "0".to_string();
 
     for _index in 0..df.height() {
-        let series = df
-            .columns([
-                "data1",
-                "data2",
-                "data3",
-                "data4",
-                "snapshot_timestamp",
-                "snapshot_block",
-                "hour_snapshot_timestamp",
-                "hour_snapshot_block",
-                "day_snapshot_timestamp",
-                "day_snapshot_block",
-                "log_type",
-                "topic1",
-                "topic2",
-            ])
-            .unwrap();
-        let mut log_type_series = series[10].utf8().unwrap().into_iter();
-        let mut topic_1_series = series[11].utf8().unwrap().into_iter();
-        let mut topic_2_series = series[12].utf8().unwrap().into_iter();
-        let mut data_1_series = series[0].utf8().unwrap().into_iter();
-        let mut data_2_series = series[1].utf8().unwrap().into_iter();
-        let mut data_3_series = series[2].utf8().unwrap().into_iter();
-        let mut data_4_series = series[3].utf8().unwrap().into_iter();
         let event_type = log_type_series.next().unwrap().unwrap();
         let data_1 = data_1_series.next().unwrap();
         let data_2 = data_2_series.next().unwrap();
@@ -114,7 +119,8 @@ pub fn volumes_from_dataframe_slice(df: DataFrame) -> Volumes {
             _ => (),
         }
     }
-    Volumes {
+    Volumetric {
+        timestamp: snap_timestamp,
         swaps_in: vec![
             format!("token0|{}", token_0_in_total),
             format!("token1|{}", token_1_in_total),

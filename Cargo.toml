@@ -114,5 +114,5 @@ datafusion = "24.0.0"
 object_store = "0.5.6"
 url = "2.2.1"
 parquet = "42.0.0"
-polars = {version = "^0.26.1", features=["lazy", "partition_by", "dtype-struct","polars-io", "dtype-binary", "parquet", "strings"]}
+polars = {version = "^0.26.1", features=["lazy", "partition_by", "dtype-struct","polars-io", "dtype-binary", "parquet", "strings","is_in"]}
 polars-io = { version = "0.26.1", features = ["parquet"] }

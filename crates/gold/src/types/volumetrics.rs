@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Volumetric {
-    pub block_number: u64,
     pub timestamp: u64,
     pub swaps_out: Vec<String>,  // ["token|total"]
     pub swaps_in: Vec<String>,   // ["token|total"]
@@ -19,6 +18,20 @@ pub struct Volumes {
     pub mint: Vec<String>,       // ["token|total"]
     pub transfer: String,        // ["token|total"]
 }
+
+// #[derive(Clone, Debug)]
+// pub struct PeriodVolumetric {
+//     pub volumetrics: Volumes,
+//     pub period_timestamp: u64,
+// }
+
+// #[derive(Clone, Debug)]
+// pub struct VolumetricWithDetails {
+//     pub volumetrics: Volumes,
+//     pub five_min_details: u64,
+//     pub hour_details: u64,
+//     pub day_details: u64,
+// }
 
 /*
  {

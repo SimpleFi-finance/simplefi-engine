@@ -1,11 +1,12 @@
 use std::env;
 
-use chains_types::{get_chain, SupportedChains};
+use chains_types::get_chain;
 use chrono::{Days, Utc};
 use mongo_types::{Mongo, MongoConfig};
 
 use crate::{
     mongo::protocol_status::{getters::get_all_protocols, types::ProtocolStatus},
+    processes::backfill::process_from_parquet::process_from_parquet,
     protocol_driver::protocol_driver::SupportedProtocolDrivers,
 };
 
@@ -19,33 +20,35 @@ pub async fn back_sync_protocols() {
     let db = Mongo::new(&config).await.unwrap();
 
     // Create a new MongoDB client
-    let protocol_status = get_all_protocols(&db).await.unwrap();
+    let protocol_status = get_all_protocols(&db, &chain_id).await.unwrap();
 
     // filter all that are within threshold
     let threshold = Utc::now()
-        .checked_sub_days(Days::new(7))
+        .checked_sub_days(Days::new(1))
         .unwrap()
         .timestamp_millis();
     let outdated_protocols = protocol_status
         .iter()
         .cloned()
-        .filter(|x| {
-            !x.snapshot_fully_synced
-                || !x.volumetric_fully_synced
-                || x.snapshot_last_block_synced < threshold
-                || x.volumetric_last_block_synced < threshold
-        })
+        .filter(|x| !x.should_update || x.last_sync_block_timestamp < threshold)
         .collect::<Vec<ProtocolStatus>>();
 
+    // find oldest update
     let mut oldest_update = threshold;
     outdated_protocols.iter().for_each(|x| {
-        if x.volumetric_last_block_synced < oldest_update {
-            oldest_update = x.volumetric_last_block_synced
-        }
-        if x.snapshot_last_block_synced < oldest_update {
-            oldest_update = x.volumetric_last_block_synced
+        if x.last_sync_block_timestamp < oldest_update {
+            oldest_update = x.last_sync_block_timestamp;
         }
     });
+
+    let last_updated_timestamp = oldest_update;
+    // sync from parquet
+    loop {
+        // process_from_parquet().await;
+        // get logs for for same day greater than last_updated_timestamp
+    }
+
+    // sync from mongo
 
     todo!();
 }

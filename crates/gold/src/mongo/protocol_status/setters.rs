@@ -6,6 +6,7 @@ use simplefi_engine_settings::load_settings;
 pub async fn create_protocol_status(
     protocol_id: String,
     factory_address: String,
+    chain_id: String,
     db: &Mongo,
 ) -> Result<ProtocolStatus, Box<dyn std::error::Error>> {
     let global_settings = load_settings().unwrap();
@@ -14,11 +15,13 @@ pub async fn create_protocol_status(
 
     let new_doc = ProtocolStatus {
         protocol_id,
+        chain_id,
         factory_address,
-        volumetric_fully_synced: false,
-        volumetric_last_block_synced: 0,
-        snapshot_fully_synced: false,
-        snapshot_last_block_synced: 0,
+        last_sync_block_timestamp: 0,
+        should_update: false, // volumetric_fully_synced: false,
+                              // volumetric_last_block_synced: 0,
+                              // snapshot_fully_synced: false,
+                              // snapshot_last_block_synced: 0,
     };
 
     let res = collection.insert_one(&new_doc, None).await;

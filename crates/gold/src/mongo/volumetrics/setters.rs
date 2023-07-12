@@ -38,8 +38,7 @@ pub async fn insert_volumtrics_or_update_daily(
         Some(res) => {
             // check if need to update last entry
             let last_volume = &res.mapping[&res.mapping.len() - 1];
-            let is_same_block =
-                last_volume.volume.block_number == volumes_to_insert[0].block_number;
+            let is_same_block = last_volume.volume.timestamp == volumes_to_insert[0].timestamp;
 
             if is_same_block {
                 // update new entry to add stats from db entry
@@ -50,7 +49,7 @@ pub async fn insert_volumtrics_or_update_daily(
             let filtered_previous_entries = res
                 .mapping
                 .iter()
-                .filter(|v| v.volume.block_number < volumes_to_insert[0].block_number)
+                .filter(|v| v.volume.timestamp < volumes_to_insert[0].timestamp)
                 .map(|v| v.volume.clone())
                 .collect();
 
@@ -122,8 +121,8 @@ pub async fn insert_volumtrics_or_update_hourly(
             // check if need to update last entry
             let last_volume_mapping = &res.mapping[&res.mapping.len() - 1];
             let is_same_block = last_volume_mapping.mapping[last_volume_mapping.mapping.len() - 1]
-                .block_number
-                == volumes_to_insert[0].block_number;
+                .timestamp
+                == volumes_to_insert[0].timestamp;
 
             if is_same_block {
                 // update new entry to add stats from db entry
@@ -138,7 +137,7 @@ pub async fn insert_volumtrics_or_update_hourly(
                 .iter()
                 .filter(|v| {
                     let last_item = &v.mapping[&v.mapping.len() - 1];
-                    last_item.block_number < volumes_to_insert[0].block_number
+                    last_item.timestamp < volumes_to_insert[0].timestamp
                 })
                 .map(|v| v.mapping.clone())
                 .flatten()
@@ -210,7 +209,7 @@ pub async fn insert_volumtrics_or_update_five(
         Some(res) => {
             let last_volume = &res.mapping[&res.mapping.len() - 1].volume;
             // check if need to update last entry
-            let is_same_block = last_volume.block_number == volumes_to_insert[0].block_number;
+            let is_same_block = last_volume.timestamp == volumes_to_insert[0].timestamp;
 
             if is_same_block {
                 // update new entry to add stats from db entry
@@ -220,7 +219,7 @@ pub async fn insert_volumtrics_or_update_five(
             let filtered_previous_entries = res
                 .mapping
                 .iter()
-                .filter(|v| v.volume.block_number < volumes_to_insert[0].block_number)
+                .filter(|v| v.volume.timestamp < volumes_to_insert[0].timestamp)
                 .map(|v| v.volume.clone())
                 .collect();
 

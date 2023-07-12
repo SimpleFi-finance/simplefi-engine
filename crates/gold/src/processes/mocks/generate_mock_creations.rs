@@ -5,9 +5,11 @@ use polars::{
 
 use crate::mongo::volumetrics::utils::shared::get_month_year_day;
 
-pub fn generate_mock_dataframe(
-    factory_address: &String,
-    year: i32,
+pub async fn generate_mock_dataframe(
+    // factory_address: &String,
+    // year: i32,
+    from: i64,
+    to: i64,
 ) -> DataFrame {
     let timestamps: Vec<i64> = vec![
         1639601385625,
@@ -70,7 +72,7 @@ pub fn generate_mock_dataframe(
         year_series.push(Some(year as i64));
         month_series.push(Some(month as i64));
         day_series.push(Some(day as i64));
-        address_series.push(Some(factory_address.clone()));
+        address_series.push(Some("test".to_string()));
         block_number_series.push(Some(i as i64));
         block_hash_series.push(Some("asdas".to_string()));
         transaction_hash_series.push(Some("asdas".to_string()));

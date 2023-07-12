@@ -3,9 +3,14 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ProtocolStatus {
     pub protocol_id: String,
+    pub chain_id: String,
     pub factory_address: String,
-    pub volumetric_fully_synced: bool,
-    pub volumetric_last_block_synced: i64,
-    pub snapshot_fully_synced: bool,
-    pub snapshot_last_block_synced: i64,
+    // pub volumetric_fully_synced: bool,
+    // pub volumetric_last_block_synced: i64,
+    // pub volumetric_last_block_synced: i64,
+    // pub snapshot_fully_synced: bool,
+    // pub snapshot_last_block_synced: i64,
+    pub last_sync_block_timestamp: i64,
+    // pub snapshot_last_block_synced: i64,
+    pub should_update: bool,
 }
