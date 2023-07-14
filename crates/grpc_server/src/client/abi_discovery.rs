@@ -19,11 +19,6 @@ pub enum ABIDiscoveryClientError {
 
 impl From<Status> for ABIDiscoveryClientError {
     fn from(status: Status) -> Self {
-        // Convert a tonic::Status into a MyError.
-        // Here we treat NOT_FOUND status as a special case,
-        // but you can handle it as you wish.
-        print!("{:?}", status.code());
-
         if status.code() == tonic::Code::NotFound {
             ABIDiscoveryClientError::NotFound
         } else {
