@@ -3,8 +3,6 @@ use mongodb::bson::doc;
 use settings::load_settings;
 use shared_types::gold::{shared::Timeframe, volumetrics::Volumetric};
 
-// TODO
-
 pub async fn get_latest_volumetric(
     db: &Mongo,
     address: &str,

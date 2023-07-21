@@ -2,8 +2,8 @@ use redis::{aio::Connection, RedisError};
 use serde_json;
 use simplefi_engine_settings::load_settings;
 use simplefi_redis::{
-    add_to_set, connect, delete_from_hset, get_complete_hset, get_from_hset, is_in_set,
-    store_in_hset,
+    add_to_set, connect, delete_from_hset, delete_multiple_from_hset, get_complete_hset,
+    get_from_hset, is_in_set, store_in_hset,
 };
 
 use crate::protocol_driver::driver_traits::protocol_info::GetProtocolInfo;
@@ -115,6 +115,20 @@ impl ProtocolRedisDriver {
         Ok(())
     }
 
+    // overwrite market volumes
+    pub async fn overwrite_markets_volumes(
+        &mut self,
+        data: Vec<(String, Vec<Volumetric>)>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let hmap_name = self.resolve_set_name("volumetrics");
+        for market in data {
+            let json_volumes = serde_json::to_string(&market.1).unwrap();
+            let _ =
+                store_in_hset(&mut self.connection, &hmap_name, &market.0, &json_volumes).await?;
+        }
+        Ok(())
+    }
+
     // returns a vec of tuples, (market address, Vec<volumetric>)
     pub async fn get_all_volumes(&mut self) -> Vec<(String, Vec<Volumetric>)> {
         let hmap_name = self.resolve_set_name("volumetrics");
@@ -144,6 +158,17 @@ impl ProtocolRedisDriver {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let hmap_name = self.resolve_set_name("volumetrics");
         let _ = delete_from_hset(&mut self.connection, &hmap_name, market_address).await?;
+
+        Ok(())
+    }
+
+    pub async fn delete_markets_volumes(
+        &mut self,
+        market_addresses: Vec<String>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let hmap_name = self.resolve_set_name("volumetrics");
+        let _ =
+            delete_multiple_from_hset(&mut self.connection, &hmap_name, market_addresses).await?;
 
         Ok(())
     }
@@ -283,9 +308,9 @@ mod tests {
 
         let res = redis_driver.get_all_volumes().await;
 
-        assert_eq!(res[0].0, "test2");
-        assert_eq!(res[1].0, "test");
-        assert_eq!(res[1].1.len(), 2);
+        assert_eq!(res[0].0, "test");
+        assert_eq!(res[1].0, "test2");
+        assert_eq!(res[0].1.len(), 2);
 
         let _ = redis_driver.remove_market_volumes("test").await;
         let _ = redis_driver.remove_market_volumes("test2").await;

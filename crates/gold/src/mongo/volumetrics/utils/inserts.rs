@@ -27,7 +27,7 @@ pub fn prep_daily_insert(
             DailyMappingItem {
                 day,
                 volume: v.clone(),
-                latest: false,
+                timestamp: v.timestamp,
             }
         })
         .collect();
@@ -62,7 +62,6 @@ pub fn prep_hourly_insert(
             HourlyMappingItem {
                 day,
                 mapping: v.clone(),
-                latest: false,
             }
         })
         .collect();
@@ -89,7 +88,7 @@ pub fn prep_five_min_insert(
         .iter()
         .map(|v| FiveMinMappingItem {
             volume: v.clone(),
-            latest: false,
+            timestamp: v.timestamp,
         })
         .collect();
 

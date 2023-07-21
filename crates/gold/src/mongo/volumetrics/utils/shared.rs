@@ -1,6 +1,6 @@
 use crate::types::{shared::Timeframe, volumetrics::Volumetric};
 use crate::utils::date::{is_same_day, is_same_month};
-use chrono::{Datelike, TimeZone, Utc};
+use chrono::{Datelike, TimeZone, Timelike, Utc};
 
 pub fn is_same_period(
     timestamp_a: u64,
@@ -13,13 +13,15 @@ pub fn is_same_period(
     }
 }
 
-pub fn get_month_year_day(ts: u64) -> (u32, u32, u32) {
-    let utc = Utc.timestamp_millis_opt(ts as i64).unwrap();
+pub fn get_month_year_day_hour_minute(ts: &u64) -> (u32, u32, u32, u32, u32) {
+    let utc = Utc.timestamp_millis_opt(ts.clone() as i64).unwrap();
     let year = utc.year() as u32;
     let month = utc.month();
     let day = utc.day();
+    let hour = utc.hour();
+    let minute = utc.minute();
 
-    (month, year, day)
+    (month, year, day, hour, minute)
 }
 
 pub fn split_by_period(

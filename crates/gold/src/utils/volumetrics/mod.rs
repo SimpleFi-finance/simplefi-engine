@@ -2,8 +2,10 @@ pub mod create_five_min_volumetrics;
 pub mod partitions;
 use super::balance_strings::merge_bal_string_vecs;
 use super::big_number::add_big_from_strs;
+use crate::types::shared::Timeframe;
 use crate::types::volumetrics::Volumetric;
 use std::collections::HashMap;
+pub mod aggregate_volumetrics;
 
 pub fn amalgamate_volumetrics(
     volume_a: &Volumetric,
@@ -43,4 +45,28 @@ pub fn amalgamate_volumetrics_vecs(
     });
 
     hashmap.values().cloned().collect()
+}
+
+pub fn split_by_period(
+    timeframe: &Timeframe,
+    volumes: Vec<Volumetric>,
+) -> Vec<Vec<Volumetric>> {
+    let mut hmap: HashMap<u64, Vec<Volumetric>> = HashMap::new();
+
+    for volume in volumes {
+        // let existing = hmap.get()
+
+        let mut existing = hmap.get(&volume.timestamp);
+
+        match existing {
+            Some(ex) => {
+                ex.push(volume);
+            }
+            _ => {
+                hmap.insert(volume.timestamp, vec![volume]);
+            }
+        }
+    }
+
+    hmap.values().cloned().collect()
 }

@@ -13,7 +13,7 @@ pub struct VolumetricPeriod {
 pub struct DailyMappingItem {
     pub day: u32,
     pub volume: Volumetric,
-    pub latest: bool,
+    pub timestamp: u64,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -28,7 +28,7 @@ pub struct VolumetricPeriodDaily {
 pub struct HourlyMappingItem {
     pub day: u32,
     pub mapping: Vec<Volumetric>,
-    pub latest: bool,
+    // pub latest: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -42,7 +42,7 @@ pub struct VolumetricPeriodHourly {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct FiveMinMappingItem {
     pub volume: Volumetric,
-    pub latest: bool,
+    pub timestamp: u64,
 }
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct VolumetricPeriodFiveMin {

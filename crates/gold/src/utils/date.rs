@@ -95,6 +95,14 @@ pub fn round_timestamp(
     let ceiled_div = ts / round_to + (ts & round_to != 0) as u64;
     ceiled_div * round_to
 }
+pub fn round_down_timestamp(
+    nearest_minutes: u64,
+    ts: &u64,
+) -> u64 {
+    let round_to = 1000 * 60 * nearest_minutes;
+    let floored_div = ts / round_to;
+    floored_div * round_to
+}
 
 pub fn datetime_from_ts(ts: u64) -> DateTime<Utc> {
     let naive = NaiveDateTime::from_timestamp_millis(ts as i64).unwrap();

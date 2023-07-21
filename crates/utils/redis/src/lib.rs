@@ -46,12 +46,28 @@ pub async fn store_in_hset(
     let _ = con.hset(hmap_name, key, value).await?;
     Ok(())
 }
+pub async fn store_multiple_in_hset(
+    con: &mut Connection,
+    hmap_name: &str,
+    values: Vec<(&str, &str)>,
+) -> RedisResult<()> {
+    let _ = con.hset_multiple(hmap_name, &values).await?;
+    Ok(())
+}
 pub async fn get_from_hset(
     con: &mut Connection,
     hmap_name: &str,
     key: &str,
 ) -> RedisResult<String> {
     let result = con.hget(hmap_name, key).await?;
+    Ok(result)
+}
+pub async fn key_exists_hset(
+    con: &mut Connection,
+    hmap_name: &str,
+    key: &str,
+) -> RedisResult<bool> {
+    let result = con.hexists(hmap_name, key).await?;
     Ok(result)
 }
 pub async fn delete_from_hset(
@@ -62,11 +78,27 @@ pub async fn delete_from_hset(
     let result = con.hdel(hmap_name, key).await?;
     Ok(result)
 }
+pub async fn delete_multiple_from_hset(
+    con: &mut Connection,
+    hmap_name: &str,
+    key: Vec<String>,
+) -> RedisResult<String> {
+    let result = con.hdel(hmap_name, key).await?;
+    Ok(result)
+}
 pub async fn get_complete_hset(
     con: &mut Connection,
     hmap_name: &str,
 ) -> RedisResult<Vec<String>> {
     let result = con.hgetall(hmap_name).await?;
+    Ok(result)
+}
+
+pub async fn get_hset_keys(
+    con: &mut Connection,
+    hmap_name: &str,
+) -> RedisResult<Vec<String>> {
+    let result = con.hkeys(hmap_name).await?;
     Ok(result)
 }
 
