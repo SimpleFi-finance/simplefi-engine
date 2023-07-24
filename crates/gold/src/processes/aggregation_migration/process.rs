@@ -1,4 +1,3 @@
-use core::num::flt2dec::strategy::dragon;
 use std::env;
 
 use chains_types::get_chain;
@@ -18,20 +17,14 @@ pub async fn aggregation_migration() -> Result<(), Box<dyn std::error::Error>> {
 
     let _ = hourly_aggregation(&mut dragonfly_driver).await?;
 
-    // if it's now a new day and should process previous days hourly....
+    // if it's over a day since the last daily aggregation, process daily....
     let latest_daily_aggregation = dragonfly_driver.get_latest_aggregation_ts().await?;
     let now = Utc::now().timestamp_micros() as u64;
 
-    if now >= latest_daily_aggregation + 86400000 {
+    let ms_in_a_day = 86400000;
+    if now >= latest_daily_aggregation + ms_in_a_day {
         daily_aggregation(&mut dragonfly_driver).await?;
     }
 
     Ok(())
 }
-
-/*
-  process hourly
-
-  if it's the final hour of the day (timestamp for hourly to process is midnight), process daily
-
-*/
