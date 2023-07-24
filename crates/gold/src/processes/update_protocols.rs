@@ -13,6 +13,7 @@ use std::{collections::HashMap, env};
 use bronze::mongo::evm::data_sets::logs::Log;
 use chains_types::get_chain;
 use chrono::Utc;
+use polars::lazy::dsl::col;
 
 use crate::protocol_driver::driver_traits::normalize_log::NormalizeLogs;
 use crate::{
@@ -21,7 +22,7 @@ use crate::{
     types::protocols::ProtocolStatus,
     utils::date::round_down_timestamp,
 };
-use polars::prelude::{ChunkAgg, DataFrame};
+use polars::prelude::{lit, ChunkAgg, DataFrame};
 
 async fn update_protocols() -> Result<(), Box<dyn std::error::Error>> {
     let chain_id = env::var("CHAIN_ID").unwrap();
@@ -74,51 +75,26 @@ async fn update_protocols() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         // check if we have a driver for this address
-        let normalized =
-            check_driver_and_normalize(address_logs.0, address_logs.1, &mut dragonfly_driver)
-                .await?;
+        let normalized = check_driver_and_normalize(
+            address_logs.0,
+            address_logs.1,
+            &mut dragonfly_driver,
+            &protocols_to_update,
+        )
+        .await?;
 
         match normalized {
-            Some(data_to_process) => {
-                // push only if is in filtered protocol status
-                let name = data_to_process.1.get_driver_name();
-                let matched_index = protocols_status.iter().position(|p| p.protocol_id == name);
-
-                match matched_index {
-                    Some(i) => logs_to_process.push(data_to_process),
-                    _ => (),
-                }
-            }
+            Some(data_to_process) => logs_to_process.push(data_to_process),
             _ => (),
         }
     }
 
-    // let mut protocol_latest_block_processed: HashMap<String, u64> = HashMap::new();
-
-    // process dataframes
     // TODO: Switch to multithreading thread pool system to increase performance
     let mut new_volumes_to_store = vec![];
     for df_with_driver in logs_to_process {
         // process volumetrics
         let new_volumes = process_volumetrics(&df_with_driver.2, &df_with_driver.1).await;
         new_volumes_to_store.push((df_with_driver.0, new_volumes));
-
-        // let name = df_with_driver.1.get_protocol_info().name;
-
-        // let existing = protocol_latest_block_processed.get(&name);
-
-        // match existing {
-        //     Some(latest_block) => {
-        //         // let block_series = df_with_driver.2.column("block_number").unwrap();
-        //         // let latest_processed = block_series.u64().unwrap().max().unwrap();
-        //         let latest_processed: u64 = df_with_driver.2["block_number"].max().unwrap();
-        //         if latest_processed > latest_block.clone() {
-        //             protocol_latest_block_processed.insert(name, latest_processed);
-        //         };
-        //     }
-        //     _ => (),
-        // }
-        // process snapshots
     }
 
     // store new volumes in redis
@@ -172,6 +148,7 @@ async fn check_driver_and_normalize(
     address: String,
     logs: Vec<Log>,
     dragonfly_driver: &mut ProtocolDragonflyDriver,
+    protocols_status: &Vec<&ProtocolStatus>,
 ) -> Result<Option<(String, SupportedProtocolDrivers, DataFrame)>, Box<dyn std::error::Error>> {
     let protocol_driver = dragonfly_driver
         .match_protocol_from_market_address(&address)
@@ -179,12 +156,34 @@ async fn check_driver_and_normalize(
 
     match protocol_driver {
         Some(driver) => {
-            let normalized_logs = driver.normalize_logs(logs);
-            Ok(Some((address, driver, normalized_logs)))
+            let matched_status_i = protocols_status
+                .iter()
+                .position(|p| p.protocol_id == driver.get_protocol_info().name);
+
+            match matched_status_i {
+                Some(i) => {
+                    let mut filtered_logs: Vec<Log> = vec![];
+                    let protocol_status = protocols_status[i];
+
+                    for log in logs {
+                        if log.timestamp as u64 >= protocol_status.last_sync_block_timestamp {
+                            filtered_logs.push(log);
+                        }
+                    }
+
+                    let normalized_logs = driver.normalize_logs(filtered_logs);
+                    Ok(Some((address, driver, normalized_logs)))
+                }
+                _ => Ok(None),
+            }
         }
         _ => Ok(None),
     }
 }
+
+// async fn process_volumetrics (logs: Vec<Log>) -> {
+
+// }
 
 /*
  Update protocols
