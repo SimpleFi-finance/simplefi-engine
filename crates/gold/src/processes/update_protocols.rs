@@ -1,6 +1,9 @@
+use crate::dragonfly::volumetrics::VolumetricsTrait;
 use crate::protocol_driver::driver_traits::market_creation_methods::MarketCreation;
 use crate::protocol_driver::driver_traits::protocol_info::GetProtocolInfo;
 use crate::protocol_driver::protocol_driver::match_protocol_from_factory_address;
+use crate::types::shared::Timeframe;
+use crate::utils::volumetrics::process_volumetrics::process_volumetrics;
 use crate::{
     dragonfly::protocol_driver::ProtocolsDriver,
     protocol_driver::protocol_driver::SupportedProtocolDrivers,
@@ -18,7 +21,7 @@ use crate::{
     types::protocols::ProtocolStatus,
     utils::date::round_down_timestamp,
 };
-use polars::prelude::DataFrame;
+use polars::prelude::{ChunkAgg, DataFrame};
 
 async fn update_protocols() -> Result<(), Box<dyn std::error::Error>> {
     let chain_id = env::var("CHAIN_ID").unwrap();
@@ -48,13 +51,13 @@ async fn update_protocols() -> Result<(), Box<dyn std::error::Error>> {
 
     // TODO: replace with real data
     let new_events = generate_mock_mongo_creations_update(oldest_update).await;
-    let binned_logs = bin_logs_by_address(new_events);
+    let (binned_logs, latest_ts_processed) = bin_logs_by_address(new_events);
 
-    let mut logs_to_process: Vec<(SupportedProtocolDrivers, DataFrame)> = vec![];
+    let mut logs_to_process: Vec<(String, SupportedProtocolDrivers, DataFrame)> = vec![];
 
     // find drivers, bin dataframes
     for address_logs in binned_logs {
-        // check for factory address (creation log)
+        // check for factory address (creation log) and add new markets to protocol drivers
         match match_protocol_from_factory_address(&address_logs.0) {
             Some(driver) => {
                 let normalized = driver.normalize_logs(address_logs.1);
@@ -70,26 +73,85 @@ async fn update_protocols() -> Result<(), Box<dyn std::error::Error>> {
             _ => (),
         }
 
-        // check if we need to process this address
+        // check if we have a driver for this address
         let normalized =
             check_driver_and_normalize(address_logs.0, address_logs.1, &mut dragonfly_driver)
                 .await?;
 
         match normalized {
-            Some(data_to_process) => logs_to_process.push(data_to_process),
+            Some(data_to_process) => {
+                // push only if is in filtered protocol status
+                let name = data_to_process.1.get_driver_name();
+                let matched_index = protocols_status.iter().position(|p| p.protocol_id == name);
+
+                match matched_index {
+                    Some(i) => logs_to_process.push(data_to_process),
+                    _ => (),
+                }
+            }
             _ => (),
         }
     }
 
+    // let mut protocol_latest_block_processed: HashMap<String, u64> = HashMap::new();
+
     // process dataframes
+    // TODO: Switch to multithreading thread pool system to increase performance
+    let mut new_volumes_to_store = vec![];
+    for df_with_driver in logs_to_process {
+        // process volumetrics
+        let new_volumes = process_volumetrics(&df_with_driver.2, &df_with_driver.1).await;
+        new_volumes_to_store.push((df_with_driver.0, new_volumes));
+
+        // let name = df_with_driver.1.get_protocol_info().name;
+
+        // let existing = protocol_latest_block_processed.get(&name);
+
+        // match existing {
+        //     Some(latest_block) => {
+        //         // let block_series = df_with_driver.2.column("block_number").unwrap();
+        //         // let latest_processed = block_series.u64().unwrap().max().unwrap();
+        //         let latest_processed: u64 = df_with_driver.2["block_number"].max().unwrap();
+        //         if latest_processed > latest_block.clone() {
+        //             protocol_latest_block_processed.insert(name, latest_processed);
+        //         };
+        //     }
+        //     _ => (),
+        // }
+        // process snapshots
+    }
+
+    // store new volumes in redis
+    dragonfly_driver
+        .set_multiple_volumes(new_volumes_to_store, &Timeframe::FiveMinute)
+        .await?;
+
+    // delete logs from redis.
+    // TODO: implement
+
+    // update protocol drivers with latest blocks processed
+    let mut updated_protocols: Vec<ProtocolStatus> = vec![];
+
+    for proto in protocols_to_update {
+        let mut new = proto.clone();
+        new.last_sync_block_timestamp = latest_ts_processed;
+        updated_protocols.push(new);
+    }
+    dragonfly_driver
+        .update_many_protocol_status(updated_protocols)
+        .await?;
 
     todo!();
 }
 
-fn bin_logs_by_address(logs: Vec<Log>) -> HashMap<String, Vec<Log>> {
+fn bin_logs_by_address(logs: Vec<Log>) -> (HashMap<String, Vec<Log>>, u64) {
     let mut hmap: HashMap<String, Vec<Log>> = HashMap::new();
+    let mut latest_ts_processed = 0;
 
     for log in logs {
+        if log.timestamp > latest_ts_processed {
+            latest_ts_processed = log.timestamp.clone()
+        }
         match log.address {
             Some(address) => {
                 let existing = hmap.get(&address);
@@ -103,14 +165,14 @@ fn bin_logs_by_address(logs: Vec<Log>) -> HashMap<String, Vec<Log>> {
             _ => (),
         }
     }
-    hmap
+    (hmap, latest_ts_processed as u64)
 }
 
 async fn check_driver_and_normalize(
     address: String,
     logs: Vec<Log>,
     dragonfly_driver: &mut ProtocolDragonflyDriver,
-) -> Result<Option<(SupportedProtocolDrivers, DataFrame)>, Box<dyn std::error::Error>> {
+) -> Result<Option<(String, SupportedProtocolDrivers, DataFrame)>, Box<dyn std::error::Error>> {
     let protocol_driver = dragonfly_driver
         .match_protocol_from_market_address(&address)
         .await?;
@@ -118,7 +180,7 @@ async fn check_driver_and_normalize(
     match protocol_driver {
         Some(driver) => {
             let normalized_logs = driver.normalize_logs(logs);
-            Ok(Some((driver, normalized_logs)))
+            Ok(Some((address, driver, normalized_logs)))
         }
         _ => Ok(None),
     }

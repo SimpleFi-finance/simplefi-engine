@@ -1,6 +1,6 @@
 use crate::types::protocols::ProtocolStatus;
 use async_trait::async_trait;
-use simplefi_redis::{get_complete_hset, get_from_hset, store_in_hset};
+use simplefi_redis::{get_complete_hset, get_from_hset, store_in_hset, store_multiple_in_hset};
 
 use super::dragonfly_driver::ProtocolDragonflyDriver;
 
@@ -27,6 +27,10 @@ pub trait ProtocolStatusTrait {
         &mut self,
         update: ProtocolStatus,
     ) -> Result<ProtocolStatus, Box<dyn std::error::Error>>;
+    async fn update_many_protocol_status(
+        &mut self,
+        update: Vec<ProtocolStatus>,
+    ) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 #[async_trait]
@@ -105,5 +109,22 @@ impl ProtocolStatusTrait for ProtocolDragonflyDriver {
         .await?;
 
         Ok(update)
+    }
+    async fn update_many_protocol_status(
+        &mut self,
+        updates: Vec<ProtocolStatus>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let hmap_name = self.resolve_protocol_status_hmap_name();
+
+        let mut to_save: Vec<(&str, &str)> = vec![];
+
+        for update in updates {
+            let string_status = serde_json::to_string(&update).unwrap();
+            to_save.push((&update.protocol_id, &string_status))
+        }
+
+        let _ = store_multiple_in_hset(&mut self.connection, &hmap_name, to_save).await?;
+
+        Ok(())
     }
 }

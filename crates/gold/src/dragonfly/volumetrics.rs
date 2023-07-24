@@ -106,6 +106,7 @@ impl VolumetricsTrait for ProtocolDragonflyDriver {
     }
 
     // Caution, each key will overwrite any existing values
+    // TODO: add logic to ensure all volumes in vec are for the same period
     async fn set_multiple_volumes(
         &mut self,
         market_volumes: Vec<(String, Vec<Volumetric>)>,
