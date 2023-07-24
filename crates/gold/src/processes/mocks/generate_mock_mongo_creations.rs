@@ -8,8 +8,8 @@ pub async fn generate_mock_mongo_creations(
 }
 
 pub async fn generate_mock_mongo_creations_update(
-    factory_addresses: Vec<String>,
-    from: i64,
+    // factory_addresses: Vec<String>,
+    from: u64,
 ) -> Vec<Log> {
     todo!()
 }

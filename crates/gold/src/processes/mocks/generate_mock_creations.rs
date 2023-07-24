@@ -3,7 +3,7 @@ use polars::{
     series::Series,
 };
 
-use crate::mongo::volumetrics::utils::shared::get_month_year_day;
+use crate::mongo::volumetrics::utils::shared::get_month_year_day_hour_minute;
 
 pub async fn generate_mock_dataframe(
     // factory_address: &String,
@@ -42,7 +42,7 @@ pub async fn generate_mock_dataframe(
     let mut year_series: Vec<Option<i64>> = vec![];
     let mut month_series: Vec<Option<i64>> = vec![];
     let mut day_series: Vec<Option<i64>> = vec![];
-    let mut address_series: Vec<Option<String>> = vec![];
+    let mut address_series: Vec<String> = vec![];
     let mut block_number_series: Vec<Option<i64>> = vec![];
     let mut block_hash_series: Vec<Option<String>> = vec![];
     let mut transaction_hash_series: Vec<Option<String>> = vec![];
@@ -67,12 +67,13 @@ pub async fn generate_mock_dataframe(
     let mut tx_log_index_series: Vec<Option<i64>> = vec![];
 
     for i in 0..24 {
-        let (month, year, day) = get_month_year_day(timestamps[i] as u64);
+        let ts = timestamps[i] as u64;
+        let (month, year, day, _, _) = get_month_year_day_hour_minute(&ts);
         timestamp_series.push(Some(timestamps[i]));
         year_series.push(Some(year as i64));
         month_series.push(Some(month as i64));
         day_series.push(Some(day as i64));
-        address_series.push(Some("test".to_string()));
+        address_series.push("test".to_string());
         block_number_series.push(Some(i as i64));
         block_hash_series.push(Some("asdas".to_string()));
         transaction_hash_series.push(Some("asdas".to_string()));

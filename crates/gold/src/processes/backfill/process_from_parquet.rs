@@ -165,13 +165,19 @@ async fn process_creations_from_logs(
             .unwrap();
 
         let driver = match_protocol_from_factory_address(address);
-        let creation_addresses = driver.get_created_market_addresses(df.clone());
 
-        for new_market in creation_addresses {
-            redis_driver
-                .set_market_driver(new_market, &driver.get_protocol_info().name)
-                .await
-                .unwrap();
+        match driver {
+            Some(d) => {
+                let creation_addresses = d.get_created_market_addresses(df.clone());
+
+                for new_market in creation_addresses {
+                    redis_driver
+                        .set_market_driver(new_market, &d.get_protocol_info().name)
+                        .await
+                        .unwrap();
+                }
+            }
+            _ => continue,
         }
     }
 }

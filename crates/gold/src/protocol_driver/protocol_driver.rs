@@ -78,10 +78,12 @@ impl SupportedProtocolDrivers {
 //     }
 // }
 
-pub fn match_protocol_from_factory_address(address: &str) -> SupportedProtocolDrivers {
+pub fn match_protocol_from_factory_address(address: &str) -> Option<SupportedProtocolDrivers> {
     match address {
-        "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f" => SupportedProtocolDrivers::UniswapV2Mainnet,
-        _ => panic!("No corrosponding driver for factory address {}", address),
+        "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f" => {
+            Some(SupportedProtocolDrivers::UniswapV2Mainnet)
+        }
+        _ => None,
     }
 }
 

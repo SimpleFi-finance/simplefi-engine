@@ -24,7 +24,7 @@ pub trait ProtocolsDriver {
     async fn match_protocol_from_market_address(
         &mut self,
         address: &str,
-    ) -> Option<SupportedProtocolDrivers>;
+    ) -> Result<Option<SupportedProtocolDrivers>, RedisError>;
 }
 
 #[async_trait]
@@ -50,7 +50,7 @@ impl ProtocolsDriver for ProtocolDragonflyDriver {
     async fn match_protocol_from_market_address(
         &mut self,
         address: &str,
-    ) -> Option<SupportedProtocolDrivers> {
+    ) -> Result<Option<SupportedProtocolDrivers>, RedisError> {
         // uniswap v2 mainnet
         let proto_name = &SupportedProtocolDrivers::UniswapV2Mainnet
             .get_protocol_info()
@@ -58,9 +58,9 @@ impl ProtocolsDriver for ProtocolDragonflyDriver {
         let uni_v2_mainnet_check = self.is_protocol_market(address, proto_name).await.unwrap();
 
         if uni_v2_mainnet_check {
-            return Some(SupportedProtocolDrivers::UniswapV2Mainnet);
+            return Ok(Some(SupportedProtocolDrivers::UniswapV2Mainnet));
         }
 
-        None
+        Ok(None)
     }
 }

@@ -22,7 +22,7 @@ pub struct ProtocolStatus {
     // pub volumetric_last_block_synced: i64,
     // pub snapshot_fully_synced: bool,
     // pub snapshot_last_block_synced: i64,
-    pub last_sync_block_timestamp: i64,
+    pub last_sync_block_timestamp: u64,
     // pub snapshot_last_block_synced: i64,
     pub should_update: bool,
 }
