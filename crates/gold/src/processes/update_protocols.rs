@@ -13,7 +13,6 @@ use std::{collections::HashMap, env};
 use bronze::mongo::evm::data_sets::logs::Log;
 use chains_types::get_chain;
 use chrono::Utc;
-use polars::lazy::dsl::col;
 
 use crate::protocol_driver::driver_traits::normalize_log::NormalizeLogs;
 use crate::{
@@ -22,7 +21,7 @@ use crate::{
     types::protocols::ProtocolStatus,
     utils::date::round_down_timestamp,
 };
-use polars::prelude::{lit, ChunkAgg, DataFrame};
+use polars::prelude::{ChunkAgg, DataFrame};
 
 async fn update_protocols() -> Result<(), Box<dyn std::error::Error>> {
     let chain_id = env::var("CHAIN_ID").unwrap();
@@ -128,11 +127,17 @@ fn bin_logs_by_address(logs: Vec<Log>) -> (HashMap<String, Vec<Log>>, u64) {
         if log.timestamp > latest_ts_processed {
             latest_ts_processed = log.timestamp.clone()
         }
-        match log.address {
+
+        let market_address = log.address.clone();
+        match market_address {
             Some(address) => {
                 let existing = hmap.get(&address);
                 match existing {
-                    Some(stored_logs) => stored_logs.push(log),
+                    Some(stored_logs) => {
+                        let mut new = stored_logs.clone();
+                        new.push(log);
+                        hmap.insert(address, new);
+                    }
                     _ => {
                         hmap.insert(address, vec![log]);
                     }
@@ -180,45 +185,3 @@ async fn check_driver_and_normalize(
         _ => Ok(None),
     }
 }
-
-// async fn process_volumetrics (logs: Vec<Log>) -> {
-
-// }
-
-/*
- Update protocols
-
-
-   get all protocol status'
-   find oldest last timestamp from protocol status' that is within the threshold (1 week/2 days??)
-
-   get logs from mongo > that oldest last timestamp
-   bin by address into a hashmap
-   get hashmap entries for logs that have address from factory address list
-     for each factor address dataframe
-       get the matching protocol driver
-       get new market addresses from logs (method for getting it from mongo logs?)
-       save market address using redis driver
-
-   after processing factory logs:
-       for each address in hashmap
-       check redis driver if address is in any of the sets
-       if in set
-       check protocol status for last timestamp checked, if older, do nothing
-       if newer
-             normalize logs
-             check redis if snapshots/volumetrics exists for that address
-               if they do, check if same period (5 min, hour, day)
-                 if same periods, use as base for new snapshots/volumetrics
-                 if not same periods, create new snapshots to use as (using previous figures for snapshots), store previous periods in mongo and clean redis
-                 use matched driver to process logs and create snapshots/volumetrics
-                 save most recent 5min,1hour,1day snapshot/volumetric in redis for that address, save all older in mongo
-                 update protocol status last updated timestamp
-
-*/
-
-/*
-   most of the logic here is reused from backfil logic.
-   Only difference is this never checks parquet, doesn't iterate through days
-   all processing logic should be reusable
-*/

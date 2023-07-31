@@ -6,10 +6,10 @@ use super::dragonfly_driver::ProtocolDragonflyDriver;
 #[async_trait]
 pub trait DailyAggregation {
     fn resolve_aggregation_key(&self) -> String;
-    async fn get_latest_aggregation_ts(&self) -> Result<u64, Box<dyn std::error::Error>>;
+    async fn get_latest_aggregation_ts(&mut self) -> Result<u64, Box<dyn std::error::Error>>;
 
     async fn set_latest_aggregation_ts(
-        &self,
+        &mut self,
         ts: &u64,
     ) -> Result<(), Box<dyn std::error::Error>>;
 }
@@ -19,7 +19,7 @@ impl DailyAggregation for ProtocolDragonflyDriver {
     fn resolve_aggregation_key(&self) -> String {
         format!("gold_daily_aggregation")
     }
-    async fn get_latest_aggregation_ts(&self) -> Result<u64, Box<dyn std::error::Error>> {
+    async fn get_latest_aggregation_ts(&mut self) -> Result<u64, Box<dyn std::error::Error>> {
         let hmap_name = self.resolve_aggregation_key();
 
         let exists = key_exists_hset(&mut self.connection, &hmap_name, &self.chain).await?;
@@ -39,7 +39,7 @@ impl DailyAggregation for ProtocolDragonflyDriver {
     }
 
     async fn set_latest_aggregation_ts(
-        &self,
+        &mut self,
         ts: &u64,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let hmap_name = self.resolve_aggregation_key();

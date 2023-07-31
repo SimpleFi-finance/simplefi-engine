@@ -112,8 +112,8 @@ impl VolumetricsTrait for ProtocolDragonflyDriver {
         market_volumes: Vec<(String, Vec<Volumetric>)>,
         period_timeframe: &Timeframe,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let formatted_keys: Vec<(&str, &str)> = market_volumes
-            .iter()
+        let formatted_keys: Vec<(String, String)> = market_volumes
+            .into_iter()
             .map(|mv| {
                 let formatted_key = format!(
                     "{}_{}",
@@ -121,8 +121,8 @@ impl VolumetricsTrait for ProtocolDragonflyDriver {
                     period_timeframe.round_timestamp(&mv.1[0].timestamp)
                 );
 
-                let formatted_data = serde_json::to_string(&mv.1).unwrap();
-                (formatted_key.as_str(), formatted_data.as_str())
+                let formatted_data: String = serde_json::to_string(&mv.1).unwrap();
+                (formatted_key, formatted_data)
             })
             .collect();
 
@@ -162,7 +162,7 @@ impl VolumetricsTrait for ProtocolDragonflyDriver {
             .iter()
             .cloned()
             .filter(|key| {
-                let (market_name, timestamp) = self.split_field_key(key);
+                let (_market_name, timestamp) = self.split_field_key(key);
                 if timestamp < ts_cutoff {
                     return true;
                 }
@@ -187,7 +187,7 @@ impl VolumetricsTrait for ProtocolDragonflyDriver {
             .resolve_collection_name(data_lake_types::SupportedDataTypes::Volumetric, timeframe);
         let mut hmap = get_complete_hset(&mut self.connection, &hmap_name).await?;
 
-        let result_hash: HashMap<&str, Vec<Volumetric>> = HashMap::new();
+        let mut result_hash: HashMap<String, Vec<Volumetric>> = HashMap::new();
 
         while hmap.len() > 0 {
             let key = hmap.remove(0);
@@ -199,12 +199,13 @@ impl VolumetricsTrait for ProtocolDragonflyDriver {
 
                     if timestamp <= ts {
                         let mut decode: Vec<Volumetric> = serde_json::from_str(&value).unwrap();
-                        let existing = result_hash.get(market_address);
+                        let existing = result_hash.get(&market_address);
 
                         match existing {
                             Some(ex) => {
-                                ex.append(&mut decode);
-                                result_hash.insert(market_address, ex.to_vec());
+                                // ex.append(&mut decode);
+                                decode.extend(ex.into_iter().cloned());
+                                result_hash.insert(market_address, decode.to_vec());
                             }
                             _ => {
                                 result_hash.insert(market_address, decode);

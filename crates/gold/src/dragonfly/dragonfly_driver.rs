@@ -47,7 +47,7 @@ impl ProtocolDragonflyDriver {
     pub fn split_field_key(
         &self,
         key: &str,
-    ) -> (&str, u64) {
+    ) -> (String, u64) {
         let key_parts: Vec<&str> = key.split("-").collect();
 
         if key_parts.len() != 2 {
@@ -55,7 +55,7 @@ impl ProtocolDragonflyDriver {
         }
 
         let key_ts: u64 = key_parts[1].parse().unwrap();
-        (key_parts[0], key_ts)
+        (key_parts[0].clone().to_string(), key_ts)
     }
 
     // pub fn resolve_key_extension(

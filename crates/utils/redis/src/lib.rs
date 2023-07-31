@@ -49,7 +49,7 @@ pub async fn store_in_hset(
 pub async fn store_multiple_in_hset(
     con: &mut Connection,
     hmap_name: &str,
-    values: Vec<(&str, &str)>,
+    values: Vec<(String, String)>,
 ) -> RedisResult<()> {
     let _ = con.hset_multiple(hmap_name, &values).await?;
     Ok(())

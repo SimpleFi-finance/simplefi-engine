@@ -116,11 +116,11 @@ impl ProtocolStatusTrait for ProtocolDragonflyDriver {
     ) -> Result<(), Box<dyn std::error::Error>> {
         let hmap_name = self.resolve_protocol_status_hmap_name();
 
-        let mut to_save: Vec<(&str, &str)> = vec![];
+        let mut to_save: Vec<(String, String)> = vec![];
 
         for update in updates {
             let string_status = serde_json::to_string(&update).unwrap();
-            to_save.push((&update.protocol_id, &string_status))
+            to_save.push((update.protocol_id.clone(), string_status.clone()))
         }
 
         let _ = store_multiple_in_hset(&mut self.connection, &hmap_name, to_save).await?;

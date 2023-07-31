@@ -22,11 +22,8 @@ pub async fn back_sync_protocols() {
     // Create a new MongoDB client
     let protocol_status = get_all_protocols(&db, &chain_id).await.unwrap();
 
-    // filter all that are within threshold
-    let threshold = Utc::now()
-        .checked_sub_days(Days::new(1))
-        .unwrap()
-        .timestamp_millis();
+    // filter all that are within threshold ( 1 hour)
+    let threshold = Utc::now().timestamp_millis() - 3600000;
     let outdated_protocols = protocol_status
         .iter()
         .cloned()
@@ -34,6 +31,13 @@ pub async fn back_sync_protocols() {
         .collect::<Vec<ProtocolStatus>>();
 
     // find oldest update
+    // let oldest_update = outdated_protocols.iter().reduce(threshold, |(acc, p)| {
+    //     if p.last_sync_block_timestamp < acc {
+    //         p.last_sync_block_timestamp
+    //     }
+    //     acc
+    //     // p.last_sync_block_timestamp < acc ? p.last_sync_block_timestamp : acc
+    // });
     let mut oldest_update = threshold;
     outdated_protocols.iter().for_each(|x| {
         if x.last_sync_block_timestamp < oldest_update {

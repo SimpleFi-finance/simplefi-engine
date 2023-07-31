@@ -8,7 +8,7 @@ use super::{
     types::{VolumetricPeriodDaily, VolumetricPeriodFiveMin, VolumetricPeriodHourly},
     utils::{
         inserts::{prep_daily_insert, prep_five_min_insert, prep_hourly_insert},
-        shared::{get_month_year_day, split_by_period},
+        shared::{get_month_year_day_hour_minute, split_by_period},
     },
 };
 
@@ -17,7 +17,7 @@ pub async fn insert_volumtrics_or_update_daily(
     address: &str,
     volumetrics: Vec<Volumetric>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let (month, year, _) = get_month_year_day(volumetrics[0].timestamp);
+    let (month, year, _, _, _) = get_month_year_day_hour_minute(&volumetrics[0].timestamp);
 
     let global_settings = load_settings().unwrap();
 
@@ -99,7 +99,7 @@ pub async fn insert_volumtrics_or_update_hourly(
     address: &str,
     volumetrics: Vec<Volumetric>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let (month, year, _) = get_month_year_day(volumetrics[0].timestamp);
+    let (month, year, _, _, _) = get_month_year_day_hour_minute(&volumetrics[0].timestamp);
 
     let global_settings = load_settings().unwrap();
 
@@ -188,7 +188,7 @@ pub async fn insert_volumtrics_or_update_five(
     address: &str,
     volumetrics: Vec<Volumetric>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let (month, year, day) = get_month_year_day(volumetrics[0].timestamp);
+    let (month, year, day, _, _) = get_month_year_day_hour_minute(&volumetrics[0].timestamp);
 
     let global_settings = load_settings().unwrap();
 

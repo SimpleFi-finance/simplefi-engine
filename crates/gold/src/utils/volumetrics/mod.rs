@@ -55,13 +55,15 @@ pub fn split_by_period(
     let mut hmap: HashMap<u64, Vec<Volumetric>> = HashMap::new();
 
     for volume in volumes {
-        // let existing = hmap.get()
-
-        let mut existing = hmap.get(&volume.timestamp);
+        let existing = hmap.get(&volume.timestamp);
+        // let ts = timeframe.round_timestamp(&volume.timestamp);
+        let ts = volume.timestamp.clone();
 
         match existing {
             Some(ex) => {
-                ex.push(volume);
+                let mut new = ex.clone();
+                new.push(volume);
+                hmap.insert(ts, new);
             }
             _ => {
                 hmap.insert(volume.timestamp, vec![volume]);
