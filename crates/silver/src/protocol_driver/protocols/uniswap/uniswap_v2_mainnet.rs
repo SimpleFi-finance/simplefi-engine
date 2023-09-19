@@ -1,14 +1,12 @@
-use crate::{
-    types::{protocols::ProtocolInfo, volumetrics::Volumetric},
-    utils::{balance_strings::format_balance_string, big_number::add_big_from_strs},
-};
+use crate::types::{protocols::ProtocolInfo, volumetrics::Volumetric};
 use bronze::mongo::evm::data_sets::logs::Log;
 use chains_types::SupportedChains;
-use ethers::types::H256;
+use ethers::types::{H256, U256};
 use polars::{
     prelude::{DataFrame, NamedFrom},
     series::Series,
 };
+use crate::types::volumetrics::AddressBalance;
 
 // protocol info
 pub fn get_protocol_info() -> ProtocolInfo {
@@ -52,15 +50,15 @@ pub fn volumes_from_dataframe_slice(df: &DataFrame) -> Volumetric {
         .unwrap()
         .unwrap();
 
-    let mut token_0_out_total = H256::from(0);
-    let mut token_1_out_total = H256::from(0);
-    let mut token_0_in_total = H256::from(0);
-    let mut token_1_in_total = H256::from(0);
-    let mut transfer_total = H256::from(0);
-    let mut token_0_withdraw_total = H256::from(0);
-    let mut token_1_withdraw_total = H256::from(0);
-    let mut token_0_deposit_total = H256::from(0);
-    let mut token_1_deposit_total = H256::from(0);
+    let mut token_0_out_total = U256::from(0);
+    let mut token_1_out_total = U256::from(0);
+    let mut token_0_in_total = U256::from(0);
+    let mut token_1_in_total = U256::from(0);
+    let mut transfer_total = U256::from(0);
+    let mut token_0_withdraw_total = U256::from(0);
+    let mut token_1_withdraw_total = U256::from(0);
+    let mut token_0_deposit_total = U256::from(0);
+    let mut token_1_deposit_total = U256::from(0);
 
     for _index in 0..df.height() {
         let event_type = log_type_series.next().unwrap().unwrap();
@@ -73,19 +71,19 @@ pub fn volumes_from_dataframe_slice(df: &DataFrame) -> Volumetric {
         match event_type {
             "Swap" => {
                 match data_1 {
-                    Some(x) => token_0_out_total = token_0_out_total = H256::from(x),
+                    Some(x) => token_0_out_total = token_0_out_total + U256::from(x),
                     _ => (),
                 }
                 match data_2 {
-                    Some(x) => token_1_out_total = token_1_out_total = H256::from(x),
+                    Some(x) => token_1_out_total = token_1_out_total + U256::from(x),
                     _ => (),
                 }
                 match data_3 {
-                    Some(x) => token_0_in_total = token_0_in_total = H256::from(x),
+                    Some(x) => token_0_in_total = token_0_in_total + U256::from(x),
                     _ => (),
                 }
                 match data_4 {
-                    Some(x) => token_1_in_total = token_1_in_total = H256::from(x),
+                    Some(x) => token_1_in_total = token_1_in_total +U256::from(x),
                     _ => (),
                 }
             }
@@ -94,49 +92,47 @@ pub fn volumes_from_dataframe_slice(df: &DataFrame) -> Volumetric {
                     if from_value != "0x0000000000000000000000000000000000000000"
                         && to_value != "0x0000000000000000000000000000000000000000"
                     {
-                        transfer_total = transfer_total + H256::from(value)
+                        transfer_total = transfer_total + U256::from(value)
                     }
                 }
                 _ => (),
             },
             "Burn" => match (data_1, data_2) {
                 (Some(token_0_value), Some(token_1_value)) => {
-                    token_0_withdraw_total = token_0_withdraw_total + H256::from(token_0_value);
-                        // add_big_from_strs(token_0_value, &token_0_withdraw_total);
-                    token_1_withdraw_total =token_1_withdraw_total+H256::from(token_1_value);
-                        // add_big_from_strs(token_1_value, &token_1_withdraw_total);
+                    token_0_withdraw_total = token_0_withdraw_total + U256::from(token_0_value);
+                    token_1_withdraw_total =token_1_withdraw_total + U256::from(token_1_value);
                 }
                 _ => (),
             },
             "Mint" => match (data_1, data_2) {
                 (Some(token_0_value), Some(token_1_value)) => {
-                    token_0_deposit_total =token_0_deposit_total + H256::from(token_0_value);
-                        // add_big_from_strs(token_0_value, &token_0_deposit_total);
-                    token_1_deposit_total = token_1_deposit_total+ H256::from(token_1_value);
-                        // add_big_from_strs(token_1_value, &token_0_deposit_total);
+                    token_0_deposit_total =token_0_deposit_total + U256::from(token_0_value);
+                    token_1_deposit_total = token_1_deposit_total+ U256::from(token_1_value);
                 }
                 _ => (),
             },
             _ => (),
         }
     }
+
+    // TODO! change address to actual token addresses
     Volumetric {
         timestamp: snap_timestamp,
         swaps_in: vec![
-            format!("token0|{}", token_0_in_total),
-            format!("token1|{}", token_1_in_total),
+            AddressBalance{address: H256::zero(), balance:token_0_in_total},
+            AddressBalance{address: H256::zero(), balance:token_1_in_total},
         ],
         swaps_out: vec![
-            format!("token0|{}", token_0_out_total),
-            format!("token1|{}", token_1_out_total),
+            AddressBalance{address: H256::zero(), balance:token_0_out_total},
+            AddressBalance{address: H256::zero(), balance:token_1_out_total},
         ],
         withdrawal: vec![
-            format_balance_string("token0", &token_0_withdraw_total),
-            format_balance_string("token1", &token_1_withdraw_total),
+            AddressBalance{address: H256::zero(), balance:token_0_withdraw_total},
+            AddressBalance{address: H256::zero(), balance:token_1_withdraw_total},
         ],
         mint: vec![
-            format_balance_string("token0", &token_0_deposit_total),
-            format_balance_string("token1", &token_1_deposit_total),
+            AddressBalance{address: H256::zero(), balance:token_0_deposit_total},
+            AddressBalance{address: H256::zero(), balance:token_1_deposit_total},
         ],
         transfer: transfer_total,
     }

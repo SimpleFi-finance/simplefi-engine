@@ -1,37 +1,30 @@
+use ethers::types::H256;
 use serde::{Deserialize, Serialize};
+
+pub struct AddressBalance {
+  pub address: H256,
+  pub balance: H256
+}
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Volumetric {
     pub timestamp: u64,
-    pub swaps_out: Vec<String>,  // ["token|total"]
-    pub swaps_in: Vec<String>,   // ["token|total"]
-    pub withdrawal: Vec<String>, // ["token|total"]
-    pub mint: Vec<String>,       // ["token|total"]
-    pub transfer: String,        // ["token|total"]
+    pub swaps_out: Vec<AddressBalance>,  
+    pub swaps_in: Vec<AddressBalance>,   
+    pub withdrawal: Vec<AddressBalance>, 
+    pub mint: Vec<AddressBalance>,       
+    pub transfer: H256,        
 }
 
 #[derive(Clone, Debug)]
 pub struct Volumes {
-    pub swaps_out: Vec<String>,  // ["token|total"]
-    pub swaps_in: Vec<String>,   // ["token|total"]
-    pub withdrawal: Vec<String>, // ["token|total"]
-    pub mint: Vec<String>,       // ["token|total"]
-    pub transfer: String,        // ["token|total"]
+    pub swaps_out: Vec<AddressBalance>,  
+    pub swaps_in: Vec<AddressBalance>,   
+    pub withdrawal: Vec<AddressBalance>, 
+    pub mint: Vec<AddressBalance>,       
+    pub transfer: H256,        
 }
 
-// #[derive(Clone, Debug)]
-// pub struct PeriodVolumetric {
-//     pub volumetrics: Volumes,
-//     pub period_timestamp: u64,
-// }
-
-// #[derive(Clone, Debug)]
-// pub struct VolumetricWithDetails {
-//     pub volumetrics: Volumes,
-//     pub five_min_details: u64,
-//     pub hour_details: u64,
-//     pub day_details: u64,
-// }
 
 /*
  {
