@@ -7,7 +7,8 @@ use crate::types::volumetrics::Volumetric;
 use std::collections::HashMap;
 pub mod aggregate_volumetrics;
 pub mod process_volumetrics;
-
+pub mod inserts;
+pub mod shared;
 pub fn amalgamate_volumetrics(
     volume_a: &Volumetric,
     volume_b: &Volumetric,
