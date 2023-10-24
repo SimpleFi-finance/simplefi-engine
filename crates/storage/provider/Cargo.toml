@@ -1,0 +1,21 @@
+[package]
+name = "storage-provider"
+version.workspace = true
+edition.workspace = true
+description = "SIP storage provider."
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+interfaces.workspace = true
+primitives.workspace = true
+db = { path = "../db" }
+revm-primitives = { workspace = true }
+
+rocksdb = { workspace = true, features = ["multi-threaded-cf"] }
+auto_impl = "1.1.0"
+tempfile = "3.1.0"
+serde_json = "1.0.64"
+time = {workspace = true }
+ethabi = { workspace = true }
+hex-literal = { workspace = true}
+chrono = { workspace = true, features = ["serde"] }

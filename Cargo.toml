@@ -9,6 +9,14 @@ members = [
     "crates/silver",
     "crates/bronze",
     "crates/stages",
+    # storage
+    "crates/storage/db",
+    "crates/rlp",
+    "crates/rlp/rlp-derive",
+    "crates/storage/codecs",
+    "crates/primitives",
+    "crates/storage/provider",
+    "crates/interfaces",
     # utils
     "crates/utils/http",
     "crates/utils/logger",
@@ -36,9 +44,13 @@ repository = "https://github.com/SimpleFi-finance/simplefi-engine"
 resolver = "2"
 
 [workspace.dependencies]
+db = { path = "./crates/storage/db" }
+rlp = { path = "./crates/rlp" }
+interfaces = { path = "./crates/interfaces" }
+primitives = { path = "./crates/primitives" }
+storage-provider = { path = "./crates/storage/provider" }
 async-trait = "0.1"
 bson = "2.6"
-chrono = "0.4.24"
 clap = { version = "4.2", features = ["derive"] }
 confy = { version = "0.5.1" }
 ethers = { version = "2.0.4", features = ["ws", "rustls", "legacy"]}
@@ -76,3 +88,24 @@ datafusion = "24.0.0"
 object_store = "0.5.6"
 url = "2.2.1"
 parquet = "43.0.0"
+revm = { version = "3" }
+revm-primitives = "1.1"
+rocksdb = { version = "0.21.0", features = [ "zstd" ] }
+eyre = "0.6.5"
+thiserror = "1.0.30"
+tempfile  = "3.2.0"
+bytes = "1.0.1"
+c-kzg = { git = "https://github.com/ethereum/c-kzg-4844" }
+proc-macro2 = "1.0.30"
+quote = "1.0.12"
+proptest = "1.0.0"
+proptest-derive = "0.3.0"
+arbitrary = "1.0.0"
+secp256k1 = {version = "0.27.0", features = ["global-context", "rand-std", "recovery"]}
+strum = "0.25"
+time = "0.3.29"
+hex-literal = "0.4.1"
+chrono = "0.4.26"
+
+[patch."https://github.com/ethereum/c-kzg-4844"]
+c-kzg = { git = "https://github.com/rjected/c-kzg-4844", branch = "dan/add-serde-feature" }
