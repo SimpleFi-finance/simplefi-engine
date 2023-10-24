@@ -32,16 +32,17 @@ members = [
     "crates/types/providers"
 ]
 
+resolver = "2"
+
 [workspace.package]
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
-rust-version = "1.70" # Remember to update .clippy.toml and README.md
 homepage = "https://github.com/SimpleFi-finance/simplefi-engine"
 repository = "https://github.com/SimpleFi-finance/simplefi-engine"
 
 # Explicitly set the resolver to version 2, which is the default for packages with edition >= 2021
 # https://doc.rust-lang.org/edition-guide/rust-2021/default-cargo-resolver.html
-resolver = "2"
+
 
 [workspace.dependencies]
 db = { path = "./crates/storage/db" }
@@ -49,6 +50,26 @@ rlp = { path = "./crates/rlp" }
 interfaces = { path = "./crates/interfaces" }
 primitives = { path = "./crates/primitives" }
 storage-provider = { path = "./crates/storage/provider" }
+revm = { version = "3" }
+revm-primitives = { version = "=1.1.0"}
+rocksdb = { version = "0.21.0", features = [ "zstd" ] }
+eyre = "0.6.5"
+thiserror = "1.0.30"
+tempfile  = "3.2.0"
+serde = { version = "1.0.130"}
+bytes = "1.0.1"
+c-kzg = { git = "https://github.com/ethereum/c-kzg-4844" }
+proc-macro2 = "1.0.30"
+quote = "1.0.12"
+proptest = "1.0.0"
+proptest-derive = "0.3.0"
+arbitrary = "1.0.0"
+secp256k1 = {version = "0.27.0", features = ["global-context", "rand-std", "recovery"]}
+strum = "0.25"
+time = "0.3.29"
+ethabi = "18.0.0"
+hex-literal = "0.4.1"
+chrono = "0.4.26"
 async-trait = "0.1"
 bson = "2.6"
 clap = { version = "4.2", features = ["derive"] }
@@ -73,14 +94,12 @@ redis = { version = "0.23", features = ["tokio-comp"] }
 regex = { version = "1.8" }
 reqwest = { version = "0.11", features = ["json"] }
 ring = { version = "0.16" }
-serde = "1.0"
 serde_json = "1.0"
 tokio = { version = "1", features = ["full"] }
 tonic = "0.9"
 tonic-build = "0.9"
 tracing = "0.1"
 tungstenite = { version = "0.19.0", features = ["native-tls"] }
-ethabi = {version = "18.0.0", features = ["full-serde"]}
 google-cloud-storage = "0.11.0"
 google-cloud-auth = "0.9.0"
 google-cloud-default = "0.2.0"
@@ -88,24 +107,6 @@ datafusion = "24.0.0"
 object_store = "0.5.6"
 url = "2.2.1"
 parquet = "43.0.0"
-revm = { version = "3" }
-revm-primitives = "1.1"
-rocksdb = { version = "0.21.0", features = [ "zstd" ] }
-eyre = "0.6.5"
-thiserror = "1.0.30"
-tempfile  = "3.2.0"
-bytes = "1.0.1"
-c-kzg = { git = "https://github.com/ethereum/c-kzg-4844" }
-proc-macro2 = "1.0.30"
-quote = "1.0.12"
-proptest = "1.0.0"
-proptest-derive = "0.3.0"
-arbitrary = "1.0.0"
-secp256k1 = {version = "0.27.0", features = ["global-context", "rand-std", "recovery"]}
-strum = "0.25"
-time = "0.3.29"
-hex-literal = "0.4.1"
-chrono = "0.4.26"
 
 [patch."https://github.com/ethereum/c-kzg-4844"]
 c-kzg = { git = "https://github.com/rjected/c-kzg-4844", branch = "dan/add-serde-feature" }
