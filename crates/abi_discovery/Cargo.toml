@@ -22,8 +22,6 @@ serde =         { workspace = true, default_features = false, features = ["deriv
 serde_json =    { workspace = true }
 tokio =         { workspace = true, features = ["full"] }
 
-# shared types
-mongo_types =  { path = "../types/mongo" }
 abi_discovery_types = { path = "../types/abi_discovery" }
 
 #shared utils

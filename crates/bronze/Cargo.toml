@@ -29,8 +29,6 @@ simplefi-chains = { path = "../utils/chains"}
 
 # shared types
 chains_types = { path = "../types/chains"}
-mongo_types = { path = "../types/mongo"}
-data_lake_types = { path = "../types/data_lake"}
 
 [[bin]]
 name = "track_blocks"

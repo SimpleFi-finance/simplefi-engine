@@ -33,8 +33,6 @@ members = [
     # types
     "crates/types/abi_discovery",
     "crates/types/chains",
-    "crates/types/data_lake",
-    "crates/types/mongo",
     "crates/types/redis",
     "crates/types/providers",
     # metrics

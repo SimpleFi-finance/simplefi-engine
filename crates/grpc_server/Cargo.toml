@@ -18,9 +18,6 @@ tonic = { workspace = true }
 simplefi-logger = {path = "../utils/logger"}
 simplefi-redis = {path = "../utils/redis"}
 
-# shared types
-mongo_types = { path = "../types/mongo" }
-
 
 [build-dependencies]
 tonic-build = { workspace = true }

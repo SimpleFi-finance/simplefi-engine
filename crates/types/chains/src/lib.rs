@@ -4,7 +4,7 @@ pub mod evm;
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use common::chain::DecodeLogs;
+use common::chain::{DecodeLogs, Info};
 use grpc_server::client::AbiDiscoveryClient;
 use log::info;
 use rayon::{iter::ParallelIterator, prelude::IntoParallelRefIterator};
@@ -29,12 +29,6 @@ use crate::{
         block::Block, generic::GenericNodeResponse, log::Log, new_heads::NewHeadsEvent,
         transaction::Tx,
     },
-};
-use data_lake_types::{SupportedDataLevels, SupportedDataTypes};
-use mongo_types::MongoConfig;
-
-use self::{
-    common::chain::Info,
 };
 
 pub enum SupportedChains {
@@ -89,10 +83,10 @@ impl Info for SupportedChains {
                         decimals: 18,
                         address: "0x0000000000".to_string(),
                     }],
-                    db: MongoConfig {
-                        uri: glob_settings.mongodb_uri,
-                        database: glob_settings.mongodb_database_name,
-                    },
+                    // db: MongoConfig {
+                    //     uri: glob_settings.mongodb_uri,
+                    //     database: glob_settings.mongodb_database_name,
+                    // },
                     network: "mainnet".to_string(),
                     engine_type: Engine::EVM,
                     nodes,
@@ -120,22 +114,22 @@ impl Info for SupportedChains {
         self.info().rpc_methods.get(&method).cloned()
     }
 
-    fn get_db(&self) -> MongoConfig {
-        self.info().db
-    }
+    // fn get_db(&self) -> MongoConfig {
+    //     self.info().db
+    // }
 
-    fn resolve_collection_name(
-        &self,
-        collection_type: &SupportedDataTypes,
-        collection_level: &SupportedDataLevels,
-    ) -> String {
-        format!(
-            "{}_{}_{}",
-            self.info().symbol.to_lowercase(),
-            collection_type,
-            collection_level
-        )
-    }
+    // fn resolve_collection_name(
+    //     &self,
+    //     collection_type: &SupportedDataTypes,
+    //     collection_level: &SupportedDataLevels,
+    // ) -> String {
+    //     format!(
+    //         "{}_{}_{}",
+    //         self.info().symbol.to_lowercase(),
+    //         collection_type,
+    //         collection_level
+    //     )
+    // }
 }
 
 #[async_trait::async_trait]
@@ -421,12 +415,12 @@ impl DecodeLogs for SupportedChains {
         // TODO: Add chain as parameter
         let chain_name = "ethereum".to_string();
 
-        let response = abi_discovery_client.get_contracts_info_handler(chain_name, unique_addresses).await;
+        // let response = abi_discovery_client.get_contracts_info_handler(chain_name, unique_addresses).await;
 
-        let abis = response.into_inner();
-        let decoded = evm_logs_decoder(logs_by_address, abis.contracts_info).unwrap();
+        // let abis = response.into_inner();
+        // let decoded = evm_logs_decoder(logs_by_address, abis.contracts_info).unwrap();
 
-        Ok(decoded)
+        Ok((vec![], vec![]))
     }
 }
 

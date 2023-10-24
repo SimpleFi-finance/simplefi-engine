@@ -10,7 +10,6 @@ use crate::abi_discovery_proto::{
 };
 use abi_discovery::{helpers::{contracts, providers, providers::Provider}, mongo::types::{ContractAbiCollection, AbiCollection}};
 
-use mongo_types::{ Mongo, MongoConfig };
 use simplefi_redis::connect;
 
 #[derive(Default)]
@@ -311,114 +310,116 @@ impl AbiDiscoveryService for AbiDiscoveryServiceImpl {
         let mysettings = load_settings().expect("Failed to load settings");
         let redis_uri = mysettings.redis_uri.to_string();
 
-        let config = MongoConfig {
-            uri: mysettings.mongodb_uri.to_string(),
-            database: mysettings.mongodb_database_name.to_string(),
-        };
+        // TODO: change from mongo to rocksDb
 
-        let mongo = Mongo::new(&config).await.unwrap();
+        // let config = MongoConfig {
+        //     uri: mysettings.mongodb_uri.to_string(),
+        //     database: mysettings.mongodb_database_name.to_string(),
+        // };
 
-        let mut redis_connection = connect(&redis_uri.as_str())
-            .await
-            .expect("Failed to connect to redis");
+        // let mongo = Mongo::new(&config).await.unwrap();
 
-        let contracts_abi_collection_name =
-            format!("{}_{}", &chain, &mysettings.contract_abi_collection_name);
+        // let mut redis_connection = connect(&redis_uri.as_str())
+        //     .await
+        //     .expect("Failed to connect to redis");
 
-        let abis_collection = mongo.database.collection::<AbiCollection>(
-            format!("{}_{}", &chain, &mysettings.abi_collection_name).as_str(),
-        );
-        let contracts_collection = mongo
-            .database
-            .collection::<ContractAbiCollection>(contracts_abi_collection_name.as_str());
+        // let contracts_abi_collection_name =
+        //     format!("{}_{}", &chain, &mysettings.contract_abi_collection_name);
 
-        let response = contracts::get_full_contracts_info(
-            &mut redis_connection,
-            &contracts_collection,
-            &abis_collection,
-            &chain,
-            [address].to_vec(),
-        )
-        .await;
+        // let abis_collection = mongo.database.collection::<AbiCollection>(
+        //     format!("{}_{}", &chain, &mysettings.abi_collection_name).as_str(),
+        // );
+        // let contracts_collection = mongo
+        //     .database
+        //     .collection::<ContractAbiCollection>(contracts_abi_collection_name.as_str());
 
-        if response.is_err() {
-            return Err(Status::invalid_argument(
-                response.err().unwrap().to_string(),
-            ));
-        }
+        // let response = contracts::get_full_contracts_info(
+        //     &mut redis_connection,
+        //     &contracts_collection,
+        //     &abis_collection,
+        //     &chain,
+        //     [address].to_vec(),
+        // )
+        // .await;
 
-        let response = response.unwrap();
+        // if response.is_err() {
+        //     return Err(Status::invalid_argument(
+        //         response.err().unwrap().to_string(),
+        //     ));
+        // }
 
-        let contract_info = if response.len() > 0 {
-            let contract = response.get(0).unwrap();
+        // let response = response.unwrap();
 
-            let mut contract_implementations = Vec::new();
+        // let contract_info = if response.len() > 0 {
+        //     let contract = response.get(0).unwrap();
 
-            for implementation in contract.implementations.iter() {
-                let abi_implementation = if implementation.abi.is_some() {
-                    let abi = implementation.abi.as_ref().unwrap();
+        //     let mut contract_implementations = Vec::new();
 
-                    Some(crate::abi_discovery_proto::Abi {
-                        abi: abi.abi.to_string(),
-                        abi_hash: abi.abi_hash.to_string(),
-                        is_proxy: abi.is_proxy,
-                        standard: abi.standard.as_u32() as i32,
-                    })
-                } else {
-                    None
-                };
+        //     for implementation in contract.implementations.iter() {
+        //         let abi_implementation = if implementation.abi.is_some() {
+        //             let abi = implementation.abi.as_ref().unwrap();
 
-                let creation_block = if implementation.creation_block.is_some() {
-                    implementation.creation_block.as_ref().unwrap().to_string()
-                } else {
-                    "".to_string()
-                };
+        //             Some(crate::abi_discovery_proto::Abi {
+        //                 abi: abi.abi.to_string(),
+        //                 abi_hash: abi.abi_hash.to_string(),
+        //                 is_proxy: abi.is_proxy,
+        //                 standard: abi.standard.as_u32() as i32,
+        //             })
+        //         } else {
+        //             None
+        //         };
 
-                contract_implementations.push(crate::abi_discovery_proto::ContractImplementation {
-                    name: implementation.name.to_string(),
-                    address: implementation.address.to_string(),
-                    abi: abi_implementation,
-                    creation_block: creation_block,
-                    verified: implementation.verified,
-                });
-            }
+        //         let creation_block = if implementation.creation_block.is_some() {
+        //             implementation.creation_block.as_ref().unwrap().to_string()
+        //         } else {
+        //             "".to_string()
+        //         };
 
-            let contract_abi = if contract.abi.is_some() {
-                let abi = contract.abi.as_ref().unwrap();
+        //         contract_implementations.push(crate::abi_discovery_proto::ContractImplementation {
+        //             name: implementation.name.to_string(),
+        //             address: implementation.address.to_string(),
+        //             abi: abi_implementation,
+        //             creation_block: creation_block,
+        //             verified: implementation.verified,
+        //         });
+        //     }
 
-                Some(crate::abi_discovery_proto::Abi {
-                    abi: abi.abi.to_string(),
-                    abi_hash: abi.abi_hash.to_string(),
-                    is_proxy: abi.is_proxy,
-                    standard: abi.standard.as_u32() as i32,
-                })
-            } else {
-                None
-            };
+        //     let contract_abi = if contract.abi.is_some() {
+        //         let abi = contract.abi.as_ref().unwrap();
 
-            let creation_block = if contract.creation_block.is_some() {
-                contract.creation_block.as_ref().unwrap().to_string()
-            } else {
-                "".to_string()
-            };
+        //         Some(crate::abi_discovery_proto::Abi {
+        //             abi: abi.abi.to_string(),
+        //             abi_hash: abi.abi_hash.to_string(),
+        //             is_proxy: abi.is_proxy,
+        //             standard: abi.standard.as_u32() as i32,
+        //         })
+        //     } else {
+        //         None
+        //     };
 
-            Some(crate::abi_discovery_proto::ContractInfo {
-                chain: chain.to_string(),
-                name: contract.name.to_string(),
-                address: contract.address.to_string(),
-                abi: contract_abi,
-                creation_block: creation_block,
-                is_proxy: contract.is_proxy,
-                verified: contract.verified,
-                implementations: contract_implementations,
-            })
-        } else {
-            None
-        };
+        //     let creation_block = if contract.creation_block.is_some() {
+        //         contract.creation_block.as_ref().unwrap().to_string()
+        //     } else {
+        //         "".to_string()
+        //     };
+
+        //     Some(crate::abi_discovery_proto::ContractInfo {
+        //         chain: chain.to_string(),
+        //         name: contract.name.to_string(),
+        //         address: contract.address.to_string(),
+        //         abi: contract_abi,
+        //         creation_block: creation_block,
+        //         is_proxy: contract.is_proxy,
+        //         verified: contract.verified,
+        //         implementations: contract_implementations,
+        //     })
+        // } else {
+        //     None
+        // };
 
         Ok(Response::new(ContractInfoResponse {
-            success: response.len() > 0,
-            contract_info,
+            success: false,
+            contract_info: None,
         }))
     }
 
@@ -441,117 +442,119 @@ impl AbiDiscoveryService for AbiDiscoveryServiceImpl {
 
         let mysettings = load_settings().expect("Failed to load settings");
 
-        let config = MongoConfig {
-            uri: mysettings.mongodb_uri.to_string(),
-            database: mysettings.mongodb_database_name.to_string(),
-        };
+        // TODO: replace with rocksDB
 
-        let mongo = Mongo::new(&config).await.unwrap();
+        // let config = MongoConfig {
+        //     uri: mysettings.mongodb_uri.to_string(),
+        //     database: mysettings.mongodb_database_name.to_string(),
+        // };
 
-        let mut redis_connection = connect(&mysettings.redis_uri)
-            .await
-            .expect("Failed to connect to redis");
+        // let mongo = Mongo::new(&config).await.unwrap();
 
-        let contracts_abi_collection_name =
-            format!("{}_{}", &chain, &mysettings.contract_abi_collection_name);
+        // let mut redis_connection = connect(&mysettings.redis_uri)
+        //     .await
+        //     .expect("Failed to connect to redis");
 
-        let abis_collection = mongo.database.collection::<AbiCollection>(
-            format!("{}_{}", &chain, &mysettings.abi_collection_name).as_str(),
-        );
-        let contracts_collection = mongo
-            .database
-            .collection::<ContractAbiCollection>(contracts_abi_collection_name.as_str());
+        // let contracts_abi_collection_name =
+        //     format!("{}_{}", &chain, &mysettings.contract_abi_collection_name);
 
-        let response = contracts::get_full_contracts_info(
-            &mut redis_connection,
-            &contracts_collection,
-            &abis_collection,
-            &chain,
-            addresses,
-        ).await;
+        // let abis_collection = mongo.database.collection::<AbiCollection>(
+        //     format!("{}_{}", &chain, &mysettings.abi_collection_name).as_str(),
+        // );
+        // let contracts_collection = mongo
+        //     .database
+        //     .collection::<ContractAbiCollection>(contracts_abi_collection_name.as_str());
 
-        if response.is_err() {
-            return Err(Status::invalid_argument(
-                response.err().unwrap().to_string(),
-            ));
-        }
+        // let response = contracts::get_full_contracts_info(
+        //     &mut redis_connection,
+        //     &contracts_collection,
+        //     &abis_collection,
+        //     &chain,
+        //     addresses,
+        // ).await;
 
-        let response = response.unwrap();
+        // if response.is_err() {
+        //     return Err(Status::invalid_argument(
+        //         response.err().unwrap().to_string(),
+        //     ));
+        // }
 
-        if response.len() == 0 {
-            return Err(Status::invalid_argument(
-                "No contracts found for the specified addresses",
-            ));
-        }
+        // let response = response.unwrap();
 
-        let mut contracts_info = Vec::new();
+        // if response.len() == 0 {
+        //     return Err(Status::invalid_argument(
+        //         "No contracts found for the specified addresses",
+        //     ));
+        // }
 
-        for contract in response {
-            let mut contract_implementations = Vec::new();
+        // let mut contracts_info = Vec::new();
 
-            for implementation in contract.implementations.iter() {
-                let abi_implementation = if implementation.abi.is_some() {
-                    let abi = implementation.abi.as_ref().unwrap();
+        // for contract in response {
+        //     let mut contract_implementations = Vec::new();
 
-                    Some(crate::abi_discovery_proto::Abi {
-                        abi: abi.abi.to_string(),
-                        abi_hash: abi.abi_hash.to_string(),
-                        is_proxy: abi.is_proxy,
-                        standard: abi.standard.as_u32() as i32,
-                    })
-                } else {
-                    None
-                };
+        //     for implementation in contract.implementations.iter() {
+        //         let abi_implementation = if implementation.abi.is_some() {
+        //             let abi = implementation.abi.as_ref().unwrap();
 
-                let creation_block = if implementation.creation_block.is_some() {
-                    implementation.creation_block.as_ref().unwrap().to_string()
-                } else {
-                    "".to_string()
-                };
+        //             Some(crate::abi_discovery_proto::Abi {
+        //                 abi: abi.abi.to_string(),
+        //                 abi_hash: abi.abi_hash.to_string(),
+        //                 is_proxy: abi.is_proxy,
+        //                 standard: abi.standard.as_u32() as i32,
+        //             })
+        //         } else {
+        //             None
+        //         };
 
-                contract_implementations.push(crate::abi_discovery_proto::ContractImplementation {
-                    name: implementation.name.to_string(),
-                    address: implementation.address.to_string(),
-                    abi: abi_implementation,
-                    creation_block: creation_block,
-                    verified: implementation.verified,
-                });
-            }
+        //         let creation_block = if implementation.creation_block.is_some() {
+        //             implementation.creation_block.as_ref().unwrap().to_string()
+        //         } else {
+        //             "".to_string()
+        //         };
 
-            let contract_abi = if contract.abi.is_some() {
-                let abi = contract.abi.as_ref().unwrap();
+        //         contract_implementations.push(crate::abi_discovery_proto::ContractImplementation {
+        //             name: implementation.name.to_string(),
+        //             address: implementation.address.to_string(),
+        //             abi: abi_implementation,
+        //             creation_block: creation_block,
+        //             verified: implementation.verified,
+        //         });
+        //     }
 
-                Some(crate::abi_discovery_proto::Abi {
-                    abi: abi.abi.to_string(),
-                    abi_hash: abi.abi_hash.to_string(),
-                    is_proxy: abi.is_proxy,
-                    standard: abi.standard.as_u32() as i32,
-                })
-            } else {
-                None
-            };
+        //     let contract_abi = if contract.abi.is_some() {
+        //         let abi = contract.abi.as_ref().unwrap();
 
-            let creation_block = if contract.creation_block.is_some() {
-                contract.creation_block.as_ref().unwrap().to_string()
-            } else {
-                "".to_string()
-            };
+        //         Some(crate::abi_discovery_proto::Abi {
+        //             abi: abi.abi.to_string(),
+        //             abi_hash: abi.abi_hash.to_string(),
+        //             is_proxy: abi.is_proxy,
+        //             standard: abi.standard.as_u32() as i32,
+        //         })
+        //     } else {
+        //         None
+        //     };
 
-            contracts_info.push(crate::abi_discovery_proto::ContractInfo {
-                chain: chain.to_string(),
-                name: contract.name.to_string(),
-                address: contract.address.to_string(),
-                abi: contract_abi,
-                creation_block: creation_block,
-                is_proxy: contract.is_proxy,
-                verified: contract.verified,
-                implementations: contract_implementations,
-            });
-        };
+        //     let creation_block = if contract.creation_block.is_some() {
+        //         contract.creation_block.as_ref().unwrap().to_string()
+        //     } else {
+        //         "".to_string()
+        //     };
+
+        //     contracts_info.push(crate::abi_discovery_proto::ContractInfo {
+        //         chain: chain.to_string(),
+        //         name: contract.name.to_string(),
+        //         address: contract.address.to_string(),
+        //         abi: contract_abi,
+        //         creation_block: creation_block,
+        //         is_proxy: contract.is_proxy,
+        //         verified: contract.verified,
+        //         implementations: contract_implementations,
+        //     });
+        // };
 
         Ok(Response::new(ContractsInfoResponse {
             success: true,
-            contracts_info,
+            contracts_info: vec![],
         }))
     }
 }
