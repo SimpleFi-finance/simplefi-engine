@@ -26,6 +26,7 @@ tokio = {workspace = true}
 
 # shared types
 mongo_types = { path = "../types/mongo"}
+data_lake_types = { path = "../types/data_lake"}
 
 # shared utils
 simplefi_engine_settings = { path = "../utils/settings"}

@@ -1,6 +1,6 @@
 // use chains_types::SupportedChains;
 use data_lake_types::SupportedDataTypes;
-use redis::{aio::Connection, RedisError};
+use redis::aio::Connection;
 // use serde_json;
 use simplefi_engine_settings::load_settings;
 use simplefi_redis::{connect

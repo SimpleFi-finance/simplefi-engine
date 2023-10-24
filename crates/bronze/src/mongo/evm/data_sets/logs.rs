@@ -22,11 +22,8 @@ pub struct Log {
     pub block_hash: String,
     pub transaction_hash: Option<String>,
     pub transaction_index: i64,
-
     pub address: Option<String>,
-
     pub data: Option<String>,
-
     pub decoded_data: Option<Vec<DecodedData>>,
     pub topics: Vec<String>,
     pub log_index: i64,
