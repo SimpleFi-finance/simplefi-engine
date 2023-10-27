@@ -6,20 +6,24 @@ pub enum ProcessId {
     Headers,
     Transactions,
     Logs,
+    Traces,
     Decoding,
     Indexing,
+    AbiDiscovery,
     Finish,
     Other(&'static str),
 }
 
 impl ProcessId {
     /// All supported Stages
-    pub const ALL: [ProcessId; 13] = [
+    pub const ALL: [ProcessId; 8] = [
         ProcessId::Headers,
         ProcessId::Transactions,
         ProcessId::Logs,
+        ProcessId::Traces,
         ProcessId::Decoding,
         ProcessId::Indexing,
+        ProcessId::AbiDiscovery,
         ProcessId::Finish,
     ];
 
@@ -29,9 +33,11 @@ impl ProcessId {
             ProcessId::Headers => "Headers",
             ProcessId::Transactions => "Transactions",
             ProcessId::Logs => "Logs",
+            ProcessId::Traces => "Traces",
             ProcessId::Decoding => "Decoding",
             ProcessId::Indexing => "Indexing",
             ProcessId::Finish => "Finish",
+            ProcessId::AbiDiscovery => "AbiDiscovery",
             ProcessId::Other(s) => s,
         }
     }
@@ -56,5 +62,5 @@ impl std::fmt::Display for ProcessId {
 pub trait Process: Send + Sync {
     fn id(&self) -> ProcessId;
 
-    fn execute(&self) -> Result<u64, dyn Error>;
+    fn execute<T>(self: Box<Self>) -> T;
 }

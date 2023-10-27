@@ -9,6 +9,10 @@ pub use chain::{
     BaseFeeParams, Chain, ChainInfo, ChainSpec, ChainSpecBuilder,
     DisplayHardforks, ForkCondition, ForkTimestamps, DEV, GOERLI, MAINNET, SEPOLIA,
 };
+
+mod process;
+pub use process::{ProcessId, Process};
+
 mod block;
 pub use block::{Block, BlockHashOrNumber, BlockNumHash, BlockNumberOrTag, ForkBlock};
 
