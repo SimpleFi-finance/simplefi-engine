@@ -7,6 +7,7 @@ use crate::{
     table::{Compress, Encode, Table}, common::PairResult,
 };
 
+
 pub struct DB {
     pub db: TransactionDB,
 }

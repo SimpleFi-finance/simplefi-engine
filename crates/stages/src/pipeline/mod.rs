@@ -26,7 +26,7 @@ use tracing::*;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
 
-use crate::{stage::BoxedStage, StageId, PipelineError};
+use crate::{stage::BoxedStage, StageId, PipelineError, error::StageError};
 
 
 pub struct Pipeline {
@@ -112,7 +112,7 @@ impl Pipeline {
                 }
             }
 
-            let db_provider = self.db_provider();
+            let db_provider = self.db_provider(true);
 
             // previous_stage = Some(
             //     factory
@@ -177,6 +177,8 @@ impl Pipeline {
                 checkpoint: prev_checkpoint,
             });
 
+            // if stage does not error update and continue pipeline
+            // else fail gracefully (try again or stop process)
             match stage
                 .execute()
                 .await
@@ -192,14 +194,8 @@ impl Pipeline {
                         %done,
                         "Stage committed progress"
                     );
-                    if let Some(metrics_tx) = &mut self.metrics_tx {
-                        let _ = metrics_tx.send(MetricEvent::StageCheckpoint {
-                            stage_id,
-                            checkpoint,
-                            max_block_number: target,
-                        });
-                    }
-                    provider_rw.save_stage_checkpoint(stage_id, checkpoint)?;
+                   
+                    db_provider.save_stage_checkpoint(stage_id, checkpoint)?;
 
                     self.listeners.notify(PipelineEvent::Ran {
                         pipeline_position: stage_index + 1,
@@ -207,9 +203,6 @@ impl Pipeline {
                         stage_id,
                         result: out.clone(),
                     });
-
-                    provider_rw.commit()?;
-                    provider_rw = factory.provider_rw().map_err(PipelineError::Interface)?;
 
                     if done {
                         let block_number = checkpoint.block_number;
@@ -222,66 +215,14 @@ impl Pipeline {
                 }
                 Err(err) => {
                     self.listeners.notify(PipelineEvent::Error { stage_id });
-
+                    // notify error
+                    // unwind stage
+                    // 
                     let out = if let StageError::DetachedHead { local_head, header, error } = err {
                         warn!(target: "sync::pipeline", stage = %stage_id, ?local_head, ?header, ?error, "Stage encountered detached head");
-
-                        // We unwind because of a detached head.
-                        let unwind_to = local_head
-                            .number
-                            .saturating_sub(BEACON_CONSENSUS_REORG_UNWIND_DEPTH)
-                            .max(1);
                         Ok(ControlFlow::Unwind { target: unwind_to, bad_block: local_head })
-                    } else if let StageError::Block { block, error } = err {
-                        match error {
-                            BlockErrorKind::Validation(validation_error) => {
-                                error!(
-                                    target: "sync::pipeline",
-                                    stage = %stage_id,
-                                    bad_block = %block.number,
-                                    "Stage encountered a validation error: {validation_error}"
-                                );
-
-                                drop(provider_rw);
-                                provider_rw =
-                                    factory.provider_rw().map_err(PipelineError::Interface)?;
-                                provider_rw.save_stage_checkpoint_progress(
-                                    StageId::MerkleExecute,
-                                    vec![],
-                                )?;
-                                provider_rw.save_stage_checkpoint(
-                                    StageId::MerkleExecute,
-                                    prev_checkpoint.unwrap_or_default(),
-                                )?;
-                                provider_rw.commit()?;
-
-                                // We unwind because of a validation error. If the unwind itself
-                                // fails, we bail entirely,
-                                // otherwise we restart the execution loop from the
-                                // beginning.
-                                Ok(ControlFlow::Unwind {
-                                    target: prev_checkpoint.unwrap_or_default().block_number,
-                                    bad_block: block,
-                                })
-                            }
-                            BlockErrorKind::Execution(execution_error) => {
-                                error!(
-                                    target: "sync::pipeline",
-                                    stage = %stage_id,
-                                    bad_block = %block.number,
-                                    "Stage encountered an execution error: {execution_error}"
-                                );
-
-                                // We unwind because of an execution error. If the unwind itself
-                                // fails, we bail entirely,
-                                // otherwise we restart
-                                // the execution loop from the beginning.
-                                Ok(ControlFlow::Unwind {
-                                    target: prev_checkpoint.unwrap_or_default().block_number,
-                                    bad_block: block,
-                                })
-                            }
-                        }
+                    } else if let StageError::Block { block } = err {
+                        unimplemented!()
                     } else if err.is_fatal() {
                         error!(
                             target: "sync::pipeline",

@@ -36,6 +36,9 @@ pub use markets::*;
 pub use protocols::*;
 pub use tracking::{TrackingProvider, TrackingWriter};
 
+mod stage_checkpoints;
+pub use stage_checkpoints::{StageCheckpointProvider, StageCheckpointWriter};
+
 pub trait ShardedTableProvider: Send + Sync {
     fn get_latest_shard<T: Table>(&self, prefix:  &[u8]) -> Result<Option<&[u8]>>;
 

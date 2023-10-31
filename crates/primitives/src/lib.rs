@@ -13,6 +13,9 @@ pub use chain::{
 mod process;
 pub use process::{ProcessId, Process};
 
+mod stage;
+pub use stage::StageId;
+
 mod block;
 pub use block::{Block, BlockHashOrNumber, BlockNumHash, BlockNumberOrTag, ForkBlock};
 

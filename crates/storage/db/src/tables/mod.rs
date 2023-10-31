@@ -24,7 +24,7 @@ pub enum TableType {
 }
 
 /// Number of tables that should be present inside database.
-pub const NUM_TABLES: usize = 32;
+pub const NUM_TABLES: usize = 33;
 
 pub trait TableViewer<R> {
     /// type of error to return
@@ -135,7 +135,8 @@ tables!([
     (MarketProtocol, TableType::Table),
     (TokensMarkets, TableType::Table),
     (TempPeriodVolumesFive, TableType::Table),
-    (TempPeriodVolumesHour, TableType::Table)
+    (TempPeriodVolumesHour, TableType::Table),
+    (SyncStage, TableType::Table)
 ]);
 
 #[macro_export]
@@ -347,7 +348,14 @@ table!(
     ( TempPeriodVolumesHour )  ShardedKey<MarketAddress> | PeriodVolumes
 );
 
+// pipeline checkpoints
 
+table!(
+    /// Stores the sync stage
+    ( SyncStage ) StageId | BlockNumber
+);
+
+pub type StageId = String;
 
 #[cfg(test)]
 mod tests {
@@ -359,7 +367,7 @@ mod tests {
         Abi, BlockIndices, BlockLogs, CanonicalHeaders, ContractLogs, ContractProxy, ContractsData,
         DecodedLogs, HeaderNumbers, Headers, Logs, MarketToProxy, TableType, TrackedContracts,
         TransactionBlock, TransactionLogs, Transactions, TxHashNumber, UnknownContracts,
-        NUM_TABLES, TokensMarkets, TempPeriodVolumesFive, TempPeriodVolumesHour,
+        NUM_TABLES, TokensMarkets, TempPeriodVolumesFive, TempPeriodVolumesHour, SyncStage,
     };
 
     const TABLES: [(TableType, &str); NUM_TABLES] = [
@@ -394,7 +402,8 @@ mod tests {
         (TableType::Table, MarketProtocol::const_name()),
         (TableType::Table, TokensMarkets::const_name()),
         (TableType::Table, TempPeriodVolumesFive::const_name()),
-        (TableType::Table, TempPeriodVolumesHour::const_name())
+        (TableType::Table, TempPeriodVolumesHour::const_name()),
+        (TableType::Table, SyncStage::const_name())
     ];
 
     #[test]

@@ -11,3 +11,4 @@ pub mod volumetrics;
 pub mod markets;
 pub mod temp_volumetrics;
 pub mod protocols;
+pub mod stage_checkpoint;
