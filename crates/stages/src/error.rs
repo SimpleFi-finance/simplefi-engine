@@ -6,7 +6,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum StageError {
     /// The stage encountered an error related to a block.
-    #[error("Stage encountered a block error in block {number}", number = block.number)]
+    #[error("Stage encountered a block error in block {number}", number = block)]
     Block {
         /// The block that caused the error.
         block: u64,
@@ -49,9 +49,6 @@ impl StageError {
     pub fn is_fatal(&self) -> bool {
         matches!(
             self,
-            StageError::Database(_) |
-                StageError::Download(_) |
-                StageError::DatabaseIntegrity(_) |
                 StageError::StageCheckpoint(_) |
                 StageError::ChannelClosed |
                 StageError::Fatal(_)

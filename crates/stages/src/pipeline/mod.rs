@@ -9,6 +9,9 @@ mod event;
 
 mod progress;
 
+use std::sync::Arc;
+
+use db::implementation::sip_rocksdb::DB;
 use progress::PipelineProgress;
 
 mod ctrl;
@@ -16,6 +19,7 @@ pub use ctrl::ControlFlow;
 mod builder;
 pub use builder::PipelineBuilder;
 use primitives::BlockNumber;
+use storage_provider::{DatabaseProvider, providers::options::AccessType};
 use tokio_util::EventListeners;
 use tracing::*;
 
@@ -28,6 +32,7 @@ use crate::{stage::BoxedStage, StageId, PipelineError};
 pub struct Pipeline {
     stages: Vec<BoxedStage>,
 
+    db: DB,
     // TODO: add Pipeline events
     listeners: EventListeners<String>,
 
@@ -43,6 +48,14 @@ impl Pipeline {
     }
     // event listener
 
+    pub fn db_provider(&self, rw: bool) -> DatabaseProvider {
+        if rw {
+            DatabaseProvider::new(self.db, AccessType::Primary)
+        } else {
+            DatabaseProvider::new(self.db, AccessType::Secondary)
+        }
+    }
+
     pub fn events(&mut self) -> UnboundedReceiverStream<String> {
         self.listeners.new_listener()
     }
@@ -52,7 +65,7 @@ impl Pipeline {
         loop {
             let next_action = self.run_loop().await?;
 
-            // Terminate the loop early if it's reached the maximum user
+            // Terminate the loop early if it's reached the maximum block number
             // configured block.
             if next_action.should_continue() &&
                 self.progress
@@ -99,7 +112,7 @@ impl Pipeline {
                 }
             }
 
-            // let factory = ProviderFactory::new(&self.db, self.chain_spec.clone());
+            let db_provider = self.db_provider();
 
             // previous_stage = Some(
             //     factory
@@ -118,6 +131,7 @@ impl Pipeline {
     pub async fn unwind(&mut self, target: BlockNumber, bad_block: Option<BlockNumber>) -> Result<(), PipelineError> {
         unimplemented!()
     }
+
     // execute stage to completion
 
     pub async fn execute_stage_to_completion(
@@ -132,12 +146,10 @@ impl Pipeline {
         let mut made_progress = false;
         let target = self.max_block.or(previous_stage);
 
-        let factory = ProviderFactory::new(&self.db, self.chain_spec.clone());
-
-        let mut provider_rw = factory.provider_rw().map_err(PipelineError::Interface)?;
+        let db_provider = self.db_provider(true);
 
         loop {
-            let prev_checkpoint = provider_rw.get_stage_checkpoint(stage_id)?;
+            let prev_checkpoint = db_provider.get_stage_checkpoint(stage_id)?;
 
             let stage_reached_max_block = prev_checkpoint
                 .zip(self.max_block)
@@ -196,7 +208,6 @@ impl Pipeline {
                         result: out.clone(),
                     });
 
-                    // TODO: Make the commit interval configurable
                     provider_rw.commit()?;
                     provider_rw = factory.provider_rw().map_err(PipelineError::Interface)?;
 

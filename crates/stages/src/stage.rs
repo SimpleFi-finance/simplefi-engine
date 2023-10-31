@@ -43,10 +43,11 @@ impl std::fmt::Display for StageId {
     }
 }
 
+#[async_trait::async_trait]
 pub trait Stage: Send + Sync {
     fn id(&self) -> StageId;
 
-    fn execute(&mut self) -> ();
+    async fn execute(&mut self) -> ();
 }
 
 
