@@ -1,0 +1,13 @@
+[package]
+name = "simp-rpc-api"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[dependencies]
+# misc
+jsonrpsee = { workspace = true, features = ["server", "macros"] }
+serde_json.workspace = true
+
+[features]
+client = ["jsonrpsee/client", "jsonrpsee/async-client"]

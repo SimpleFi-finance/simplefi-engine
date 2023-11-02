@@ -3,9 +3,9 @@ use crate::{
     tables::models::*,
 };
 use sip_codecs::{main_codec, Compact};
-use primitives::*;
+use simp_primitives::*;
 use interfaces::db::DatabaseError;
-use primitives::Volumetric;
+use simp_primitives::Volumetric;
 
 /// Implements compression for Compact type.
 macro_rules! impl_compression_for_compact {

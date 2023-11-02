@@ -8,7 +8,7 @@ use db::{
         BlockIndices, ContractLogs, DecodedLogs, Logs, ShardedKey, TransactionLogs, TxLogs,
     },
 };
-use primitives::{
+use simp_primitives::{
     Address, BlockHashOrNumber, BlockNumber, Log, StoredDecodedData, StoredLog, TxNumber,
 };
 
@@ -26,7 +26,7 @@ use interfaces::Result;
 impl LogsProvider for DatabaseProvider {
     fn logs_by_tx_id(
         &self,
-        tx_id: primitives::TxNumber,
+        tx_id: simp_primitives::TxNumber,
         decoded: bool,
     ) -> Result<Option<Vec<StoredOrDecodedLog>>> {
         let mut logs = Vec::new();
@@ -129,7 +129,7 @@ impl LogsProvider for DatabaseProvider {
 
     fn logs_by_tx_hash(
         &self,
-        tx_hash: primitives::TxHash,
+        tx_hash: simp_primitives::TxHash,
         decoded: bool,
     ) -> Result<Option<Vec<StoredOrDecodedLog>>> {
         let tx = self.transaction_id(tx_hash)?;
@@ -267,7 +267,7 @@ impl LogsWriter for DatabaseProvider {
         Ok(())
     }
 
-    fn insert_decoded_data(&self, log: (TxLogId, primitives::StoredDecodedData)) -> Result<()> {
+    fn insert_decoded_data(&self, log: (TxLogId, simp_primitives::StoredDecodedData)) -> Result<()> {
         self.db.put::<DecodedLogs>(log.0.into(), log.1)?;
         Ok(())
     }
@@ -457,8 +457,8 @@ mod test {
         test_utils::ERROR_TEMPDIR,
     };
     use hex_literal::hex;
-    use primitives::Log;
-    use primitives::{Address, H256};
+    use simp_primitives::Log;
+    use simp_primitives::{Address, H256};
     use std::collections::HashMap;
     use std::fs;
     fn get_provider() -> DatabaseProvider {
@@ -479,7 +479,7 @@ mod test {
         fs::read_to_string(path).unwrap()
     }
 
-    fn get_mock_decoded_logs() -> Vec<Option<Vec<primitives::DecodedData>>> {
+    fn get_mock_decoded_logs() -> Vec<Option<Vec<simp_primitives::DecodedData>>> {
         let provider = get_provider();
         let abi = get_uni_factory_abi();
         let logs = get_uni_factory_logs();
@@ -488,10 +488,10 @@ mod test {
         let stored_logs = logs
             .iter()
             .map(|log| {
-                let stored_log = primitives::StoredLog::from(log.clone());
+                let stored_log = simp_primitives::StoredLog::from(log.clone());
                 stored_log
             })
-            .collect::<Vec<primitives::StoredLog>>();
+            .collect::<Vec<simp_primitives::StoredLog>>();
 
         let contract = AbiContract {
             address: Address::from(hex!("5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f")),
@@ -502,7 +502,7 @@ mod test {
             contract_type: "contract".to_string(),
         };
 
-        let decoded_logs: Vec<Option<Vec<primitives::DecodedData>>> =
+        let decoded_logs: Vec<Option<Vec<simp_primitives::DecodedData>>> =
             provider.decode_logs(stored_logs, &vec![contract]).unwrap();
         decoded_logs
     }
@@ -516,7 +516,7 @@ mod test {
         let logs: Vec<Log> = serde_json::from_str(&logs).unwrap();
         let mut tx_ids = vec![];
         for (i, log) in logs.iter().enumerate() {
-            let stored_log = primitives::StoredLog::from(log.clone());
+            let stored_log = simp_primitives::StoredLog::from(log.clone());
 
             let tx_log_id = TxLogId::from((1, i as u64, stored_log.block_number.clone()));
             tx_ids.push(tx_log_id.clone());
@@ -548,7 +548,7 @@ mod test {
             provider
                 .insert_decoded_data((
                     tx_log_id.into(),
-                    primitives::StoredDecodedData {
+                    simp_primitives::StoredDecodedData {
                         data: decoded_logs[i].clone().unwrap(),
                     },
                 ))
@@ -584,7 +584,7 @@ mod test {
         let mut logs_by_address = HashMap::new();
         for (i, log) in logs_to_store.iter().enumerate() {
             let id: TxLogId = TxLogId::from((1, i as u64, log.block_number.clone()));
-            provider.insert_raw_logs((id, primitives::StoredLog::from(log.clone()))).unwrap();
+            provider.insert_raw_logs((id, simp_primitives::StoredLog::from(log.clone()))).unwrap();
             logs_by_address
                 .entry(log.address)
                 .or_insert(vec![])

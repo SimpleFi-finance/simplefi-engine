@@ -1,0 +1,67 @@
+version: '3.9'
+name: 'simp'
+
+services:
+  simp:
+    restart: unless-stopped
+    image: simplefi-finance/simp
+    # TODO: change image image to ghcr.io...
+    build: ../
+    ports:
+      - '9001:9001' # metrics
+      - '8545:8545' # rpc
+      - '8551:8551' # engine
+    volumes:
+      - simplogs:/root/simplogs
+    # TODO: Change log filter to something less verbose. Also missing api registration
+    command: >
+      server
+      --metrics 0.0.0.0:9001
+      --log.directory /root/simplogs
+      --log.filter trace
+      --http --http.addr 0.0.0.0 --http.port 8545
+      --ws --ws.addr 0.0.0.0 --ws.port 8545
+
+  prometheus:
+    restart: unless-stopped
+    image: prom/prometheus
+    depends_on:
+      - simp
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheusdata:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+
+  grafana:
+    restart: unless-stopped
+    image: grafana/grafana:10.1.0
+    depends_on:
+      - simp
+      - prometheus
+    ports:
+      - 3000:3000
+    environment:
+      PROMETHEUS_URL: http://prometheus:9090
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards:/etc/grafana/provisioning_temp/dashboards
+    # 1. Copy dashboards from temp directory to prevent modifying original host files
+    # 2. Replace Prometheus datasource placeholder with the actual name
+    # 3. Run Grafana
+    entrypoint: >
+      sh -c "cp -r /etc/grafana/provisioning_temp/dashboards/. /etc/grafana/provisioning/dashboards &&
+             find /etc/grafana/provisioning/dashboards/ -name '*.json' -exec sed -i 's/$${DS_PROMETHEUS}/Prometheus/g' {} \+ &&
+             /run.sh"
+    
+volumes:
+  simplogs:
+   driver: local
+  prometheusdata:
+    driver: local
+  grafanadata:
+    driver: local

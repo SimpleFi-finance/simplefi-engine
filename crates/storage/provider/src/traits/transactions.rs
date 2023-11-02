@@ -1,7 +1,7 @@
 
 use db::tables::TxIndices;
 use interfaces::Result;
-use primitives::{
+use simp_primitives::{
     BlockHashOrNumber, BlockNumber, TxHash, TxNumber, TransactionSigned,
 };
 
@@ -40,8 +40,8 @@ pub trait TransactionsProvider: BlockNumReader + Send + Sync {
     /// Get transactions by tx range.
     fn transactions_by_tx_range(
         &self,
-        start: primitives::TxNumber,
-        end: primitives::TxNumber,
+        start: simp_primitives::TxNumber,
+        end: simp_primitives::TxNumber,
     ) -> Result<Vec<TransactionSigned>>;
 }
 

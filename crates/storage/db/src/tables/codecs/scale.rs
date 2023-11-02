@@ -3,7 +3,7 @@ use crate::{
 };
 use interfaces::db::DatabaseError;
 
-use primitives::*;
+use simp_primitives::*;
 
 mod sealed {
     pub trait Sealed {}

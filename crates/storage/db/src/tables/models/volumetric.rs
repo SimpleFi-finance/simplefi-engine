@@ -1,6 +1,6 @@
-// use primitives::rpc_utils::rl;
+// use simp_primitives::rpc_utils::rl;
 use sip_codecs::{main_codec, Compact};
-use primitives::VolumeKey;
+use simp_primitives::VolumeKey;
 
 
 /// The storage of the volumetric index keys

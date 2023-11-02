@@ -2,18 +2,18 @@ use crate::DatabaseProvider;
 use crate::traits::{TransactionsProvider, TransactionsWriter, BlockNumReader};
 use db::tables::{TransactionBlock, self, TxHashNumber, BlockIndices, Transactions, TxIndices};
 use interfaces::Result;
-use primitives::{BlockNumber, TransactionSigned, BlockHashOrNumber};
+use simp_primitives::{BlockNumber, TransactionSigned, BlockHashOrNumber};
 use rocksdb::ReadOptions;
 use db::tables::utils::decoder;
 use db::transaction::DbTx;
 use db::table::Encode;
 
 impl TransactionsProvider for DatabaseProvider {
-    fn transaction_block(&self, id: primitives::TxNumber) -> Result<Option<BlockNumber>> {
+    fn transaction_block(&self, id: simp_primitives::TxNumber) -> Result<Option<BlockNumber>> {
         Ok(self.db.get::<TransactionBlock>(id)?)
     }
 
-    fn transaction_by_hash(&self, hash: primitives::TxHash) -> Result<Option<TransactionSigned>> {
+    fn transaction_by_hash(&self, hash: simp_primitives::TxHash) -> Result<Option<TransactionSigned>> {
         if let Some(id) = self.transaction_id(hash)? {
             Ok(self.transaction_by_id(id)?)
         } else {
@@ -21,11 +21,11 @@ impl TransactionsProvider for DatabaseProvider {
         }
     }
 
-    fn transaction_by_id(&self, id: primitives::TxNumber) -> Result<Option<TransactionSigned>> {
+    fn transaction_by_id(&self, id: simp_primitives::TxNumber) -> Result<Option<TransactionSigned>> {
         Ok(self.db.get::<tables::Transactions>(id)?)
     }
 
-    fn transaction_id(&self, tx_hash: primitives::TxHash) -> Result<Option<primitives::TxNumber>> {
+    fn transaction_id(&self, tx_hash: simp_primitives::TxHash) -> Result<Option<simp_primitives::TxNumber>> {
         Ok(self.db.get::<TxHashNumber>(tx_hash)?)
     }
 
@@ -107,8 +107,8 @@ impl TransactionsProvider for DatabaseProvider {
 
     fn transactions_by_tx_range(
         &self,
-        start: primitives::TxNumber,
-        end: primitives::TxNumber,
+        start: simp_primitives::TxNumber,
+        end: simp_primitives::TxNumber,
     ) -> Result<Vec<TransactionSigned>> {
         if end - start > 10000 {
             panic!("Range too big");
@@ -174,7 +174,7 @@ mod tests {
     use db::tables::{Transactions, BlockBodyIndices};
     use db::transaction::DbTx;
     use db::{init_db, test_utils::ERROR_TEMPDIR, implementation::sip_rocksdb::DB};
-    use primitives::TransactionSigned;
+    use simp_primitives::TransactionSigned;
     use serde_json::Value;
     use crate::traits::{TransactionsWriter, TransactionsProvider, BlockBodyIndicesWriter};
     use crate::DatabaseProvider;
@@ -282,7 +282,7 @@ mod tests {
 
         assert_eq!(txs_found[0][0].hash(), signed_txs[1].hash());
 
-        let txs_by_block = provider.transactions_by_block(primitives::BlockHashOrNumber::Number(1)).unwrap().unwrap();
+        let txs_by_block = provider.transactions_by_block(simp_primitives::BlockHashOrNumber::Number(1)).unwrap().unwrap();
 
         assert_eq!(txs_by_block.len(), 1);
     }

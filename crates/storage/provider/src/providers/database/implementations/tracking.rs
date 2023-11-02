@@ -1,5 +1,5 @@
 use db::tables;
-use primitives::Address;
+use simp_primitives::Address;
 use time::OffsetDateTime;
 use db::transaction::DbTx;
 use crate::traits::{TrackingWriter, TrackingProvider};
@@ -24,7 +24,7 @@ impl TrackingWriter for DatabaseProvider {
 
 #[cfg(test)]
 mod test {
-    use primitives::Address;
+    use simp_primitives::Address;
     use db::{init_db, test_utils::ERROR_TEMPDIR, implementation::sip_rocksdb::DB};
     use crate::{DatabaseProvider, providers::options::AccessType, traits::{TrackingWriter, TrackingProvider}};
 

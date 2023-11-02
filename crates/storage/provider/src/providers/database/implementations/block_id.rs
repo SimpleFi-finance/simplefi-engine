@@ -1,6 +1,6 @@
 use db::tables::HeaderNumbers;
 use interfaces::Result;
-use primitives::{BlockNumber, H256};
+use simp_primitives::{BlockNumber, H256};
 use rocksdb::ReadOptions;
 
 use crate::traits::BlockNumWriter;
@@ -41,7 +41,7 @@ impl BlockNumWriter for DatabaseProvider {
 #[cfg(test)] 
 mod tests {
     use db::{init_db, test_utils::ERROR_TEMPDIR, implementation::sip_rocksdb::DB};
-    use primitives::H256;
+    use simp_primitives::H256;
     use crate::traits::{BlockNumWriter, BlockNumReader};
     use crate::DatabaseProvider;
 

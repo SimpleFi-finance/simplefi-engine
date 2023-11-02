@@ -7,7 +7,7 @@ use interfaces::Result;
 use db::transaction::DbTx;
 // use db::table::Encode;
 // use db::tables::models::VolumeKeysWithData;
-use primitives::{H256, Market, TokenMarkets};
+use simp_primitives::{H256, Market, TokenMarkets};
 
 
 
@@ -72,7 +72,7 @@ mod test {
         implementation::sip_rocksdb::DB, init_db, 
         test_utils::ERROR_TEMPDIR,
     };
-    use primitives::{H256, Market};
+    use simp_primitives::{H256, Market};
     use std::str::FromStr;
 
     fn get_provider() -> DatabaseProvider {

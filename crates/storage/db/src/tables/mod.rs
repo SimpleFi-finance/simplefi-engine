@@ -3,7 +3,7 @@ use std::{fmt::Display, str::FromStr};
 
 pub mod codecs;
 pub mod models;
-use primitives::{
+use simp_primitives::{
     Address, BlockHash, BlockNumber, Header, StoredDecodedData, StoredLog, TransactionSigned,
     TxHash, TxNumber, VolumeKey, Volumetric, MarketAddress, Protocol, Market, H256, TokenMarkets, PeriodVolumes
 };

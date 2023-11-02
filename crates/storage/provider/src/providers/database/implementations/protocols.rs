@@ -7,7 +7,7 @@ use db::tables::utils::decoder;
 use db::transaction::DbTx;
 // use db::table::Encode;
 // use db::tables::models::VolumeKeysWithData;
-use primitives::{Protocol, ProtocolStatus,H256};
+use simp_primitives::{Protocol, ProtocolStatus,H256};
 
 
 
@@ -103,7 +103,7 @@ mod test {
         implementation::sip_rocksdb::DB, init_db, 
         test_utils::ERROR_TEMPDIR,
     };
-    use primitives::{H256, Market};
+    use simp_primitives::{H256, Market};
     use std::str::FromStr;
 
     fn get_provider() -> DatabaseProvider {

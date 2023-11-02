@@ -4,7 +4,7 @@ use db::tables::utils::decoder;
 use db::tables::{self, MarketToProxy, ContractsData, ContractProxy, Abi, AbiData, UnknownContracts};
 use db::transaction::DbTx;
 use ethabi::ethereum_types::H256;
-use primitives::{Address, StoredLog, DecodedData};
+use simp_primitives::{Address, StoredLog, DecodedData};
 use interfaces::Result;
 use rocksdb::ReadOptions;
 use crate::DatabaseProvider;
@@ -250,7 +250,7 @@ impl AbiWriter for DatabaseProvider {
         Ok(Some(new_abi_id))
     }
 
-    fn insert_contract(&self, address: Address, abi_id: u64, verified: bool, block_number: Option<primitives::BlockNumber>) -> Result<Address> {
+    fn insert_contract(&self, address: Address, abi_id: u64, verified: bool, block_number: Option<simp_primitives::BlockNumber>) -> Result<Address> {
         let contract_data = ContractData::new(abi_id, block_number, verified);
         self.db.put::<ContractsData>(address.clone(), contract_data)?;
         
@@ -316,7 +316,7 @@ mod test {
     use std::fs;
 
     use chrono::Utc;
-    use primitives::{H256, Address, H160, Log, StoredLog};
+    use simp_primitives::{H256, Address, H160, Log, StoredLog};
     use db::{tables::{AbiData, models::ProxyImplementations}, init_db, test_utils::ERROR_TEMPDIR, implementation::sip_rocksdb::DB};
     use hex_literal::hex;
     use crate::{DatabaseProvider, providers::options::AccessType, traits::{AbiWriter, AbiProvider}};

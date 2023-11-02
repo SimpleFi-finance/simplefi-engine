@@ -2,7 +2,7 @@
 use crate::table::{Decode, Encode};
 use interfaces::db::DatabaseError;
 
-use primitives::{
+use simp_primitives::{
     Address, H256,
 };
 
