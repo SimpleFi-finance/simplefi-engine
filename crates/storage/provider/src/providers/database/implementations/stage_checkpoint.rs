@@ -15,8 +15,4 @@ impl StageCheckpointWriter for DatabaseProvider {
         self.db.put::<SyncStage>(id.to_string(), checkpoint).unwrap();
         Ok(())
     }
-
-    // fn save_stage_checkpoint_progress(&self,id:primitives::StageId, checkpoint: Vec<u8>) -> interfaces::Result<()> {
-    //     unimplemented!()
-    // }
 }

@@ -5,6 +5,6 @@ pub use error::PipelineError;
 mod stages;
 
 mod stage;
-pub use stage::{Stage, StageId};
+pub use stage::Stage;
 
 pub mod util;

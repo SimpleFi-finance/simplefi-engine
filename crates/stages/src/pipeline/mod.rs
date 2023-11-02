@@ -19,14 +19,14 @@ pub use ctrl::ControlFlow;
 mod builder;
 pub use builder::PipelineBuilder;
 use primitives::BlockNumber;
-use storage_provider::{DatabaseProvider, providers::options::AccessType};
+use storage_provider::{DatabaseProvider, providers::options::AccessType, traits::*};
 use tokio_util::EventListeners;
 use tracing::*;
 
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
 
-use crate::{stage::BoxedStage, StageId, PipelineError, error::StageError};
+use crate::{stage::{BoxedStage, ExecOutput}, PipelineError, error::StageError};
 
 
 pub struct Pipeline {
@@ -149,24 +149,24 @@ impl Pipeline {
         let db_provider = self.db_provider(true);
 
         loop {
-            let prev_checkpoint = db_provider.get_stage_checkpoint(stage_id)?;
+            let prev_checkpoint = db_provider.get_stage_checkpoint(stage_id).unwrap();
 
             let stage_reached_max_block = prev_checkpoint
                 .zip(self.max_block)
-                .map_or(false, |(prev_progress, target)| prev_progress.block_number >= target);
+                .map_or(false, |(prev_progress, target)| prev_progress >= target);
             if stage_reached_max_block {
                 warn!(
                     target: "sync::pipeline",
                     stage = %stage_id,
                     max_block = self.max_block,
-                    prev_block = prev_checkpoint.map(|progress| progress.block_number),
+                    prev_block = prev_checkpoint.map(|progress| progress),
                     "Stage reached target block, skipping."
                 );
                 self.listeners.notify(PipelineEvent::Skipped { stage_id });
 
                 // We reached the maximum block, so we skip the stage
                 return Ok(ControlFlow::NoProgress {
-                    block_number: prev_checkpoint.map(|progress| progress.block_number),
+                    block_number: prev_checkpoint.map(|progress| progress),
                 })
             }
 
@@ -185,11 +185,11 @@ impl Pipeline {
             {
                 Ok(out @ ExecOutput { checkpoint, done }) => {
                     made_progress |=
-                        checkpoint.block_number != prev_checkpoint.unwrap_or_default().block_number;
+                        checkpoint != prev_checkpoint.unwrap_or_default();
                     debug!(
                         target: "sync::pipeline",
                         stage = %stage_id,
-                        progress = checkpoint.block_number,
+                        progress = checkpoint,
                         %checkpoint,
                         %done,
                         "Stage committed progress"
@@ -205,7 +205,7 @@ impl Pipeline {
                     });
 
                     if done {
-                        let block_number = checkpoint.block_number;
+                        let block_number = checkpoint;
                         return Ok(if made_progress {
                             ControlFlow::Continue { block_number }
                         } else {

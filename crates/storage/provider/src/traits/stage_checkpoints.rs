@@ -12,14 +12,4 @@ pub trait StageCheckpointProvider: Send + Sync {
 pub trait StageCheckpointWriter: Send + Sync {
     /// Save stage checkpoint.
     fn save_stage_checkpoint(&self, id: StageId, checkpoint: BlockNumber) -> Result<()>;
-
-    // /// Save stage checkpoint progress.
-    // fn save_stage_checkpoint_progress(&self, id: StageId, checkpoint: Vec<u8>) -> Result<()>;
-
-    // /// Update all pipeline sync stage progress.
-    // fn update_pipeline_stages(
-    //     &self,
-    //     block_number: BlockNumber,
-    //     drop_stage_checkpoint: bool,
-    // ) -> Result<()>;
 }
