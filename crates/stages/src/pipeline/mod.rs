@@ -18,7 +18,7 @@ mod ctrl;
 pub use ctrl::ControlFlow;
 mod builder;
 pub use builder::PipelineBuilder;
-use primitives::BlockNumber;
+use primitives::{BlockNumber, StageId};
 use storage_provider::{DatabaseProvider, providers::options::AccessType, traits::*};
 use tokio_util::EventListeners;
 use tracing::*;

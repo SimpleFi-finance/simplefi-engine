@@ -4,7 +4,9 @@
 
 // includes the db?
 
-use crate::{stage::BoxedStage, Stage, StageId};
+use primitives::StageId;
+
+use crate::{stage::BoxedStage, Stage};
 
 pub struct PipelineBuilder {
     stages: Vec<BoxedStage>,
