@@ -446,19 +446,17 @@ impl WsHttpServerKind {
 }
 
 
-/// Container type for each transport ie. http, ws, and ipc server
+/// Container type for each transport ie. http, ws
 pub struct RpcServer {
     /// Configured ws,http servers
     ws_http: WsHttpServer,
-    /* /// ipc server
-    ipc: Option<IpcServer>, */
 }
 
 // === impl RpcServer ===
 
 impl RpcServer {
     fn empty() -> RpcServer {
-        RpcServer { ws_http: Default::default()/* , ipc: None */ }
+        RpcServer { ws_http: Default::default() }
     }
 
     /// Returns the [`SocketAddr`] of the http server if started.
@@ -471,43 +469,29 @@ impl RpcServer {
         self.ws_http.ws_local_addr
     }
 
-    /* /// Returns the [`Endpoint`] of the ipc server if started.
-    pub fn ipc_endpoint(&self) -> Option<&Endpoint> {
-        self.ipc.as_ref().map(|ipc| ipc.endpoint())
-    } */
-
     /// Starts the configured server by spawning the servers on the tokio runtime.
     ///
     /// This returns an [RpcServerHandle] that's connected to the server task(s) until the server is
     /// stopped or the [RpcServerHandle] is dropped.
-    // #[instrument(name = "start", skip_all, fields(http = ?self.http_local_addr(), ws = ?self.ws_local_addr(), ipc = ?self.ipc_endpoint().map(|ipc|ipc.path())), target = "rpc", level = "TRACE")]
+    // #[instrument(name = "start", skip_all, fields(http = ?self.http_local_addr(), ws = ?self.ws_local_addr(), target = "rpc", level = "TRACE")]
     #[instrument(name = "start", skip_all, fields(http = ?self.http_local_addr(), ws = ?self.ws_local_addr()), target = "rpc", level = "TRACE")]
     pub async fn start(self, modules: TransportRpcModules) -> Result<RpcServerHandle, RpcError> {
         trace!(target: "rpc", "staring RPC server");
         let Self { ws_http } = self;
-        // let Self { ws_http, ipc: ipc_server } = self;
 
-        // let TransportRpcModules { config, http, ws, ipc } = modules;
         let TransportRpcModules { config, http, ws } = modules;
+
         let mut handle = RpcServerHandle {
             http_local_addr: ws_http.http_local_addr,
             ws_local_addr: ws_http.ws_local_addr,
             http: None,
             ws: None,
-            /* ipc_endpoint: None,
-            ipc: None, */
         };
 
         let (http, ws) = ws_http.server.start(http, ws, &config).await?;
         handle.http = http;
         handle.ws = ws;
 
-        /* if let Some((server, module)) =
-            ipc_server.and_then(|server| ipc.map(|module| (server, module)))
-        {
-            handle.ipc_endpoint = Some(server.endpoint().path().to_string());
-            handle.ipc = Some(server.start(module).await?);
-        } */
 
         Ok(handle)
     }
@@ -518,7 +502,6 @@ impl fmt::Debug for RpcServer {
         f.debug_struct("RpcServer")
             .field("http", &self.ws_http.http_local_addr.is_some())
             .field("ws", &self.ws_http.http_local_addr.is_some())
-            // .field("ipc", &self.ipc.is_some())
             .finish()
     }
 }
@@ -536,8 +519,6 @@ pub struct RpcServerHandle {
     ws_local_addr: Option<SocketAddr>,
     http: Option<ServerHandle>,
     ws: Option<ServerHandle>,
-    /* ipc_endpoint: Option<String>,
-    ipc: Option<ServerHandle>, */
 }
 
 // === impl RpcServerHandle ===
@@ -563,10 +544,6 @@ impl RpcServerHandle {
             handle.stop()?
         }
 
-        /* if let Some(handle) = self.ipc {
-            handle.stop()?
-        } */
-
         Ok(())
     }
 }
@@ -576,7 +553,6 @@ impl fmt::Debug for RpcServerHandle {
         f.debug_struct("RpcServerHandle")
             .field("http", &self.http.is_some())
             .field("ws", &self.ws.is_some())
-            /* .field("ipc", &self.ipc.is_some()) */
             .finish()
     }
 }
@@ -767,7 +743,7 @@ impl TransportRpcModuleConfig {
 
     /// Returns true if no transports are configured
     pub fn is_empty(&self) -> bool {
-        // self.http.is_none() && self.ws.is_none() && self.ipc.is_none()
+        // self.http.is_none() && self.ws.is_none()
         self.http.is_none() && self.ws.is_none()
     }
 
@@ -906,13 +882,6 @@ impl RpcModuleSelection {
             .expect("valid selection")
             .into_selection()
     }
-
-    /* /// All modules that are available by default on IPC.
-    ///
-    /// By default all modules are available on IPC.
-    pub fn default_ipc_modules() -> Vec<SimpRpcModule> {
-        Self::all_modules()
-    } */
 
     /// Creates a new _unique_ [RpcModuleSelection::Selection] from the given items.
     ///

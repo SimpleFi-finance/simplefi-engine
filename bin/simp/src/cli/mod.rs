@@ -64,14 +64,13 @@ impl Cli {
     pub fn init_tracing(&self) -> eyre::Result<Option<FileWorkerGuard>> {
         let mut layers =
             vec![simp_tracing::stdout(self.verbosity.directive(), &self.logs.color.to_string())];
-        let guard = self.logs.layer()?.map(|(layer, guard)| {
-            layers.push(layer);
-            guard
-        });
+        
+        let (additional_layers, guard) = self.logs.layers()?;
+        layers.extend(additional_layers);
 
         simp_tracing::init(layers);
 
-        Ok(guard.flatten())
+        Ok(guard)
     }
 
 }
@@ -97,27 +96,34 @@ pub enum Commands {
 #[command(next_help_heading = "Logging")]
 pub struct Logs {
     /// The path to put log files in.
-    #[arg(
-        long = "log.directory",
-        value_name = "PATH",
-        global = true,
-        default_value_t,
-        conflicts_with = "journald"
-    )]
-    log_directory: PlatformPath<LogsDir>,
+    #[arg(long = "log.file.directory", value_name = "PATH", global = true, default_value_t)]
+    log_file_directory: PlatformPath<LogsDir>,
 
-    /// The maximum size (in MB) of log files.
-    #[arg(long = "log.max-size", value_name = "SIZE", global = true, default_value_t = 200)]
-    log_max_size: u64,
+    /// The maximum size (in MB) of one log file.
+    #[arg(long = "log.file.max-size", value_name = "SIZE", global = true, default_value_t = 200)]
+    log_file_max_size: u64,
 
     /// The maximum amount of log files that will be stored. If set to 0, background file logging
     /// is disabled.
-    #[arg(long = "log.max-files", value_name = "COUNT", global = true, default_value_t = 5)]
-    log_max_files: usize,
+    #[arg(long = "log.file.max-files", value_name = "COUNT", global = true, default_value_t = 5)]
+    log_file_max_files: usize,
 
-    /// Log events to journald.
-    #[arg(long = "log.journald", global = true, conflicts_with = "log_directory")]
+    /// The filter to use for logs written to the log file.
+    #[arg(long = "log.file.filter", value_name = "FILTER", global = true, default_value = "debug")]
+    log_file_filter: String,
+
+    /// Write logs to journald.
+    #[arg(long = "log.journald", global = true)]
     journald: bool,
+
+    /// The filter to use for logs written to journald.
+    #[arg(
+        long = "log.journald.filter",
+        value_name = "FILTER",
+        global = true,
+        default_value = "error"
+    )]
+    journald_filter: String,
 
     /// The filter to use for logs written to the log file.
     #[arg(long = "log.filter", value_name = "FILTER", global = true, default_value = "error")]
@@ -140,27 +146,37 @@ const MB_TO_BYTES: u64 = 1024 * 1024;
 
 impl Logs {
     /// Builds a tracing layer from the current log options.
-    pub fn layer<S>(&self) -> eyre::Result<Option<(BoxedLayer<S>, Option<FileWorkerGuard>)>>
+    pub fn layers<S>(&self) -> eyre::Result<(Vec<BoxedLayer<S>>, Option<FileWorkerGuard>)>
     where
         S: Subscriber,
         for<'a> S: LookupSpan<'a>,
     {
-        let filter = EnvFilter::builder().parse(&self.filter)?;
+        let mut layers = Vec::new();
+
+        /* let filter = EnvFilter::builder().parse(&self.filter)?; */
 
         if self.journald {
-            Ok(Some((simp_tracing::journald(filter).expect("Could not connect to journald"), None)))
-        } else if self.log_max_files > 0 {
-            let (layer, guard) = simp_tracing::file(
-                filter,
-                &self.log_directory,
-                "simp.log",
-                self.log_max_size * MB_TO_BYTES,
-                self.log_max_files,
+            layers.push(
+                simp_tracing::journald(EnvFilter::builder().parse(&self.journald_filter)?)
+                    .expect("Could not connect to journald"),
             );
-            Ok(Some((layer, Some(guard))))
-        } else {
-            Ok(None)
         }
+
+        let file_guard = if self.log_file_max_files > 0 {
+            let (layer, guard) = simp_tracing::file(
+                EnvFilter::builder().parse(&self.log_file_filter)?,
+                &self.log_file_directory,
+                "simp.log",
+                self.log_file_max_size * MB_TO_BYTES,
+                self.log_file_max_files,
+            );
+            layers.push(layer);
+            Some(guard)
+        } else {
+            None
+        };
+
+        Ok((layers, file_guard))
     }
 }
 
@@ -247,13 +263,8 @@ mod tests {
     #[test]
     fn parse_logs_path() {
         let simp = Cli::try_parse_from(["simp", "server"]).unwrap();
-        
-        println!("{}", simp.logs.log_directory);
 
-        let log_dir = simp.logs.log_directory;
-
-        // TODO: missing chain/mode
-
+        let log_dir = simp.logs.log_file_directory;
         assert!(log_dir.as_ref().ends_with("simp/logs"), "{:?}", log_dir);
     }
 }
