@@ -5,7 +5,7 @@ use db::{
     tables::{models::TxLogId, ContractLogs},
 };
 use interfaces::Result;
-use primitives::{
+use simp_primitives::{
     Address, BlockHashOrNumber, BlockNumber, Log, StoredDecodedData, StoredLog, TxHash, TxNumber,
 };
 

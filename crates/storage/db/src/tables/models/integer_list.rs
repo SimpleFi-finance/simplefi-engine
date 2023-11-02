@@ -2,7 +2,7 @@
 
 use crate::table::{Compress, Decompress};
 use interfaces::db::DatabaseError;
-use primitives::IntegerList;
+use simp_primitives::IntegerList;
 
 impl Compress for IntegerList {
     type Compressed = Vec<u8>;

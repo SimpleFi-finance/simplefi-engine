@@ -29,7 +29,7 @@ We appreciate your patience until we get there. Until then, we are happy to answ
 
 ## For Users
 
-See the [SIP Engine Book](https://) for instructions on how to install and run Reth.
+See the [SIP Engine Book](https://) for instructions on how to install and run Simp.
 
 ## Installation
 
@@ -107,3 +107,9 @@ None of this would have been possible without them, so big shoutout to the teams
 
 [book]: https://
 [discord-url]: https://
+
+
+# TODO!
+
+* Licensing
+

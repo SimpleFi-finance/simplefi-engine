@@ -1,0 +1,13 @@
+[package]
+name = "simp-tracing"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+description = "tracing helpers"
+
+[dependencies]
+tracing.workspace = true
+tracing-appender.workspace = true
+tracing-subscriber = { version = "0.3", default-features = false, features = ["env-filter", "fmt"] }
+tracing-journald = "0.3"
+rolling-file = "0.2.0"

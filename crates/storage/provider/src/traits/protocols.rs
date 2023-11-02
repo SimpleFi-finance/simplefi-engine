@@ -1,5 +1,5 @@
 use interfaces::Result;
-use primitives::{Protocol,H256};
+use simp_primitives::{Protocol,H256};
 
 /// Client trait for [Protocol]s
 pub trait ProtocolProvider: Send + Sync {

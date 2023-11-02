@@ -93,7 +93,7 @@ mod test {
         implementation::sip_rocksdb::DB, init_db, tables::{Headers, TxLogs, models::TxLogId, ContractLogs, ShardedKey},
         test_utils::ERROR_TEMPDIR,
     };
-    use primitives::{Header, Address};
+    use simp_primitives::{Header, Address};
     use rocksdb::PrefixRange;
     use crate::traits::HeaderProvider;
     use db::table::Encode;

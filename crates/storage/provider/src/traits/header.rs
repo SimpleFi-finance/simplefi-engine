@@ -1,6 +1,6 @@
 use auto_impl::auto_impl;
 use interfaces::Result;
-use primitives::{BlockHash, BlockHashOrNumber, BlockNumber, Header};
+use simp_primitives::{BlockHash, BlockHashOrNumber, BlockNumber, Header};
 
 /// Client trait for fetching `Header` related data.
 #[auto_impl(&, Arc)]

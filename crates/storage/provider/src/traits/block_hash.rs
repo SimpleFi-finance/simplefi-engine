@@ -1,6 +1,6 @@
 use auto_impl::auto_impl;
 use interfaces::Result;
-use primitives::{BlockHashOrNumber, BlockNumber, H256};
+use simp_primitives::{BlockHashOrNumber, BlockNumber, H256};
 
 /// Client trait for fetching block hashes by number.
 #[auto_impl(&, Arc, Box)]

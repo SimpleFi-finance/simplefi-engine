@@ -1,0 +1,37 @@
+[package]
+name = "simp-rpc"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[dependencies]
+simp-primitives.workspace = true
+simp-rpc-api = { path = "../rpc-api" }
+
+# misc
+jsonrpsee = { workspace = true, features = ["server", "macros"] }
+http = "0.2.8"
+http-body = "0.4.5"
+hyper = "0.14.24"
+jsonwebtoken = "9"
+
+# async
+async-trait.workspace = true
+tokio = { workspace = true, features = ["sync"] }
+tower = "0.4"
+tokio-stream = { workspace = true, features = ["sync"] }
+tokio-util = "0.7"
+pin-project.workspace = true
+rayon.workspace = true
+
+# misc
+bytes.workspace = true
+secp256k1 = { workspace = true, features = ["global-context", "rand-std", "recovery"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+thiserror.workspace = true
+rand.workspace = true
+tracing.workspace = true
+tracing-futures = "0.2"
+schnellru = "0.2"
+futures.workspace = true

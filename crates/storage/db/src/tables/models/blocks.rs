@@ -1,7 +1,7 @@
 //! Block related models and types.
 
 use sip_codecs::{main_codec, Compact};
-use primitives::{TxNumber, H256};
+use simp_primitives::{TxNumber, H256};
 use std::ops::Range;
 
 /// Total number of transactions.

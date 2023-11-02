@@ -6,7 +6,7 @@ use crate::{
 use interfaces::db::DatabaseError;
 
 use postcard::{from_bytes, to_allocvec, to_vec};
-use primitives::*;
+use simp_primitives::*;
 
 // Just add `Serialize` and `Deserialize`, and set impl_heapless_postcard!(T, MaxSize(T))
 //

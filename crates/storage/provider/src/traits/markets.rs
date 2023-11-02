@@ -1,5 +1,5 @@
 use interfaces::Result;
-use primitives::{H256, Market, TokenMarkets};
+use simp_primitives::{H256, Market, TokenMarkets};
 
 /// Client trait for [Market]s
 pub trait MarketProvider: Send + Sync {

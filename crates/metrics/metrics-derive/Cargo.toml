@@ -1,0 +1,20 @@
+[package]
+name = "simp-metrics-derive"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2.workspace = true
+syn = { workspace = true, features = ["extra-traits"] }
+quote.workspace = true
+regex = "1.6.0"
+once_cell.workspace = true
+
+[dev-dependencies]
+metrics.workspace = true
+serial_test.workspace = true
+trybuild = "1.0"

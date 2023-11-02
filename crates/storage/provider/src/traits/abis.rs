@@ -1,6 +1,6 @@
 use db::tables::{StoredContract, models::{AbiContract, ProxyImplementations}, ContractData, AbiData};
 use interfaces::Result;
-use primitives::{Address, StoredLog, DecodedData, BlockNumber};
+use simp_primitives::{Address, StoredLog, DecodedData, BlockNumber};
 use auto_impl::auto_impl;
 
 #[auto_impl(&, Arc, Box)]

@@ -1,5 +1,5 @@
 use db::tables::BlockBodyIndices;
-use primitives::{BlockHashOrNumber, BlockNumber};
+use simp_primitives::{BlockHashOrNumber, BlockNumber};
 
 use interfaces::Result;
 use auto_impl::auto_impl;

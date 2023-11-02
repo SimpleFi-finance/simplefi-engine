@@ -1,6 +1,6 @@
 use db::tables::Headers;
 use interfaces::Result;
-use primitives::{BlockHash, Header, BlockNumber};
+use simp_primitives::{BlockHash, Header, BlockNumber};
 use rocksdb::ReadOptions;
 use db::tables::utils::decoder;
 
@@ -75,7 +75,7 @@ mod tests {
     use std::fs;
 
     use db::{init_db, test_utils::ERROR_TEMPDIR, implementation::sip_rocksdb::DB};
-    use primitives::Header;
+    use simp_primitives::Header;
     use crate::traits::{HeaderProvider, HeaderWriter, BlockNumWriter, BlockHashWriter};
     use crate::DatabaseProvider;
 

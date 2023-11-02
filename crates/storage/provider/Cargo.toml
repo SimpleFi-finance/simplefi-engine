@@ -7,7 +7,7 @@ description = "SIP storage provider."
 
 [dependencies]
 interfaces.workspace = true
-primitives.workspace = true
+simp-primitives.workspace = true
 db = { path = "../db" }
 revm-primitives = { workspace = true }
 

@@ -1,5 +1,5 @@
 use db::tables::{BlockBodyIndices, BlockIndices};
-use primitives::{BlockHashOrNumber, BlockNumber};
+use simp_primitives::{BlockHashOrNumber, BlockNumber};
 use interfaces::Result;
 use crate::traits::{BlockBodyIndicesProvider,BlockBodyIndicesWriter};
 use crate::DatabaseProvider;

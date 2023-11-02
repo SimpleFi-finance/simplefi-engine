@@ -1,6 +1,6 @@
 use super::BlockHashReader;
 use interfaces::Result;
-use primitives::{BlockHashOrNumber, BlockNumber, H256};
+use simp_primitives::{BlockHashOrNumber, BlockNumber, H256};
 
 /// Client trait for getting important block numbers (such as the latest block number), converting
 /// block hashes to numbers, and fetching a block hash from its block number.

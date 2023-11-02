@@ -1,7 +1,7 @@
 //! Block related models and types.
 
 use sip_codecs::{main_codec, Compact};
-use primitives::{Address, BlockNumber};
+use simp_primitives::{Address, BlockNumber};
 
 use super::AbiData;
 

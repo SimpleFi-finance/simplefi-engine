@@ -1,4 +1,4 @@
-use primitives::H256;
+use simp_primitives::H256;
 use sip_codecs::{main_codec, Compact};
 
 #[main_codec]

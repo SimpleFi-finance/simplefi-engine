@@ -4,7 +4,7 @@ use rocksdb::ReadOptions;
 
 use crate::traits::BlockHashWriter;
 use crate::{traits::BlockHashReader, DatabaseProvider};
-use primitives::{
+use simp_primitives::{
     H256, BlockNumber,
 };
 
@@ -50,7 +50,7 @@ impl BlockHashWriter for DatabaseProvider {
 #[cfg(test)] 
 mod tests {
     use db::{init_db, test_utils::ERROR_TEMPDIR, implementation::sip_rocksdb::DB};
-    use primitives::H256;
+    use simp_primitives::H256;
     use crate::traits::{BlockHashReader, BlockHashWriter};
     use crate::DatabaseProvider;
 

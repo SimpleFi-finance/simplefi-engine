@@ -1,4 +1,4 @@
-use primitives::{BlockHashOrNumber, Block, H256};
+use simp_primitives::{BlockHashOrNumber, Block, H256};
 use interfaces::Result;
 use crate::DatabaseProvider;
 use crate::traits::{BlockNumReader,HeaderProvider, TransactionsProvider, BlockReader};

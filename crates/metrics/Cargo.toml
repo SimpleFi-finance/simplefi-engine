@@ -1,0 +1,21 @@
+[package]
+name = "simp-metrics"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+description = "SIMP metrics utilities"
+
+[dependencies]
+# simp
+simp-metrics-derive = { path = "./metrics-derive" }
+
+# metrics
+metrics.workspace = true
+
+# async
+tokio = { workspace = true, features = ["full"], optional = true }
+futures = { workspace = true, optional = true }
+tokio-util = { workspace = true, optional = true }
+
+[features]
+common = ["tokio", "futures", "tokio-util"]

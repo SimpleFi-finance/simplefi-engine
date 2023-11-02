@@ -143,7 +143,7 @@ mod tests {
         transaction::DbTx,
         init_db,
     };
-    use primitives::Header;
+    use simp_primitives::Header;
 
     /// Create database for testing
     fn create_test_db() -> eyre::Result<TransactionDB> {

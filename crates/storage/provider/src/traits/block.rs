@@ -1,7 +1,7 @@
 use auto_impl::auto_impl;
 // use db::models::StoredBlockBodyIndices;
 use interfaces::Result;
-use primitives::{
+use simp_primitives::{
     Address, Block, BlockHashOrNumber, H256,
 };
 

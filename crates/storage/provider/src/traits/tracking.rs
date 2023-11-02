@@ -1,5 +1,5 @@
 use interfaces::Result;
-use primitives::Address;
+use simp_primitives::Address;
 
 #[auto_impl::auto_impl(&, Arc, Box)]
 pub trait TrackingProvider: Send + Sync {

@@ -1,5 +1,5 @@
 use db::tables::models::VolumeKeyWithData;
-use primitives::{H256, MarketAddress, VolumeKey, Volumetric, PeriodVolumes};
+use simp_primitives::{H256, MarketAddress, VolumeKey, Volumetric, PeriodVolumes};
 use interfaces::Result;
 use db::tables::models::sharded_key::ShardedKey;
 use db::tables::models::volumetric::VolumeKeysWithData;

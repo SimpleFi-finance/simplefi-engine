@@ -1,0 +1,23 @@
+[package]
+name = "simp-rpc-builder"
+version.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[dependencies]
+simp-primitives.workspace = true
+simp-rpc = { path = "../rpc" }
+simp-rpc-api = { path = "../rpc-api", features = ["client"] }
+simp-metrics = { workspace = true, features = ["common"] }
+metrics.workspace = true
+
+serde = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+strum = { workspace = true, features = ["derive"] }
+tracing.workspace = true
+
+# rpc/net
+jsonrpsee = { workspace = true, features = ["server"] }
+tower-http = { version = "0.4", features = ["full"] }
+tower = { version = "0.4", features = ["full"] }
+hyper = "0.14"

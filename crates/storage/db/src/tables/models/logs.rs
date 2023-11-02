@@ -1,4 +1,4 @@
-use primitives::{LogNumber, TxNumber, BlockNumber};
+use simp_primitives::{LogNumber, TxNumber, BlockNumber};
 use sip_codecs::{main_codec, Compact};
 
 /// The storage of the block body indices

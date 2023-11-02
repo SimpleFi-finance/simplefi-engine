@@ -1,6 +1,8 @@
 [workspace]
 
 members = [
+    # bin
+    "bin/simp",
     # services
     "crates/abi_discovery",
     "crates/grpc_server",
@@ -17,6 +19,11 @@ members = [
     "crates/primitives",
     "crates/storage/provider",
     "crates/interfaces",
+    # rpc
+    "crates/tasks",
+    "crates/rpc/rpc",
+    "crates/rpc/rpc-api",
+    "crates/rpc/rpc-builder",
     # utils
     "crates/utils/http",
     "crates/utils/logger",
@@ -29,9 +36,14 @@ members = [
     "crates/types/data_lake",
     "crates/types/mongo",
     "crates/types/redis",
-    "crates/types/providers"
+    "crates/types/providers",
+    # metrics
+    "crates/tracing",
+    "crates/metrics",
+    "crates/metrics/metrics-derive",
 ]
 
+default-members = ["bin/simp"]
 resolver = "2"
 
 [workspace.package]
@@ -45,59 +57,56 @@ repository = "https://github.com/SimpleFi-finance/simplefi-engine"
 
 
 [workspace.dependencies]
+# simp crates
+simp-metrics = { path = "./crates/metrics" }
+simp-tasks = { path = "./crates/tasks" }
+simp-tracing = { path = "./crates/tracing" }
+simp-primitives = { path = "./crates/primitives" }
+simp-rpc-builder = { path = "./crates/rpc/rpc-builder" }
 db = { path = "./crates/storage/db" }
 rlp = { path = "./crates/rlp" }
 interfaces = { path = "./crates/interfaces" }
-primitives = { path = "./crates/primitives" }
 storage-provider = { path = "./crates/storage/provider" }
+
 revm = { version = "3" }
 revm-primitives = { version = "=1.1.0"}
 rocksdb = { version = "0.21.0", features = [ "zstd" ] }
-eyre = "0.6.5"
-thiserror = "1.0.30"
 tempfile  = "3.2.0"
 serde = { version = "1.0.130"}
-bytes = "1.0.1"
 c-kzg = { git = "https://github.com/ethereum/c-kzg-4844" }
-proc-macro2 = "1.0.30"
-quote = "1.0.12"
-proptest = "1.0.0"
-proptest-derive = "0.3.0"
 arbitrary = "1.0.0"
-secp256k1 = {version = "0.27.0", features = ["global-context", "rand-std", "recovery"]}
-strum = "0.25"
 time = "0.3.29"
 ethabi = "18.0.0"
 hex-literal = "0.4.1"
 chrono = "0.4.26"
-async-trait = "0.1"
 bson = "2.6"
-clap = { version = "4.2", features = ["derive"] }
 confy = { version = "0.5.1" }
 ethers = { version = "2.0.4", features = ["ws", "rustls", "legacy"]}
 ethers-providers = "2.0.4"
 fern = "0.6"
 flate2 = "1.0"
-futures = "0.3"
 lapin = "2.1.1"
 log = "0.4"
 hex = "0.4"
 http = "0.2"
+hyper = "0.14.20"
 mongodb = "2.5"
 mockito = "1.0"
 once_cell = "1.17"
 prost = "0.11"
 prost-build = "0.11"
-rand = "0.8"
-rayon = "1.7.0"
 redis = { version = "0.23", features = ["tokio-comp"] }
 regex = { version = "1.8" }
 reqwest = { version = "0.11", features = ["json"] }
 ring = { version = "0.16" }
 serde_json = "1.0"
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1.16", features = ["full"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
 tonic = "0.9"
 tonic-build = "0.9"
+tokio-util = { version = "0.7.4", features = ["codec"] }
+tower-http = { version = "0.4.0", features = ["full"] }
+tower = { version = "0.4.13", features = ["full"] }
 tracing = "0.1"
 tungstenite = { version = "0.19.0", features = ["native-tls"] }
 google-cloud-storage = "0.11.0"
@@ -107,6 +116,44 @@ datafusion = "24.0.0"
 object_store = "0.5.6"
 url = "2.2.1"
 parquet = "43.0.0"
+aquamarine = "0.3"
+anyhow = "1"
+jsonrpsee = { version = "0.20", features = ["server", "http-client", "ws-client", "macros", "client-ws-transport-native-tls"] }
+metrics = "0.21.1"
+tracing-appender = "0.2"
+tracing-subscriber = { version = "0.3.3", features = ["env-filter"] }
+console-subscriber = "0.2.0"
+syn = "2.0"
+
+## proc-macros
+proc-macro2 = "1.0"
+quote = "1.0"
+
+## crypto
+secp256k1 = { version = "0.28.0", default-features = false, features = [
+    "global-context",
+    "rand-std",
+    "recovery",
+] }
+bytes = "1.5"
+thiserror = "1.0"
+rand = "0.8.5"
+rayon = "1.7"
+clap = "4"
+eyre = "0.6"
+alloy-primitives = "0.4"
+strum = "0.25"
+
+## async
+async-trait = "0.1.68"
+futures = "0.3.26"
+pin-project = "1.0.12"
+futures-util = "0.3.25"
+
+## misc-testing
+proptest = "1.0"
+proptest-derive = "0.3.0"
+serial_test = "2"
 
 [patch."https://github.com/ethereum/c-kzg-4844"]
 c-kzg = { git = "https://github.com/rjected/c-kzg-4844", branch = "dan/add-serde-feature" }

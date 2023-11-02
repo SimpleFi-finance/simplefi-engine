@@ -3,7 +3,7 @@ use crate::traits::Timeframe;
 use db::tables::{TempPeriodVolumesFive, ShardedKey, TempPeriodVolumesHour};
 use interfaces::Result;
 use db::transaction::DbTx;
-use primitives::{PeriodVolumes, Volumetric,H256};
+use simp_primitives::{PeriodVolumes, Volumetric,H256};
 
 
 
@@ -96,8 +96,8 @@ mod test {
       implementation::sip_rocksdb::DB, init_db, 
       test_utils::ERROR_TEMPDIR,
   };
-  use primitives::address_balance::AddressBalance;
-  use primitives::{Volumetric, H256};
+  use simp_primitives::address_balance::AddressBalance;
+  use simp_primitives::{Volumetric, H256};
   use revm_primitives::U256;
   use std::str::FromStr;
 
