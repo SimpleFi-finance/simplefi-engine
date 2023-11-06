@@ -3,8 +3,6 @@ mod event;
 mod progress;
 
 use std::sync::Arc;
-
-use db::implementation::dae_rocksdb::DB;
 use progress::PipelineProgress;
 
 mod ctrl;
@@ -12,6 +10,7 @@ pub use ctrl::ControlFlow;
 mod builder;
 pub use builder::PipelineBuilder;
 use primitives::{BlockNumber, StageId};
+use rocksdb::{TransactionDB, MultiThreaded};
 use storage_provider::{DatabaseProvider, providers::options::AccessType, traits::*};
 use tokio_util::EventListeners;
 use tracing::*;
@@ -27,7 +26,7 @@ use storage_provider::traits::*;
 pub struct Pipeline {
     stages: Vec<BoxedStage>,
 
-    db: DB,
+    db: DatabaseProvider,
     // TODO: add Pipeline events
     listeners: EventListeners<PipelineEvent>,
 
@@ -42,14 +41,6 @@ impl Pipeline {
         PipelineBuilder::default()
     }
     // event listener
-
-    pub fn db_provider(&self, rw: bool) -> DatabaseProvider {
-        if rw {
-            DatabaseProvider::new(self.db, AccessType::Primary)
-        } else {
-            DatabaseProvider::new(self.db, AccessType::Secondary)
-        }
-    }
 
     pub fn events(&mut self) -> UnboundedReceiverStream<PipelineEvent> {
         self.listeners.new_listener()
@@ -107,8 +98,7 @@ impl Pipeline {
                 }
             }
 
-            let db_provider = &self.db;
-            previous_stage = db_provider.get_stage_checkpoint(stage_id).unwrap().map(|progress| progress);
+            previous_stage = self.db.get_stage_checkpoint(stage_id).unwrap().map(|progress| progress);
         }
 
         Ok(self.progress.next_ctrl())
@@ -128,13 +118,13 @@ impl Pipeline {
         stage_index: usize,
     ) -> Result<ControlFlow, PipelineError>{
         let total_stages = self.stages.len();
+        let db_provider = &self.db;
 
         let stage = &mut self.stages[stage_index];
         let stage_id = stage.id();
         let mut made_progress = false;
         let target = self.max_block.or(previous_stage);
 
-        let db_provider = self.db_provider(true);
 
         loop {
             let prev_checkpoint = db_provider.get_stage_checkpoint(stage_id).unwrap();
