@@ -13,7 +13,7 @@ use simp_primitives::{H256, Market, TokenMarkets};
 
 impl MarketProvider for DatabaseProvider {
     fn create_market(&self, market: Market, market_address: H256) -> Result<()> {
-        self.db.put::<MarketProtocol>(market_address, market.clone())?;
+        self.db.dae_put::<MarketProtocol>(market_address, market.clone())?;
         for token in market.input_tokens {
             self.add_to_token_markets(market_address, token)?;
         }
@@ -22,21 +22,21 @@ impl MarketProvider for DatabaseProvider {
     }
 
     fn delete_market(&self, market_address: H256) -> Result<()> {
-        self.db.delete::<MarketProtocol>(market_address)?;
+        self.db.dae_delete::<MarketProtocol>(market_address)?;
 
         Ok(())
     }
 
     fn get_market(&self, market_address: H256) -> Result<Option<Market>> {
-        let market = self.db.get::<MarketProtocol>(market_address)?;
+        let market = self.db.dae_get::<MarketProtocol>(market_address)?;
         Ok(market)
     }
 
     fn update_market(&self, market_address: H256, updated_market: Market) -> Result<()> {
-        let matched_market = self.db.get::<MarketProtocol>(market_address)?;
+        let matched_market = self.db.dae_get::<MarketProtocol>(market_address)?;
 
         match matched_market {
-            Some(_) => self.db.put::<MarketProtocol>(market_address,updated_market)?,
+            Some(_) => self.db.dae_put::<MarketProtocol>(market_address,updated_market)?,
             _ => ()
         }
 
@@ -44,20 +44,20 @@ impl MarketProvider for DatabaseProvider {
     }
 
     fn add_to_token_markets (&self, market_address: H256, token_address: H256) -> Result<()> {
-        let token = self.db.get::<TokensMarkets>(token_address)?;
+        let token = self.db.dae_get::<TokensMarkets>(token_address)?;
         match token {
             Some(mut t) => {
                 t.market_addresses.push(market_address);
-                self.db.put::<TokensMarkets>(token_address,t)?;
+                self.db.dae_put::<TokensMarkets>(token_address,t)?;
             },
             _ => {
-                self.db.put::<TokensMarkets>(token_address,TokenMarkets {market_addresses: vec![market_address]})?;
+                self.db.dae_put::<TokensMarkets>(token_address,TokenMarkets {market_addresses: vec![market_address]})?;
             }
         }
         Ok(())
     }
     fn get_token_markets(&self, token_address: H256) -> Result<Option<TokenMarkets>> {
-        let t = self.db.get::<TokensMarkets>(token_address)?;
+        let t = self.db.dae_get::<TokensMarkets>(token_address)?;
         Ok(t)
     }
 }
@@ -69,16 +69,14 @@ mod test {
     use crate::traits::MarketProvider;
     use crate::{providers::options::AccessType, DatabaseProvider};
     use db::{
-        implementation::sip_rocksdb::DB, init_db, 
+        init_db, 
         test_utils::ERROR_TEMPDIR,
     };
     use simp_primitives::{H256, Market};
     use std::str::FromStr;
 
     fn get_provider() -> DatabaseProvider {
-        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path());
-
-        let db = DB::new(db.unwrap());
+        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path()).unwrap();
 
         DatabaseProvider::new(db, AccessType::Primary)
     }

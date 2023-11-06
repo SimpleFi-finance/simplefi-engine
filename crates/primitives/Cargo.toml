@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sip-codecs = { path = "../storage/codecs" }
+sip-codecs = { path = "../storage/codecs"}
 revm-primitives = { workspace = true, features = ["arbitrary"] }
 rlp = { workspace = true, features = ["std", "derive", "ethereum-types"] }
 tiny-keccak = { version = "2.0", features = ["keccak"] }

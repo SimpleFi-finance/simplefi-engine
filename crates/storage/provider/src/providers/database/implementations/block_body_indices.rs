@@ -12,7 +12,7 @@ impl BlockBodyIndicesProvider for DatabaseProvider {
         match bn {
             None => Ok(None),
             Some(bn) => {
-                let block_body_index = self.db.get::<BlockIndices>(bn)?;
+                let block_body_index = self.db.dae_get::<BlockIndices>(bn)?;
                 Ok(block_body_index)
             }
         }
@@ -27,7 +27,7 @@ impl BlockBodyIndicesWriter for DatabaseProvider {
     ) -> Result<BlockBodyIndices> {
         // TODO: maybevalidate
 
-        self.db.put::<BlockIndices>(block_number, index.clone())?;
+        self.db.dae_put::<BlockIndices>(block_number, index.clone())?;
         Ok(index)
     }
 }
@@ -37,16 +37,14 @@ impl BlockBodyIndicesWriter for DatabaseProvider {
 mod test {
     use crate::{providers::options::AccessType, DatabaseProvider};
     use db::{
-        implementation::sip_rocksdb::DB, init_db,
+        init_db,
         test_utils::ERROR_TEMPDIR, tables::BlockBodyIndices,
     };
     use crate::traits::{BlockBodyIndicesWriter, BlockBodyIndicesProvider};
 
 
     fn get_provider() -> DatabaseProvider {
-        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path());
-
-        let db = DB::new(db.unwrap());
+        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path()).unwrap();
 
         DatabaseProvider::new(db, AccessType::Primary)
     }

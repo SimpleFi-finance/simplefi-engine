@@ -20,7 +20,7 @@ impl HeaderProvider for DatabaseProvider {
     }
 
     fn header_by_number(&self, num: BlockNumber) -> Result<Option<Header>> {
-        let header = self.db.get::<Headers>(num).unwrap();
+        let header = self.db.dae_get::<Headers>(num).unwrap();
         Ok(header)
     }
 
@@ -28,7 +28,7 @@ impl HeaderProvider for DatabaseProvider {
     fn headers_range(&self, range: (BlockNumber, BlockNumber)) -> Result<Vec<Header>> {
         let mut opts = ReadOptions::default();
         opts.set_iterate_range(range.0.encode().as_slice()..range.1.encode().as_slice());
-        let mut iter = self.db.new_cursor::<Headers>(opts).unwrap();
+        let mut iter = self.db.dae_new_cursor::<Headers>(opts).unwrap();
         let mut headers = Vec::new();
         iter.seek_to_first();
 
@@ -44,7 +44,7 @@ impl HeaderProvider for DatabaseProvider {
     }
 
     fn latest_header(&self) -> Result<Option<Header> > {
-        let mut iter = self.db.new_cursor::<Headers>(ReadOptions::default()).unwrap();
+        let mut iter = self.db.dae_new_cursor::<Headers>(ReadOptions::default()).unwrap();
         iter.seek_to_last();
 
         if iter.valid() {
@@ -64,7 +64,7 @@ impl HeaderProvider for DatabaseProvider {
 
 impl HeaderWriter for DatabaseProvider {
     fn insert_header(&self, block_number: &BlockNumber, header: Header) -> Result<Option<BlockNumber> > {
-        self.db.put::<Headers>(*block_number, header)?;
+        self.db.dae_put::<Headers>(*block_number, header)?;
         Ok(Some(*block_number))
     }
 }
@@ -80,9 +80,7 @@ mod tests {
     use crate::DatabaseProvider;
 
     fn get_provider() -> DatabaseProvider {
-        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path());
-
-        let db = DB::new(db.unwrap());
+        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path()).unwrap();
 
         DatabaseProvider::new(db, crate::providers::options::AccessType::Primary)
     }

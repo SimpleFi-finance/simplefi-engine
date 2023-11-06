@@ -5,7 +5,6 @@ members = [
     "bin/simp",
     # services
     "crates/abi_discovery",
-    "crates/grpc_server",
     # pipelines
     "crates/gold",
     "crates/silver",

@@ -1,17 +1,10 @@
-// builder
-
-// control
-
-// progress
-
-// event
 mod event;
 
 mod progress;
 
 use std::sync::Arc;
 
-use db::implementation::sip_rocksdb::DB;
+use db::implementation::dae_rocksdb::DB;
 use progress::PipelineProgress;
 
 mod ctrl;
@@ -26,15 +19,17 @@ use tracing::*;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
 
-use crate::{stage::{BoxedStage, ExecOutput}, PipelineError, error::StageError};
+use crate::{stage::{BoxedStage, ExecOutput}, PipelineError, error::StageError, pipeline::event::PipelineEvent};
 
+use self::event::PipelineStagesProgress;
+use storage_provider::traits::*;
 
 pub struct Pipeline {
     stages: Vec<BoxedStage>,
 
     db: DB,
     // TODO: add Pipeline events
-    listeners: EventListeners<String>,
+    listeners: EventListeners<PipelineEvent>,
 
     max_block: Option<BlockNumber>,
     // TODO: keep track of pipeline progress
@@ -56,7 +51,7 @@ impl Pipeline {
         }
     }
 
-    pub fn events(&mut self) -> UnboundedReceiverStream<String> {
+    pub fn events(&mut self) -> UnboundedReceiverStream<PipelineEvent> {
         self.listeners.new_listener()
     }
     // run pipeline in infinte loop
@@ -112,15 +107,8 @@ impl Pipeline {
                 }
             }
 
-            let db_provider = self.db_provider(true);
-
-            // previous_stage = Some(
-            //     factory
-            //         .provider()?
-            //         .get_stage_checkpoint(stage_id)?
-            //         .unwrap_or_default()
-            //         .block_number,
-            // );
+            let db_provider = &self.db;
+            previous_stage = db_provider.get_stage_checkpoint(stage_id).unwrap().map(|progress| progress);
         }
 
         Ok(self.progress.next_ctrl())
@@ -171,8 +159,10 @@ impl Pipeline {
             }
 
             self.listeners.notify(PipelineEvent::Running {
-                pipeline_position: stage_index + 1,
-                pipeline_total: total_stages,
+                pipeline_stages_progress: PipelineStagesProgress {
+                    current: stage_index + 1,
+                    total: total_stages,
+                },
                 stage_id,
                 checkpoint: prev_checkpoint,
             });
@@ -195,11 +185,13 @@ impl Pipeline {
                         "Stage committed progress"
                     );
                    
-                    db_provider.save_stage_checkpoint(stage_id, checkpoint)?;
+                    db_provider.save_stage_checkpoint(stage_id, checkpoint).unwrap();
 
                     self.listeners.notify(PipelineEvent::Ran {
-                        pipeline_position: stage_index + 1,
-                        pipeline_total: total_stages,
+                        pipeline_stages_progress: PipelineStagesProgress {
+                            current: stage_index + 1,
+                            total: total_stages,
+                        },
                         stage_id,
                         result: out.clone(),
                     });
@@ -218,10 +210,7 @@ impl Pipeline {
                     // notify error
                     // unwind stage
                     // 
-                    let out = if let StageError::DetachedHead { local_head, header, error } = err {
-                        warn!(target: "sync::pipeline", stage = %stage_id, ?local_head, ?header, ?error, "Stage encountered detached head");
-                        Ok(ControlFlow::Unwind { target: unwind_to, bad_block: local_head })
-                    } else if let StageError::Block { block } = err {
+                    let out = if let StageError::Block { block } = err {
                         unimplemented!()
                     } else if err.is_fatal() {
                         error!(

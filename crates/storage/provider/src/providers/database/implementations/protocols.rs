@@ -17,7 +17,7 @@ impl ProtocolProvider for DatabaseProvider {
         // get new_id
         let mut opts = ReadOptions::default();
         opts.set_iterate_range(..);
-        let mut iter = self.db.new_cursor::<Protocols>(opts).unwrap();
+        let mut iter = self.db.dae_new_cursor::<Protocols>(opts).unwrap();
         iter.seek_to_last();
 
 
@@ -43,17 +43,17 @@ impl ProtocolProvider for DatabaseProvider {
         };
 
 
-        self.db.put::<Protocols>(new_id, protocol)?;
+        self.db.dae_put::<Protocols>(new_id, protocol)?;
         Ok(())
     }
 
     fn delete_protocol(&self, protocol_id: u64) -> Result<()> {
-        self.db.delete::<Protocols>(protocol_id)?;
+        self.db.dae_delete::<Protocols>(protocol_id)?;
         Ok(())
     }
 
     fn get_protocol(&self, protocol_id: u64) -> Result<Option<Protocol>> {
-        let protocol = self.db.get::<Protocols>(protocol_id)?;
+        let protocol = self.db.dae_get::<Protocols>(protocol_id)?;
         Ok(protocol)
     }
 
@@ -61,7 +61,7 @@ impl ProtocolProvider for DatabaseProvider {
         let mut protocols = vec!();
         let mut opts = ReadOptions::default();
         opts.set_iterate_range(..);
-        let mut iter = self.db.new_cursor::<Protocols>(opts).unwrap();
+        let mut iter = self.db.dae_new_cursor::<Protocols>(opts).unwrap();
 
         iter.seek_to_first();
 
@@ -83,10 +83,10 @@ impl ProtocolProvider for DatabaseProvider {
     }
 
     fn update_protocol(&self, updated_protocol: Protocol, protocol_id: u64) -> Result<bool> {
-        let matched_protocol = self.db.get::<Protocols>(protocol_id)?;
+        let matched_protocol = self.db.dae_get::<Protocols>(protocol_id)?;
 
         match matched_protocol {
-            Some(_) => self.db.put::<Protocols>(protocol_id,updated_protocol)?,
+            Some(_) => self.db.dae_put::<Protocols>(protocol_id,updated_protocol)?,
             _ => return Ok(false)
         }
 
@@ -100,16 +100,14 @@ mod test {
     use crate::traits::{MarketProvider, ProtocolProvider};
     use crate::{providers::options::AccessType, DatabaseProvider};
     use db::{
-        implementation::sip_rocksdb::DB, init_db, 
+        init_db, 
         test_utils::ERROR_TEMPDIR,
     };
     use simp_primitives::{H256, Market};
     use std::str::FromStr;
 
     fn get_provider() -> DatabaseProvider {
-        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path());
-
-        let db = DB::new(db.unwrap());
+        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path()).unwrap();
 
         DatabaseProvider::new(db, AccessType::Primary)
     }

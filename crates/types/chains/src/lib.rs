@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use std::str::FromStr;
 
 use common::chain::{DecodeLogs, Info};
-use grpc_server::client::AbiDiscoveryClient;
 use log::info;
 use rayon::{iter::ParallelIterator, prelude::IntoParallelRefIterator};
 use simplefi_engine_settings::load_settings;
@@ -409,8 +408,8 @@ impl DecodeLogs for SupportedChains {
 
         let unique_addresses: Vec<String> = logs_by_address.keys().cloned().collect();
 
-        let mut abi_discovery_client =
-            AbiDiscoveryClient::new("http://[::1]:50051".to_string()).await;
+        // let mut abi_discovery_client =
+        //     AbiDiscoveryClient::new("http://[::1]:50051".to_string()).await;
 
         // TODO: Add chain as parameter
         let chain_name = "ethereum".to_string();

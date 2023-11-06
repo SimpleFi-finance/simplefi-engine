@@ -11,8 +11,8 @@ impl TempVolumetrics for DatabaseProvider {
 
     fn get_temp_volumetric (&self, market_address: &H256, timestamp: u64, timeframe:crate::traits::Timeframe) -> Result<Option<PeriodVolumes>> {
         let result = match timeframe {
-          Timeframe::FiveMinute => self.db.get::<TempPeriodVolumesFive>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp}),
-          Timeframe::Hourly => self.db.get::<TempPeriodVolumesHour>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp}),
+          Timeframe::FiveMinute => self.db.dae_get::<TempPeriodVolumesFive>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp}),
+          Timeframe::Hourly => self.db.dae_get::<TempPeriodVolumesHour>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp}),
           _ => panic!("Timeframe not valid")
         }?;
         Ok(result)
@@ -25,16 +25,16 @@ impl TempVolumetrics for DatabaseProvider {
         Some(mut e) => {
           e.volumes.push(period_volume);
           let _ = match timeframe {
-            Timeframe::FiveMinute => self.db.put::<TempPeriodVolumesFive>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},e),
-            Timeframe::Hourly => self.db.put::<TempPeriodVolumesHour>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},e),
+            Timeframe::FiveMinute => self.db.dae_put::<TempPeriodVolumesFive>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},e),
+            Timeframe::Hourly => self.db.dae_put::<TempPeriodVolumesHour>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},e),
             _ => panic!("Timeframe not valid")
           }?;
         },
         _ => {
           let new: PeriodVolumes = PeriodVolumes{volumes:vec![period_volume]};
           let _ = match timeframe {
-            Timeframe::FiveMinute => self.db.put::<TempPeriodVolumesFive>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},new),
-            Timeframe::Hourly => self.db.put::<TempPeriodVolumesHour>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},new),
+            Timeframe::FiveMinute => self.db.dae_put::<TempPeriodVolumesFive>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},new),
+            Timeframe::Hourly => self.db.dae_put::<TempPeriodVolumesHour>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},new),
             _ => panic!("Timeframe not valid")
           }?;
         }
@@ -57,16 +57,16 @@ impl TempVolumetrics for DatabaseProvider {
           Some(mut pv) => {
               pv.volumes.extend(volumes);
               let _ = match timeframe {
-                Timeframe::FiveMinute => self.db.put::<TempPeriodVolumesFive>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},pv),
-                Timeframe::Hourly => self.db.put::<TempPeriodVolumesHour>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},pv),
+                Timeframe::FiveMinute => self.db.dae_put::<TempPeriodVolumesFive>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},pv),
+                Timeframe::Hourly => self.db.dae_put::<TempPeriodVolumesHour>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},pv),
                 _ => panic!("Timeframe not valid")
               }?;
           },
           _ => {
             let new: PeriodVolumes = PeriodVolumes{volumes};
             let _ = match timeframe {
-              Timeframe::FiveMinute => self.db.put::<TempPeriodVolumesFive>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},new),
-              Timeframe::Hourly => self.db.put::<TempPeriodVolumesHour>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},new),
+              Timeframe::FiveMinute => self.db.dae_put::<TempPeriodVolumesFive>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},new),
+              Timeframe::Hourly => self.db.dae_put::<TempPeriodVolumesHour>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp},new),
               _ => panic!("Timeframe not valid")
             }?;
           }
@@ -77,8 +77,8 @@ impl TempVolumetrics for DatabaseProvider {
 
     fn delete_period_volumes (&self, market_address: &H256, timestamp: u64, timeframe: crate::traits::Timeframe) -> Result<()> {
       let _ = match timeframe {
-        Timeframe::FiveMinute => self.db.delete::<TempPeriodVolumesFive>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp}),
-        Timeframe::Hourly => self.db.delete::<TempPeriodVolumesHour>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp}),
+        Timeframe::FiveMinute => self.db.dae_delete::<TempPeriodVolumesFive>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp}),
+        Timeframe::Hourly => self.db.dae_delete::<TempPeriodVolumesHour>(ShardedKey{key: market_address.clone(),max_shard_value:timestamp}),
         _ => panic!("Timeframe not valid")
       }?;
       Ok(())
@@ -93,7 +93,7 @@ mod test {
   use crate::traits::{Timeframe, TempVolumetrics};
   use crate::{providers::options::AccessType, DatabaseProvider};
   use db::{
-      implementation::sip_rocksdb::DB, init_db, 
+      init_db, 
       test_utils::ERROR_TEMPDIR,
   };
   use simp_primitives::address_balance::AddressBalance;
@@ -103,9 +103,7 @@ mod test {
 
 
   fn get_provider() -> DatabaseProvider {
-    let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path());
-
-    let db = DB::new(db.unwrap());
+    let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path()).unwrap();
 
     DatabaseProvider::new(db, AccessType::Primary)
 }

@@ -1,5 +1,5 @@
 use interfaces::db::DatabaseError;
-use rocksdb::{TransactionDB, Transaction, Options, ReadOptions, DBRawIteratorWithThreadMode};
+use rocksdb::{TransactionDB, Options, ReadOptions, DBRawIteratorWithThreadMode, MultiThreaded};
 
 use crate::{
     tables::utils::{decode_one, decoder},
@@ -7,28 +7,11 @@ use crate::{
     table::{Compress, Encode, Table}, common::PairResult,
 };
 
+impl DbTx for TransactionDB<MultiThreaded> {
+    fn dae_get<T: Table>(&self, key: T::Key) -> Result<Option<T::Value>, DatabaseError> {
+        let tx = self.transaction();
 
-pub struct DB {
-    pub db: TransactionDB,
-}
-
-impl DB {
-    pub fn new(db: TransactionDB) -> Self {
-        Self { db }
-    }
-}
-
-impl DB {
-    fn tx(&self) -> Result<Transaction<TransactionDB>, DatabaseError> {
-        Ok(self.db.transaction())
-    }
-}
-
-impl DbTx for DB {
-    fn get<T: Table>(&self, key: T::Key) -> Result<Option<T::Value>, DatabaseError> {
-        let tx = self.tx().unwrap();
-
-        let cf = self.db.cf_handle(T::NAME).unwrap();
+        let cf = self.cf_handle(T::NAME).unwrap();
         let value = tx.get_cf(&cf, key.encode()).unwrap();
 
         match value {
@@ -41,9 +24,9 @@ impl DbTx for DB {
         }
     }
 
-    fn get_last<T: Table>(&self) -> PairResult<T> {
+    fn dae_get_last<T: Table>(&self) -> PairResult<T> {
         let opts = ReadOptions::default();
-        let mut iter = self.new_cursor::<T>(opts).unwrap();
+        let mut iter = self.dae_new_cursor::<T>(opts).unwrap();
         iter.seek_to_last();
         if iter.valid() {
             let k = iter.key().unwrap();
@@ -55,9 +38,9 @@ impl DbTx for DB {
         }
     }
 
-    fn get_first<T: Table>(&self) -> PairResult<T> {
+    fn dae_get_first<T: Table>(&self) -> PairResult<T> {
         let opts = ReadOptions::default();
-        let mut iter = self.new_cursor::<T>(opts).unwrap();
+        let mut iter = self.dae_new_cursor::<T>(opts).unwrap();
         iter.seek_to_first();
         if iter.valid() {
             let k = iter.key().unwrap();
@@ -69,30 +52,30 @@ impl DbTx for DB {
         }
     }
 
-    fn put<T: Table>(&self, key: T::Key, value: T::Value) -> Result<(), DatabaseError> {
-        let cf = self.db.cf_handle(T::NAME).unwrap();
+    fn dae_put<T: Table>(&self, key: T::Key, value: T::Value) -> Result<(), DatabaseError> {
+        let cf = self.cf_handle(T::NAME).unwrap();
 
-        let tx = self.tx().unwrap();
+        let tx = self.transaction();
         tx.put_cf(&cf, key.encode(), value.compress()).unwrap();
         tx.commit().unwrap();
         Ok(())
     }
 
-    fn clear<T: Table>(&self) -> Result<(), DatabaseError> {
-        let tx = self.tx().unwrap();
+    fn dae_clear<T: Table>(&self) -> Result<(), DatabaseError> {
+        let tx = self.transaction();
 
-        self.db.drop_cf(T::NAME).unwrap();
+        self.drop_cf(T::NAME).unwrap();
 
-        self.db.create_cf(T::NAME, &Options::default()).unwrap();
+        self.create_cf(T::NAME, &Options::default()).unwrap();
 
         tx.commit().unwrap();        
         Ok(())
     }
 
-    fn delete<T: Table>(&self, key: T::Key) -> Result<bool, DatabaseError> {
-        let tx = self.tx().unwrap();
+    fn dae_delete<T: Table>(&self, key: T::Key) -> Result<bool, DatabaseError> {
+        let tx = self.transaction();
 
-        let cf = self.db.cf_handle(T::NAME).unwrap();
+        let cf = self.cf_handle(T::NAME).unwrap();
 
         tx.delete_cf(&cf, key.encode()).unwrap();
 
@@ -101,10 +84,10 @@ impl DbTx for DB {
         Ok(true)
     }
 
-    fn entries<T: Table>(&self) -> Result<usize, DatabaseError> {
-        let tx = self.tx().unwrap();
+    fn dae_entries<T: Table>(&self) -> Result<usize, DatabaseError> {
+        let tx = self.transaction();
 
-        let cf = self.db.cf_handle(T::NAME);
+        let cf = self.cf_handle(T::NAME);
 
         match cf {
             None => {
@@ -123,13 +106,13 @@ impl DbTx for DB {
         }
     }
 
-    fn drop(&self) {
-        drop(&self.tx())
+    fn dae_drop(&self) {
+        drop(&self.transaction())
     }
 
-    fn new_cursor<T: Table>(&self, opts: ReadOptions) -> Result<DBRawIteratorWithThreadMode<TransactionDB>, DatabaseError> {
-        let cf_handle = self.db.cf_handle(T::NAME).unwrap();
-        let iter = self.db.raw_iterator_cf_opt(&cf_handle, opts);
+    fn dae_new_cursor<T: Table>(&self, opts: ReadOptions) -> Result<DBRawIteratorWithThreadMode<TransactionDB>, DatabaseError> {
+        let cf_handle = self.cf_handle(T::NAME).unwrap();
+        let iter = self.raw_iterator_cf_opt(&cf_handle, opts);
 
         Ok(iter)
     }
@@ -157,28 +140,29 @@ mod tests {
     fn db_manual_put_get() {
         let db = create_test_db().unwrap();
 
-        let db = DB::new(db);
+        // let db = DB::new(db);
 
         let value = Header::default();
         let key = 1u64;
-        db.put::<Headers>(key.clone(), value.clone()).unwrap();
 
-        let count = db.entries::<Headers>().unwrap();
+        db.dae_put::<Headers>(key.clone(), value.clone()).unwrap();
+
+        let count = db.dae_entries::<Headers>().unwrap();
         assert_eq!(count, 1);
-        let data = db.get::<Headers>(key).unwrap();
+        let data = db.dae_get::<Headers>(key).unwrap();
 
         assert_eq!(data, Some(value.clone()));
 
-        db.delete::<Headers>(key).unwrap();
+        db.dae_delete::<Headers>(key).unwrap();
 
-        let count = db.entries::<Headers>().unwrap();
+        let count = db.dae_entries::<Headers>().unwrap();
 
         assert_eq!(count, 0);
 
-        db.put::<Headers>(key.clone(), value.clone()).unwrap();
-        db.clear::<Headers>().unwrap();
+        db.dae_put::<Headers>(key.clone(), value.clone()).unwrap();
+        db.dae_clear::<Headers>().unwrap();
 
-        let count = db.entries::<Headers>().unwrap();
+        let count = db.dae_entries::<Headers>().unwrap();
 
         assert_eq!(count, 0);
     }
