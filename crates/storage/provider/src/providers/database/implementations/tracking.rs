@@ -8,7 +8,7 @@ use interfaces::Result;
 
 impl TrackingProvider for DatabaseProvider {
     fn is_contract_tracked(&self, address: Address) -> Result<bool> {
-        let tracked = self.db.get::<tables::TrackedContracts>(address)?;
+        let tracked = self.db.dae_get::<tables::TrackedContracts>(address)?;
         Ok(tracked.is_some())
     }
 }
@@ -16,7 +16,7 @@ impl TrackingProvider for DatabaseProvider {
 impl TrackingWriter for DatabaseProvider {
     fn insert_tracked_contract(&self, address: Address) -> Result<()> {
         let ts = OffsetDateTime::now_utc().microsecond();
-        self.db.put::<tables::TrackedContracts>(address, ts)?;
+        self.db.dae_put::<tables::TrackedContracts>(address, ts)?;
         Ok(())
     }
 }
@@ -29,9 +29,7 @@ mod test {
     use crate::{DatabaseProvider, providers::options::AccessType, traits::{TrackingWriter, TrackingProvider}};
 
     fn get_provider() -> DatabaseProvider {
-        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path());
-
-        let db = DB::new(db.unwrap());
+        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path()).unwrap();
 
         DatabaseProvider::new(db, AccessType::Primary)
     }

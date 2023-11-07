@@ -14,4 +14,4 @@ pub fn create_tables(db: &mut TransactionDB::<MultiThreaded>) -> Result<()> {
     Ok(())
 }
 
-pub mod sip_rocksdb;
+pub mod dae_rocksdb;

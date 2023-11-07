@@ -19,12 +19,6 @@ chrono = { workspace = true }
 reqwest={workspace=true}
 tokio = { workspace = true }
 
-grpc_server = { path = "../../grpc_server" }
-
-# shared types
-data_lake_types = { path = "../../types/data_lake"}
-mongo_types = { path = "../../types/mongo"}
-
 # shared utils
 simplefi_engine_settings = { path = "../../utils/settings"}
 simplefi-redis = { path = "../../utils/redis" }

@@ -115,6 +115,8 @@ pub mod test_utils {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
     use crate::{
         init_db,
         version::db_version_file_path, get_all_cfs,
@@ -126,7 +128,7 @@ mod tests {
         let path = tempdir().unwrap();
 
         {
-            let db = init_db(&path);
+            let db = Arc::new(init_db(&path));
             assert!(db.is_ok());
         }
 

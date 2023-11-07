@@ -1,7 +1,5 @@
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
-use data_lake_types::{SupportedDataTypes, SupportedDataLevels};
-use mongo_types::MongoConfig;
 use std::clone::Clone;
 use std::fmt::Debug;
 // use std::io::Result;
@@ -99,17 +97,18 @@ pub struct ChainDetails {
     pub engine_type: Engine,
     pub native_currency: Vec<NativeCurrency>,
     pub confirmation_time: u64,
-    pub db: MongoConfig,
+    // pub db: MongoConfig,
     pub nodes: HashMap<(String, ConnectionType), String>,
     pub rpc_methods: HashMap<SupportedMethods, Value>,
 }
+// TODO: replace with rocksDB
 
 pub trait Info {
     fn info(&self) -> ChainDetails;
     fn get_node(&self, provider: &str, connection: &ConnectionType) -> Option<String>;
     fn get_method(&self, method: &SupportedMethods) -> Option<Value>;
-    fn get_db(&self) -> MongoConfig;
-    fn resolve_collection_name(&self, collection_type: &SupportedDataTypes, collection_level: &SupportedDataLevels) -> String;
+    // fn get_db(&self) -> MongoConfig;
+    // fn resolve_collection_name(&self, collection_type: &SupportedDataTypes, collection_level: &SupportedDataLevels) -> String;
 }
 // subscribe to selected node, listens to new heads and pushes to redis stream
 #[async_trait::async_trait]

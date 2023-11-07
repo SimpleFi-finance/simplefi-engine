@@ -10,7 +10,7 @@ use db::table::Encode;
 
 impl TransactionsProvider for DatabaseProvider {
     fn transaction_block(&self, id: simp_primitives::TxNumber) -> Result<Option<BlockNumber>> {
-        Ok(self.db.get::<TransactionBlock>(id)?)
+        Ok(self.db.dae_get::<TransactionBlock>(id)?)
     }
 
     fn transaction_by_hash(&self, hash: simp_primitives::TxHash) -> Result<Option<TransactionSigned>> {
@@ -22,11 +22,11 @@ impl TransactionsProvider for DatabaseProvider {
     }
 
     fn transaction_by_id(&self, id: simp_primitives::TxNumber) -> Result<Option<TransactionSigned>> {
-        Ok(self.db.get::<tables::Transactions>(id)?)
+        Ok(self.db.dae_get::<tables::Transactions>(id)?)
     }
 
     fn transaction_id(&self, tx_hash: simp_primitives::TxHash) -> Result<Option<simp_primitives::TxNumber>> {
-        Ok(self.db.get::<TxHashNumber>(tx_hash)?)
+        Ok(self.db.dae_get::<TxHashNumber>(tx_hash)?)
     }
 
     fn transactions_by_block(
@@ -37,7 +37,7 @@ impl TransactionsProvider for DatabaseProvider {
         match block_id {
             None => Ok(None),
             Some(bn) => {
-                let block_body_index = self.db.get::<BlockIndices>(bn)?;
+                let block_body_index = self.db.dae_get::<BlockIndices>(bn)?;
                 match block_body_index {
                     None => Ok(None),
                     Some(index) => {
@@ -48,7 +48,7 @@ impl TransactionsProvider for DatabaseProvider {
                         let mut txs = Vec::new();
 
                         for tx_id in tx_start..=tx_end {
-                            let tx = self.db.get::<tables::Transactions>(tx_id)?;
+                            let tx = self.db.dae_get::<tables::Transactions>(tx_id)?;
                             match tx {
                                 None => continue,
                                 Some(tx) => txs.push(tx),
@@ -75,7 +75,7 @@ impl TransactionsProvider for DatabaseProvider {
         let mut opts = ReadOptions::default();
         opts.set_iterate_range(start.encode().as_slice()..end.encode().as_slice());
 
-        let mut iter = self.db.new_cursor::<BlockIndices>(opts).unwrap();
+        let mut iter = self.db.dae_new_cursor::<BlockIndices>(opts).unwrap();
         iter.seek_to_first();
 
         while iter.valid() {
@@ -118,7 +118,7 @@ impl TransactionsProvider for DatabaseProvider {
         let mut opts = ReadOptions::default();
         opts.set_iterate_range(start.encode().as_slice()..end.encode().as_slice());
 
-        let mut iter = self.db.new_cursor::<Transactions>(opts).unwrap();
+        let mut iter = self.db.dae_new_cursor::<Transactions>(opts).unwrap();
         iter.seek_to_first();
 
         while iter.valid() {
@@ -138,7 +138,7 @@ impl TransactionsWriter for DatabaseProvider {
     // ATTENTION: this method must be called per block.
     fn insert_transactions(&self, transactions: Vec<TransactionSigned>) -> Result<TxIndices> {
         let opts = ReadOptions::default();
-        let mut latest_tx = self.db.new_cursor::<Transactions>(opts)?;
+        let mut latest_tx = self.db.dae_new_cursor::<Transactions>(opts)?;
         latest_tx.seek_to_last();
 
         let latest_key = match latest_tx.valid() {
@@ -153,10 +153,10 @@ impl TransactionsWriter for DatabaseProvider {
 
         let mut key_holder = latest_key.clone() + 1;
         for tx in transactions.clone() {
-            self.db.put::<Transactions>(key_holder, tx.clone())?;
-            self.db.put::<TxHashNumber>(tx.hash(), key_holder)?;
+            self.db.dae_put::<Transactions>(key_holder, tx.clone())?;
+            self.db.dae_put::<TxHashNumber>(tx.hash(), key_holder)?;
             self.db
-                .put::<TransactionBlock>(key_holder, tx.block_number())?;
+                .dae_put::<TransactionBlock>(key_holder, tx.block_number())?;
             key_holder += 1;
         }
 
@@ -180,10 +180,7 @@ mod tests {
     use crate::DatabaseProvider;
 
     fn get_provider() -> DatabaseProvider {
-        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path());
-
-        let db = DB::new(db.unwrap());
-
+        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path()).unwrap();
         DatabaseProvider::new(db, crate::providers::options::AccessType::Primary)
     }
 
@@ -233,7 +230,7 @@ mod tests {
 
         while inserted_num < 15000 {
             for tx in txs.clone().into_iter() {
-                provider.db.put::<Transactions>(inserted_num + 1, tx).unwrap();
+                provider.db.dae_put::<Transactions>(inserted_num + 1, tx).unwrap();
                 inserted_num += 1;
             }
         }

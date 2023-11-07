@@ -17,9 +17,9 @@ impl VolumetricReader for DatabaseProvider {
 
     fn get_volume_helper(&self, key: VolumeKey, timeframe: Timeframe) -> Result<Option<Volumetric>> {
         let volume = match timeframe {
-            Timeframe::Daily => self.db.get::<VolumetricsDay>(key),
-            Timeframe::Hourly => self.db.get::<VolumetricsHour>(key),
-            Timeframe::FiveMinute => self.db.get::<VolumetricsFiveMin>(key),
+            Timeframe::Daily => self.db.dae_get::<VolumetricsDay>(key),
+            Timeframe::Hourly => self.db.dae_get::<VolumetricsHour>(key),
+            Timeframe::FiveMinute => self.db.dae_get::<VolumetricsFiveMin>(key),
         }?;
 
         Ok(volume)
@@ -33,9 +33,9 @@ impl VolumetricReader for DatabaseProvider {
         options.set_iterate_range(rocksdb::PrefixRange(market_address.as_bytes()));
 
         let mut iter = match timeframe {
-            Timeframe::Daily =>  self.db.new_cursor::<MarketVolumetricsIndicesDay>(options),
-            Timeframe::Hourly =>self.db.new_cursor::<MarketVolumetricsIndicesHour>(options),
-            Timeframe::FiveMinute => self.db.new_cursor::<MarketVolumetricsIndicesFiveMin>(options),
+            Timeframe::Daily =>  self.db.dae_new_cursor::<MarketVolumetricsIndicesDay>(options),
+            Timeframe::Hourly =>self.db.dae_new_cursor::<MarketVolumetricsIndicesHour>(options),
+            Timeframe::FiveMinute => self.db.dae_new_cursor::<MarketVolumetricsIndicesFiveMin>(options),
         }?;
 
         iter.seek_to_first();
@@ -111,9 +111,9 @@ impl VolumetricReader for DatabaseProvider {
     fn get_by_timestamp(&self, timeframe: crate::traits::volumetric::Timeframe, timestamp: u64) -> Result<Vec<Volumetric>> {
 
         let keys = match timeframe {
-            Timeframe::Daily => self.db.get::<TimestampVolumetricsIndicesDay>(timestamp),
-            Timeframe::Hourly => self.db.get::<TimestampVolumetricsIndicesHour>(timestamp),
-            Timeframe::FiveMinute => self.db.get::<TimestampVolumetricsIndicesFiveMin>(timestamp),
+            Timeframe::Daily => self.db.dae_get::<TimestampVolumetricsIndicesDay>(timestamp),
+            Timeframe::Hourly => self.db.dae_get::<TimestampVolumetricsIndicesHour>(timestamp),
+            Timeframe::FiveMinute => self.db.dae_get::<TimestampVolumetricsIndicesFiveMin>(timestamp),
         }?;
 
         let mut volumes_response = Vec::new();
@@ -140,9 +140,9 @@ impl VolumetricReader for DatabaseProvider {
         options.set_iterate_range(rocksdb::PrefixRange(market_address.as_bytes()));
 
         let mut iter = match timeframe {
-            Timeframe::Daily =>  self.db.new_cursor::<MarketVolumetricsIndicesDay>(options),
-            Timeframe::Hourly =>self.db.new_cursor::<MarketVolumetricsIndicesHour>(options),
-            Timeframe::FiveMinute => self.db.new_cursor::<MarketVolumetricsIndicesFiveMin>(options),
+            Timeframe::Daily =>  self.db.dae_new_cursor::<MarketVolumetricsIndicesDay>(options),
+            Timeframe::Hourly =>self.db.dae_new_cursor::<MarketVolumetricsIndicesHour>(options),
+            Timeframe::FiveMinute => self.db.dae_new_cursor::<MarketVolumetricsIndicesFiveMin>(options),
         }?;
 
         iter.seek_to_last();
@@ -185,9 +185,9 @@ impl VolumetricReader for DatabaseProvider {
         options.set_iterate_range(rocksdb::PrefixRange(market_address.as_bytes()));
         
         let mut iter = match timeframe {
-            Timeframe::Daily =>  self.db.new_cursor::<MarketVolumetricsIndicesDay>(options),
-            Timeframe::Hourly =>self.db.new_cursor::<MarketVolumetricsIndicesHour>(options),
-            Timeframe::FiveMinute => self.db.new_cursor::<MarketVolumetricsIndicesFiveMin>(options),
+            Timeframe::Daily =>  self.db.dae_new_cursor::<MarketVolumetricsIndicesDay>(options),
+            Timeframe::Hourly =>self.db.dae_new_cursor::<MarketVolumetricsIndicesHour>(options),
+            Timeframe::FiveMinute => self.db.dae_new_cursor::<MarketVolumetricsIndicesFiveMin>(options),
         }?;
 
         iter.seek_to_first();
@@ -224,9 +224,9 @@ impl VolumetricWriter for DatabaseProvider {
 
 
         let mut iter = match timeframe {
-            Timeframe::Daily => self.db.new_cursor::<VolumetricsDay>(opts),
-            Timeframe::Hourly => self.db.new_cursor::<VolumetricsHour>(opts),
-            Timeframe::FiveMinute => self.db.new_cursor::<VolumetricsFiveMin>(opts),
+            Timeframe::Daily => self.db.dae_new_cursor::<VolumetricsDay>(opts),
+            Timeframe::Hourly => self.db.dae_new_cursor::<VolumetricsHour>(opts),
+            Timeframe::FiveMinute => self.db.dae_new_cursor::<VolumetricsFiveMin>(opts),
         }?;
 
         iter.seek_to_last();
@@ -248,18 +248,18 @@ impl VolumetricWriter for DatabaseProvider {
 
     fn set_volume_helper (&self, key: VolumeKey, volume: Volumetric, timeframe: Timeframe) -> Result<()> {
         let _ = match timeframe {
-            Timeframe::Daily => self.db.put::<VolumetricsDay>(key, volume),
-            Timeframe::Hourly => self.db.put::<VolumetricsHour>(key, volume),
-            Timeframe::FiveMinute => self.db.put::<VolumetricsFiveMin>(key, volume),
+            Timeframe::Daily => self.db.dae_put::<VolumetricsDay>(key, volume),
+            Timeframe::Hourly => self.db.dae_put::<VolumetricsHour>(key, volume),
+            Timeframe::FiveMinute => self.db.dae_put::<VolumetricsFiveMin>(key, volume),
         }?;
         Ok(())
     }
 
     fn set_market_index_helper(&self, key: ShardedKey<MarketAddress>, value: VolumeKeysWithData, timeframe: Timeframe) -> Result<()> {
         let _ = match timeframe {
-            Timeframe::Daily =>  self.db.put::<MarketVolumetricsIndicesDay>(key, value),
-            Timeframe::Hourly =>self.db.put::<MarketVolumetricsIndicesHour>(key, value),
-            Timeframe::FiveMinute => self.db.put::<MarketVolumetricsIndicesFiveMin>(key,value),
+            Timeframe::Daily =>  self.db.dae_put::<MarketVolumetricsIndicesDay>(key, value),
+            Timeframe::Hourly =>self.db.dae_put::<MarketVolumetricsIndicesHour>(key, value),
+            Timeframe::FiveMinute => self.db.dae_put::<MarketVolumetricsIndicesFiveMin>(key,value),
         }?;
 
         Ok(())
@@ -312,47 +312,47 @@ impl VolumetricWriter for DatabaseProvider {
         // timestamp index table
         let _ = match timeframe {
             Timeframe::Daily => {
-                let existing = self.db.get::<TimestampVolumetricsIndicesDay>(volume_ts.clone())?;
+                let existing = self.db.dae_get::<TimestampVolumetricsIndicesDay>(volume_ts.clone())?;
                 match existing {
                     Some(mut matched_existing) => {
                         matched_existing.volume_keys.push(volume_data.1.clone());
-                        self.db.put::<TimestampVolumetricsIndicesDay>(volume_ts.clone(), matched_existing)?;
+                        self.db.dae_put::<TimestampVolumetricsIndicesDay>(volume_ts.clone(), matched_existing)?;
                     },
                     None => {
                         let new_entry = VolumeKeys {
                             volume_keys: vec![*volume_data.1]
                         };
-                        self.db.put::<TimestampVolumetricsIndicesDay>(volume_ts.clone(), new_entry)?;
+                        self.db.dae_put::<TimestampVolumetricsIndicesDay>(volume_ts.clone(), new_entry)?;
                     }
                 }
             },
             Timeframe::Hourly => {
-                let existing = self.db.get::<TimestampVolumetricsIndicesHour>(volume_ts.clone())?;
+                let existing = self.db.dae_get::<TimestampVolumetricsIndicesHour>(volume_ts.clone())?;
                 match existing {
                     Some(mut matched_existing) => {
                         matched_existing.volume_keys.push(volume_data.1.clone());
-                        self.db.put::<TimestampVolumetricsIndicesFiveMin>(volume_ts.clone(), matched_existing)?;
+                        self.db.dae_put::<TimestampVolumetricsIndicesFiveMin>(volume_ts.clone(), matched_existing)?;
                     },
                     None => {
                         let new_entry = VolumeKeys {
                             volume_keys: vec![*volume_data.1]
                         };
-                        self.db.put::<TimestampVolumetricsIndicesHour>(volume_ts.clone(), new_entry)?;
+                        self.db.dae_put::<TimestampVolumetricsIndicesHour>(volume_ts.clone(), new_entry)?;
                     }
                 }
             },
             Timeframe::FiveMinute => {
-                let existing = self.db.get::<TimestampVolumetricsIndicesFiveMin>(volume_ts.clone())?;
+                let existing = self.db.dae_get::<TimestampVolumetricsIndicesFiveMin>(volume_ts.clone())?;
                 match existing {
                     Some(mut matched_existing) => {
                         matched_existing.volume_keys.push(volume_data.1.clone());
-                        self.db.put::<TimestampVolumetricsIndicesFiveMin>(volume_ts.clone(), matched_existing)?;
+                        self.db.dae_put::<TimestampVolumetricsIndicesFiveMin>(volume_ts.clone(), matched_existing)?;
                     },
                     None => {
                         let new_entry = VolumeKeys {
                             volume_keys: vec![*volume_data.1]
                         };
-                        self.db.put::<TimestampVolumetricsIndicesFiveMin>(volume_ts.clone(), new_entry)?;
+                        self.db.dae_put::<TimestampVolumetricsIndicesFiveMin>(volume_ts.clone(), new_entry)?;
                     }
                 }
             },
@@ -368,9 +368,9 @@ impl VolumetricWriter for DatabaseProvider {
         options.set_iterate_range(rocksdb::PrefixRange(volume_data.0.as_bytes()));
 
         let mut iter = match timeframe {
-            Timeframe::Daily =>  self.db.new_cursor::<MarketVolumetricsIndicesDay>(options),
-            Timeframe::Hourly =>self.db.new_cursor::<MarketVolumetricsIndicesHour>(options),
-            Timeframe::FiveMinute => self.db.new_cursor::<MarketVolumetricsIndicesFiveMin>(options),
+            Timeframe::Daily =>  self.db.dae_new_cursor::<MarketVolumetricsIndicesDay>(options),
+            Timeframe::Hourly =>self.db.dae_new_cursor::<MarketVolumetricsIndicesHour>(options),
+            Timeframe::FiveMinute => self.db.dae_new_cursor::<MarketVolumetricsIndicesFiveMin>(options),
         }?;
 
 
@@ -398,9 +398,9 @@ impl VolumetricWriter for DatabaseProvider {
                 }
 
                 match timeframe {
-                    Timeframe::Daily => self.db.delete::<MarketVolumetricsIndicesDay>(key).unwrap(),
-                    Timeframe::Hourly => self.db.delete::<MarketVolumetricsIndicesHour>(key).unwrap(),
-                    Timeframe::FiveMinute => self.db.delete::<MarketVolumetricsIndicesFiveMin>(key).unwrap(),
+                    Timeframe::Daily => self.db.dae_delete::<MarketVolumetricsIndicesDay>(key).unwrap(),
+                    Timeframe::Hourly => self.db.dae_delete::<MarketVolumetricsIndicesHour>(key).unwrap(),
+                    Timeframe::FiveMinute => self.db.dae_delete::<MarketVolumetricsIndicesFiveMin>(key).unwrap(),
                 };
                 self.set_market_index_helper(new_key,new_value,timeframe)?;
                 return Ok(())
@@ -441,9 +441,9 @@ impl VolumetricWriter for DatabaseProvider {
         options.set_iterate_range(rocksdb::PrefixRange(market_address.as_bytes()));
 
         let mut iter = match timeframe {
-            Timeframe::Daily =>  self.db.new_cursor::<MarketVolumetricsIndicesDay>(options),
-            Timeframe::Hourly =>self.db.new_cursor::<MarketVolumetricsIndicesHour>(options),
-            Timeframe::FiveMinute => self.db.new_cursor::<MarketVolumetricsIndicesFiveMin>(options),
+            Timeframe::Daily =>  self.db.dae_new_cursor::<MarketVolumetricsIndicesDay>(options),
+            Timeframe::Hourly =>self.db.dae_new_cursor::<MarketVolumetricsIndicesHour>(options),
+            Timeframe::FiveMinute => self.db.dae_new_cursor::<MarketVolumetricsIndicesFiveMin>(options),
         }?;
 
 
@@ -471,9 +471,9 @@ impl VolumetricWriter for DatabaseProvider {
             self.set_market_index_helper(new_key,new_shard_value,timeframe)?;
             
             match timeframe {
-                Timeframe::Daily => self.db.delete::<MarketVolumetricsIndicesDay>(key).unwrap(),
-                Timeframe::Hourly => self.db.delete::<MarketVolumetricsIndicesHour>(key).unwrap(),
-                Timeframe::FiveMinute => self.db.delete::<MarketVolumetricsIndicesFiveMin>(key).unwrap(),
+                Timeframe::Daily => self.db.dae_delete::<MarketVolumetricsIndicesDay>(key).unwrap(),
+                Timeframe::Hourly => self.db.dae_delete::<MarketVolumetricsIndicesHour>(key).unwrap(),
+                Timeframe::FiveMinute => self.db.dae_delete::<MarketVolumetricsIndicesFiveMin>(key).unwrap(),
             };
 
             // new shard to be created
@@ -494,47 +494,47 @@ impl VolumetricWriter for DatabaseProvider {
     fn bulk_volume_timestamp_indices (&self, timestamp: u64, keys: Vec<u64>, timeframe: Timeframe) -> Result<()> {
         let _ = match timeframe {
             Timeframe::Daily => {
-                let existing = self.db.get::<TimestampVolumetricsIndicesDay>(timestamp)?;
+                let existing = self.db.dae_get::<TimestampVolumetricsIndicesDay>(timestamp)?;
                 match existing {
                     Some(mut matched_existing) => {
                         matched_existing.volume_keys.extend(keys);
-                        self.db.put::<TimestampVolumetricsIndicesDay>(timestamp, matched_existing)?;
+                        self.db.dae_put::<TimestampVolumetricsIndicesDay>(timestamp, matched_existing)?;
                     },
                     None => {
                         let new_entry = VolumeKeys {
                             volume_keys: keys
                         };
-                        self.db.put::<TimestampVolumetricsIndicesDay>(timestamp, new_entry)?;
+                        self.db.dae_put::<TimestampVolumetricsIndicesDay>(timestamp, new_entry)?;
                     }
                 }
             },
             Timeframe::Hourly => {
-                let existing = self.db.get::<TimestampVolumetricsIndicesHour>(timestamp)?;
+                let existing = self.db.dae_get::<TimestampVolumetricsIndicesHour>(timestamp)?;
                 match existing {
                     Some(mut matched_existing) => {
                         matched_existing.volume_keys.extend(keys);
-                        self.db.put::<TimestampVolumetricsIndicesHour>(timestamp, matched_existing)?;
+                        self.db.dae_put::<TimestampVolumetricsIndicesHour>(timestamp, matched_existing)?;
                     },
                     None => {
                         let new_entry = VolumeKeys {
                             volume_keys: keys
                         };
-                        self.db.put::<TimestampVolumetricsIndicesHour>(timestamp, new_entry)?;
+                        self.db.dae_put::<TimestampVolumetricsIndicesHour>(timestamp, new_entry)?;
                     }
                 }
             },
             Timeframe::FiveMinute => {
-                let existing = self.db.get::<TimestampVolumetricsIndicesFiveMin>(timestamp)?;
+                let existing = self.db.dae_get::<TimestampVolumetricsIndicesFiveMin>(timestamp)?;
                 match existing {
                     Some(mut matched_existing) => {
                         matched_existing.volume_keys.extend(keys);
-                        self.db.put::<TimestampVolumetricsIndicesFiveMin>(timestamp, matched_existing)?;
+                        self.db.dae_put::<TimestampVolumetricsIndicesFiveMin>(timestamp, matched_existing)?;
                     },
                     None => {
                         let new_entry = VolumeKeys {
                             volume_keys: keys
                         };
-                        self.db.put::<TimestampVolumetricsIndicesFiveMin>(timestamp, new_entry)?;
+                        self.db.dae_put::<TimestampVolumetricsIndicesFiveMin>(timestamp, new_entry)?;
                     }
                 }
             },
@@ -551,7 +551,7 @@ mod test {
     use crate::{providers::options::AccessType, DatabaseProvider};
     use db::tables::models::sharded_key::NUM_OF_INDICES_IN_SHARD;
     use db::{
-        implementation::sip_rocksdb::DB, init_db, 
+        init_db, 
         test_utils::ERROR_TEMPDIR,
     };
     use simp_primitives::address_balance::AddressBalance;
@@ -560,9 +560,7 @@ mod test {
     use std::str::FromStr;
 
     fn get_provider() -> DatabaseProvider {
-        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path());
-
-        let db = DB::new(db.unwrap());
+        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path()).unwrap();
 
         DatabaseProvider::new(db, AccessType::Primary)
     }

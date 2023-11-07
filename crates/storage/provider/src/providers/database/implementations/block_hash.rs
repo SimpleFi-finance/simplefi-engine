@@ -14,7 +14,7 @@ use db::table::Encode;
 
 impl BlockHashReader for DatabaseProvider {
     fn block_hash(&self, number: u64) -> Result<Option<H256>> {
-        Ok(self.db.get::<CanonicalHeaders>(number).unwrap())
+        Ok(self.db.dae_get::<CanonicalHeaders>(number).unwrap())
     }
 
     fn block_hashes_range(&self, start: BlockNumber, end: BlockNumber) -> Result<Vec<H256>> {
@@ -22,7 +22,7 @@ impl BlockHashReader for DatabaseProvider {
 
         let mut opts = ReadOptions::default();
         opts.set_iterate_range(start..end.encode().to_vec());
-        let mut iter = self.db.new_cursor::<CanonicalHeaders>(opts).unwrap();
+        let mut iter = self.db.dae_new_cursor::<CanonicalHeaders>(opts).unwrap();
         iter.seek_to_first();
         let mut bn_range = Vec::new();
 
@@ -42,7 +42,7 @@ impl BlockHashReader for DatabaseProvider {
 impl BlockHashWriter for DatabaseProvider {
     fn insert_block_hash(&self,number:BlockNumber,hash:H256) -> Result<()> {
         // TODO: add validation?
-        self.db.put::<CanonicalHeaders>(number, hash)?;
+        self.db.dae_put::<CanonicalHeaders>(number, hash)?;
         Ok(())
     }
 }
@@ -55,9 +55,7 @@ mod tests {
     use crate::DatabaseProvider;
 
     fn get_provider() -> DatabaseProvider {
-        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path());
-
-        let db = DB::new(db.unwrap());
+        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path()).unwrap();
 
         DatabaseProvider::new(db, crate::providers::options::AccessType::Primary)
     }

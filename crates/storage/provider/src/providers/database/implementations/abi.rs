@@ -135,13 +135,13 @@ impl AbiProvider for DatabaseProvider {
     }
 
     fn get_abi_by_id(&self, id: u64) -> Result<Option<AbiData>> {
-        let abi = self.db.get::<Abi>(id).unwrap();
+        let abi = self.db.dae_get::<Abi>(id).unwrap();
 
         Ok(Some(abi.unwrap()))
     }
 
     fn get_proxy_data(&self, address: Address) -> Result<Option<tables::StoredContract>> {
-        let proxy_data = self.db.get::<ContractProxy>(address).unwrap();
+        let proxy_data = self.db.dae_get::<ContractProxy>(address).unwrap();
 
         Ok(proxy_data)
     }
@@ -197,19 +197,19 @@ impl AbiProvider for DatabaseProvider {
     }
 
     fn get_contract_data(&self, address: Address) -> Result<Option<ContractData>> {
-        let data = self.db.get::<ContractsData>(address).unwrap();
+        let data = self.db.dae_get::<ContractsData>(address).unwrap();
         Ok(data)
     }
 
     fn has_proxy(&self, address: Address) -> Result<Option<Address>> {
-        let proxy = self.db.get::<MarketToProxy>(address).unwrap();
+        let proxy = self.db.dae_get::<MarketToProxy>(address).unwrap();
         Ok(proxy)
     }
 
     fn get_latest_abi(&self) -> Result<Option<u64>> {
         let opts = ReadOptions::default();
 
-        let mut iter = self.db.new_cursor::<Abi>(opts)?;
+        let mut iter = self.db.dae_new_cursor::<Abi>(opts)?;
 
         iter.seek_to_last();
 
@@ -226,7 +226,7 @@ impl AbiProvider for DatabaseProvider {
     }
 
     fn address_without_abi(&self, address: Address) -> Result<Option<(Address, u32)> > {
-        let ts = self.db.get::<UnknownContracts>(address).unwrap();
+        let ts = self.db.dae_get::<UnknownContracts>(address).unwrap();
         match ts {
             Some(ts) => {
                 Ok(Some((address, ts)))
@@ -245,14 +245,14 @@ impl AbiWriter for DatabaseProvider {
             None => 0
         };
         
-        self.db.put::<Abi>(new_abi_id, abi)?;
+        self.db.dae_put::<Abi>(new_abi_id, abi)?;
 
         Ok(Some(new_abi_id))
     }
 
     fn insert_contract(&self, address: Address, abi_id: u64, verified: bool, block_number: Option<simp_primitives::BlockNumber>) -> Result<Address> {
         let contract_data = ContractData::new(abi_id, block_number, verified);
-        self.db.put::<ContractsData>(address.clone(), contract_data)?;
+        self.db.dae_put::<ContractsData>(address.clone(), contract_data)?;
         
         Ok(address)
     }
@@ -265,7 +265,7 @@ impl AbiWriter for DatabaseProvider {
             Some(p) => {
                 if p != proxy && force_upsert {
                     if force_upsert {
-                        self.db.put::<MarketToProxy>(address, proxy)?;
+                        self.db.dae_put::<MarketToProxy>(address, proxy)?;
                     } else {
                         println!("address {:?}, mismatch proxy, existing {:?}, new {:?}, force update needs activation if update required", address, exists.unwrap(), proxy);
                     }
@@ -273,7 +273,7 @@ impl AbiWriter for DatabaseProvider {
                 Ok(address)
             },
             None => {
-                self.db.put::<MarketToProxy>(address, proxy)?;
+                self.db.dae_put::<MarketToProxy>(address, proxy)?;
                 Ok(address)
             }
         }
@@ -290,13 +290,13 @@ impl AbiWriter for DatabaseProvider {
                 existing_impl.extend(implementations);
 
                 let proxy_updated = tables::models::StoredContract::new(abi_id, verified, Some(existing_impl));
-                self.db.put::<ContractProxy>(address, proxy_updated)?;
+                self.db.dae_put::<ContractProxy>(address, proxy_updated)?;
 
                 Ok(address)
             },
             None => {
                 let proxy = tables::models::StoredContract::new(abi_id, verified, Some(implementations));
-                self.db.put::<ContractProxy>(address, proxy)?;
+                self.db.dae_put::<ContractProxy>(address, proxy)?;
 
                 Ok(address)
             }
@@ -304,7 +304,7 @@ impl AbiWriter for DatabaseProvider {
     }
 
     fn insert_unknown_contract(&self,address:Address,timestamp:u32) -> Result<()> {
-        self.db.put::<UnknownContracts>(address, timestamp)?;
+        self.db.dae_put::<UnknownContracts>(address, timestamp)?;
         Ok(())
     }
 }
@@ -322,9 +322,7 @@ mod test {
     use crate::{DatabaseProvider, providers::options::AccessType, traits::{AbiWriter, AbiProvider}};
 
     fn get_provider() -> DatabaseProvider {
-        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path());
-
-        let db = DB::new(db.unwrap());
+        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path()).unwrap();
 
         DatabaseProvider::new(db, AccessType::Primary)
     }

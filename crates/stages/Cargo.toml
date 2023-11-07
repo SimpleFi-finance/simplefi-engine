@@ -6,3 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+storage-provider = { workspace = true }
+db = { workspace = true }
+tokio-util = { workspace = true }
+simp-primitives = { workspace = true }
+async-trait = { workspace = true }
+tokio-stream = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+rocksdb = { workspace = true }

@@ -3,221 +3,213 @@ use redis::{AsyncCommands, RedisError};
 use simplefi_engine_settings::load_settings;
 use tokio::{time::{ sleep, Duration }, spawn};
 
-use abi_discovery::{
-    helpers::{
-        abis::get_abi_standard,
-        contracts::{get_contracts_queue_name, get_contract_abi},
-        providers::get_available_provider,
-    },
-    mongo::{types::{AbiCollection, ContractAbiCollection, ImplementationContractAbiCollection}, setters::{insert_contract, insert_abi}}
-};
 use simplefi_logger::init_logging;
 use simplefi_redis::{connect, has_items_in_queue};
 
-use mongo_types::{ MongoConfig, Mongo };
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    init_logging();
+//     init_logging();
+    Ok(())
+//     let chain = "ethereum";
 
-    let chain = "ethereum";
+//     let mysettings = load_settings().expect("Failed to load settings");
+//     // TODO: replace with rocksDB
+//     // let config = MongoConfig {  
+//     //     uri: mysettings.mongodb_uri,
+//     //     database: mysettings.mongodb_database_name,
+//     // };
+//     // let mongo = Mongo::new(&config).await.unwrap();
 
-    let mysettings = load_settings().expect("Failed to load settings");
+//     let redis_uri = mysettings.redis_uri.to_string();
+//     // let redis_queue = get_contracts_queue_name(chain);
+//     let mut redis_connection = connect(&redis_uri.as_str())
+//         .await
+//         .expect("Failed to connect to redis");
 
-    let config = MongoConfig {
-        uri: mysettings.mongodb_uri,
-        database: mysettings.mongodb_database_name,
-    };
-    let mongo = Mongo::new(&config).await.unwrap();
+//     loop {
+//         // let abis_collection = mongo.database.collection::<AbiCollection>(&mysettings.abi_collection_name);
+//         // let contracts_collection = mongo.database.collection::<ContractAbiCollection>(&mysettings.contract_abi_collection_name);
 
-    let redis_uri = mysettings.redis_uri.to_string();
-    let redis_queue = get_contracts_queue_name(chain);
-    let mut redis_connection = connect(&redis_uri.as_str())
-        .await
-        .expect("Failed to connect to redis");
+//         let has_items = has_items_in_queue(&mut redis_connection, &redis_queue).await;
 
-    loop {
-        let abis_collection = mongo.database.collection::<AbiCollection>(&mysettings.abi_collection_name);
-        let contracts_collection = mongo.database.collection::<ContractAbiCollection>(&mysettings.contract_abi_collection_name);
+//         if has_items.is_err() {
+//             error!("Failed to check if there are items in queue: {:?}", has_items.unwrap_err());
 
-        let has_items = has_items_in_queue(&mut redis_connection, &redis_queue).await;
+//             sleep(Duration::from_secs(1)).await;
 
-        if has_items.is_err() {
-            error!("Failed to check if there are items in queue: {:?}", has_items.unwrap_err());
+//             continue;
+//         } else if has_items.unwrap() == false {
+//             debug!("No contracts in queue. waiting...");
 
-            sleep(Duration::from_secs(1)).await;
+//             sleep(Duration::from_secs(1)).await;
 
-            continue;
-        } else if has_items.unwrap() == false {
-            debug!("No contracts in queue. waiting...");
+//             continue;
+//         }
 
-            sleep(Duration::from_secs(1)).await;
+//         let chain = "ethereum";
 
-            continue;
-        }
+//         let provider = get_available_provider(&mut redis_connection, &chain).await;
 
-        let chain = "ethereum";
+//         if provider.is_err() {
+//             error!("Failed to get provider: {:?}", provider.err().unwrap());
 
-        let provider = get_available_provider(&mut redis_connection, &chain).await;
+//             sleep(Duration::from_secs(1)).await;
 
-        if provider.is_err() {
-            error!("Failed to get provider: {:?}", provider.err().unwrap());
+//             continue;
+//         }
 
-            sleep(Duration::from_secs(1)).await;
+//         let provider = provider.unwrap();
 
-            continue;
-        }
+//         debug!("available provider");
 
-        let provider = provider.unwrap();
+//         // let contract: Result<String, RedisError> = redis_connection.spop(&redis_queue).await;
 
-        debug!("available provider");
+//         if contract.is_err() {
+//             error!("Failed to get contract from redis queue");
 
-        let contract: Result<String, RedisError> = redis_connection.spop(&redis_queue).await;
+//             sleep(Duration::from_secs(1)).await;
 
-        if contract.is_err() {
-            error!("Failed to get contract from redis queue");
+//             continue;
+//         }
 
-            sleep(Duration::from_secs(1)).await;
+//         let contract = contract.unwrap();
 
-            continue;
-        }
+//         debug!("Contract popped: {:?}", contract);
 
-        let contract = contract.unwrap();
+//         let contract_info = get_contract_abi(&provider, &contract).await;
 
-        debug!("Contract popped: {:?}", contract);
+//         if contract_info.is_err() {
+//             error!("Failed to get contract info: {:?}", contract_info.unwrap_err());
 
-        let contract_info = get_contract_abi(&provider, &contract).await;
+//             continue;
+//         }
 
-        if contract_info.is_err() {
-            error!("Failed to get contract info: {:?}", contract_info.unwrap_err());
+//         let contract_info = contract_info.unwrap();
 
-            continue;
-        }
+//         debug!("contract_info: {:?}", contract_info);
 
-        let contract_info = contract_info.unwrap();
+//         if contract_info.abi.len() == 0 || contract_info.abi == "Contract source code not verified" {
+//             debug!("No Abi found for contract: {:?}", contract);
+//             // TODO: insert contract with no abi rocksDB
+//             // spawn(async move {
+//             //     let _ = insert_contract(
+//             //         &contracts_collection,
+//             //         ContractAbiCollection {
+//             //             id: None,
+//             //             name: "Unknown".to_string(),
+//             //             address: contract,
+//             //             abi_id: None,
+//             //             creation_block: None,
+//             //             verified: false,
+//             //             is_proxy: false,
+//             //             implementations: vec![],
+//             //     }).await;
+//             // });
 
-        debug!("contract_info: {:?}", contract_info);
+//             continue;
+//         }
 
-        if contract_info.abi.len() == 0 || contract_info.abi == "Contract source code not verified" {
-            debug!("No Abi found for contract: {:?}", contract);
+//         let abi_is_proxy = contract_info.proxy == "1";
 
-            spawn(async move {
-                let _ = insert_contract(
-                    &contracts_collection,
-                    ContractAbiCollection {
-                        id: None,
-                        name: "Unknown".to_string(),
-                        address: contract,
-                        abi_id: None,
-                        creation_block: None,
-                        verified: false,
-                        is_proxy: false,
-                        implementations: vec![],
-                }).await;
-            });
+//         let abi_standard = get_abi_standard(&contract_info.abi);
 
-            continue;
-        }
+// // TODO:
+//         // let abi_id = insert_abi(
+//         //     &abis_collection,
+//         //     &contract_info.abi.as_str(),
+//         //     &abi_is_proxy.to_owned(),
+//         //     &abi_standard.as_u32(),
+//         // ).await;
 
-        let abi_is_proxy = contract_info.proxy == "1";
+//         // if abi_id.is_err() {
+//         //     error!("Failed to insert abi: {:?}", abi_id.unwrap_err());
 
-        let abi_standard = get_abi_standard(&contract_info.abi);
+//         //     continue;
+//         // }
 
-        let abi_id = insert_abi(
-            &abis_collection,
-            &contract_info.abi.as_str(),
-            &abi_is_proxy.to_owned(),
-            &abi_standard.as_u32(),
-        ).await;
+//         // let abi_id = abi_id.unwrap();
 
-        if abi_id.is_err() {
-            error!("Failed to insert abi: {:?}", abi_id.unwrap_err());
+//         if contract_info.proxy == "0" {
+//             debug!("Contract is not proxy");
+//             // TODO: insert contract with proxy rocksDB
+//             // spawn(async move {
+//             //     let _ = insert_contract(
+//             //         &contracts_collection,
+//             //         ContractAbiCollection {
+//             //             id: None,
+//             //             name: contract_info.contract_name,
+//             //             address: contract,
+//             //             abi_id: Some(abi_id),
+//             //             creation_block: None,
+//             //             verified: true,
+//             //             is_proxy: false,
+//             //             implementations: vec![],
+//             //     }).await;
+//             // });
 
-            continue;
-        }
+//             continue;
+//         } else {
+//             debug!("Contract is proxy");
 
-        let abi_id = abi_id.unwrap();
+//             let implementation_contract_info = get_contract_abi(&provider, &contract_info.implementation).await;
 
-        if contract_info.proxy == "0" {
-            debug!("Contract is not proxy");
+//             if implementation_contract_info.is_err() {
+//                 error!("Failed to get implementation abi: {:?}", implementation_contract_info.unwrap_err());
 
-            spawn(async move {
-                let _ = insert_contract(
-                    &contracts_collection,
-                    ContractAbiCollection {
-                        id: None,
-                        name: contract_info.contract_name,
-                        address: contract,
-                        abi_id: Some(abi_id),
-                        creation_block: None,
-                        verified: true,
-                        is_proxy: false,
-                        implementations: vec![],
-                }).await;
-            });
+//                 continue;
+//             }
 
-            continue;
-        } else {
-            debug!("Contract is proxy");
+//             let implementation_contract_info = implementation_contract_info.unwrap();
 
-            let implementation_contract_info = get_contract_abi(&provider, &contract_info.implementation).await;
+//             if implementation_contract_info.abi.len() == 0 {
+//                 error!("No Abi found for implementation contract: {:?}", contract_info.implementation);
+//             }
 
-            if implementation_contract_info.is_err() {
-                error!("Failed to get implementation abi: {:?}", implementation_contract_info.unwrap_err());
+//             let implementation_abi_standard = get_abi_standard(&implementation_contract_info.abi);
+//             // TODO: insert implementation abi rocksDB
 
-                continue;
-            }
+//             // let implementation_abi = insert_abi(
+//             //     &abis_collection,
+//             //     &implementation_contract_info.abi.as_str(),
+//             //     &false,
+//             //     &implementation_abi_standard.as_u32(),
+//             // ).await;
 
-            let implementation_contract_info = implementation_contract_info.unwrap();
+//             // if implementation_abi.is_err() {
+//             //     error!("Failed to insert implementation abi: {:?}", implementation_abi.unwrap_err());
 
-            if implementation_contract_info.abi.len() == 0 {
-                error!("No Abi found for implementation contract: {:?}", contract_info.implementation);
-            }
+//             //     continue;
+//             // }
 
-            let implementation_abi_standard = get_abi_standard(&implementation_contract_info.abi);
+//             // let implementation_abi_id = implementation_abi.unwrap();
 
-            let implementation_abi = insert_abi(
-                &abis_collection,
-                &implementation_contract_info.abi.as_str(),
-                &false,
-                &implementation_abi_standard.as_u32(),
-            ).await;
+//             // let implemetation_contract = ImplementationContractAbiCollection {
+//             //     order: 100,
+//             //     name: implementation_contract_info.contract_name,
+//             //     address: contract_info.implementation,
+//             //     abi_id: Some(implementation_abi_id),
+//             //     creation_block: None,
+//             //     verified: true
+//             // };
 
-            if implementation_abi.is_err() {
-                error!("Failed to insert implementation abi: {:?}", implementation_abi.unwrap_err());
+//             // let contract = ContractAbiCollection {
+//             //     id:None,
+//             //     name: contract_info.contract_name,
+//             //     address: contract,
+//             //     abi_id: Some(abi_id),
+//             //     creation_block: None,
+//             //     verified: true,
+//             //     is_proxy: contract_info.proxy == "1",
+//             //     implementations: vec![implemetation_contract]
+//             // };
 
-                continue;
-            }
+//             // let result = contracts_collection.insert_one(contract, None).await;
 
-            let implementation_abi_id = implementation_abi.unwrap();
+//             // if result.is_err() {
+//             //     error!("Failed to insert contract: {:?}", result.err().unwrap());
 
-            let implemetation_contract = ImplementationContractAbiCollection {
-                order: 100,
-                name: implementation_contract_info.contract_name,
-                address: contract_info.implementation,
-                abi_id: Some(implementation_abi_id),
-                creation_block: None,
-                verified: true
-            };
-
-            let contract = ContractAbiCollection {
-                id:None,
-                name: contract_info.contract_name,
-                address: contract,
-                abi_id: Some(abi_id),
-                creation_block: None,
-                verified: true,
-                is_proxy: contract_info.proxy == "1",
-                implementations: vec![implemetation_contract]
-            };
-
-            let result = contracts_collection.insert_one(contract, None).await;
-
-            if result.is_err() {
-                error!("Failed to insert contract: {:?}", result.err().unwrap());
-
-                continue;
-            }
-        }
-    }
+//             //     continue;
+//             // }
+//         }
+//     }
 }

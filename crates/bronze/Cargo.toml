@@ -20,8 +20,6 @@ futures = {workspace = true}
 chrono = {workspace = true}
 
 
-grpc_server ={ path = "../grpc_server"}
-
 # shared utils
 simplefi_engine_settings = { path = "../utils/settings"}
 simplefi-redis = { path = "../utils/redis"}
@@ -29,8 +27,6 @@ simplefi-chains = { path = "../utils/chains"}
 
 # shared types
 chains_types = { path = "../types/chains"}
-mongo_types = { path = "../types/mongo"}
-data_lake_types = { path = "../types/data_lake"}
 
 [[bin]]
 name = "track_blocks"

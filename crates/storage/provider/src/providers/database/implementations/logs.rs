@@ -36,7 +36,7 @@ impl LogsProvider for DatabaseProvider {
         opts.set_iterate_range(PrefixRange(tx_id.to_string().as_bytes()));
 
         if decoded {
-            let mut iter = self.db.new_cursor::<DecodedLogs>(opts).unwrap();
+            let mut iter = self.db.dae_new_cursor::<DecodedLogs>(opts).unwrap();
             iter.seek_to_first();
 
             while iter.valid() {
@@ -49,7 +49,7 @@ impl LogsProvider for DatabaseProvider {
             }
         } else {
 
-            let mut iter = self.db.new_cursor::<Logs>(opts).unwrap();
+            let mut iter = self.db.dae_new_cursor::<Logs>(opts).unwrap();
             iter.seek_to_first();
     
             while iter.valid() {
@@ -74,7 +74,7 @@ impl LogsProvider for DatabaseProvider {
         match bn {
             None => Ok(None),
             Some(bn) => {
-                let block_body_index = self.db.get::<BlockIndices>(bn)?;
+                let block_body_index = self.db.dae_get::<BlockIndices>(bn)?;
                 match block_body_index {
                     None => Ok(None),
                     Some(index) => {
@@ -155,7 +155,7 @@ impl LogsProvider for DatabaseProvider {
         if decoded {
             let mut iter = self
                 .db
-                .new_cursor::<ContractLogs>(opts)
+                .dae_new_cursor::<ContractLogs>(opts)
                 .unwrap();
             iter.seek_to_first();
             let min = from.unwrap_or(0);
@@ -178,7 +178,7 @@ impl LogsProvider for DatabaseProvider {
                     for log_id in logs_ids {
                         if log_id.block_number <= max && log_id.block_number >= min {
                             let id: String = log_id.into();
-                            let log = self.db.get::<DecodedLogs>(String::from(id))?;
+                            let log = self.db.dae_get::<DecodedLogs>(String::from(id))?;
                             match log {
                                 None => continue,
                                 Some(log) => {
@@ -194,7 +194,7 @@ impl LogsProvider for DatabaseProvider {
         } else {
             let mut iter = self
                 .db
-                .new_cursor::<ContractLogs>(opts)
+                .dae_new_cursor::<ContractLogs>(opts)
                 .unwrap();
 
             iter.seek_to_first();
@@ -219,7 +219,7 @@ impl LogsProvider for DatabaseProvider {
                     for log_id in logs_ids {
                         if log_id.block_number <= max && log_id.block_number >= min {
                             let id: String = log_id.into();
-                            let log = self.db.get::<Logs>(String::from(id))?;
+                            let log = self.db.dae_get::<Logs>(String::from(id))?;
                             match log {
                                 None => continue,
                                 Some(log) => {
@@ -246,7 +246,7 @@ impl LogsProvider for DatabaseProvider {
         let mut opts = ReadOptions::default();
         opts.set_iterate_range(PrefixRange(address.encode().as_slice()));
 
-        let mut iter = self.db.new_cursor::<ContractLogs>(opts).unwrap();
+        let mut iter = self.db.dae_new_cursor::<ContractLogs>(opts).unwrap();
         iter.seek_to_last();
         if iter.valid() {
             let k = iter.key().unwrap();
@@ -263,12 +263,12 @@ impl LogsProvider for DatabaseProvider {
 
 impl LogsWriter for DatabaseProvider {
     fn insert_raw_logs(&self, log: (TxLogId, StoredLog)) -> Result<()> {
-        self.db.put::<Logs>(log.0.into(), log.1)?;
+        self.db.dae_put::<Logs>(log.0.into(), log.1)?;
         Ok(())
     }
 
     fn insert_decoded_data(&self, log: (TxLogId, simp_primitives::StoredDecodedData)) -> Result<()> {
-        self.db.put::<DecodedLogs>(log.0.into(), log.1)?;
+        self.db.dae_put::<DecodedLogs>(log.0.into(), log.1)?;
         Ok(())
     }
 
@@ -284,7 +284,7 @@ impl LogsWriter for DatabaseProvider {
                 for log_id in address_logs_ids {
                     let id: String = log_id.clone().into();
                     // TODO: method to catch missing logs
-                    let stored_log = self.db.get::<Logs>(String::from(id))?.unwrap();
+                    let stored_log = self.db.dae_get::<Logs>(String::from(id))?.unwrap();
                     stored_logs.push(stored_log);
                 }
 
@@ -326,7 +326,7 @@ impl LogsWriter for DatabaseProvider {
 
                         let shard = ShardedKey::new(*address, logs_max);
 
-                        self.db.put::<ContractLogs>(
+                        self.db.dae_put::<ContractLogs>(
                             shard,
                             TxLogs {
                                 log_ids: logs.to_vec(),
@@ -343,14 +343,14 @@ impl LogsWriter for DatabaseProvider {
 
                         let bn = logs_to_save.last().unwrap().block_number;
                         new_key.max_shard_value = bn;
-                        self.db.put::<ContractLogs>(
+                        self.db.dae_put::<ContractLogs>(
                             new_key.clone(),
                             TxLogs {
                                 log_ids: new_logs_ids,
                             },
                         )?;
 
-                        self.db.delete::<ContractLogs>(shard.0.clone())?;
+                        self.db.dae_delete::<ContractLogs>(shard.0.clone())?;
                         // new shard to be created
                         if logs.len() > logs_to_save.len() {
                             let logs_to_save = &logs[available_slots..=logs.len()];
@@ -358,7 +358,7 @@ impl LogsWriter for DatabaseProvider {
                             let max_bn = logs_to_save.last().unwrap().block_number;
                             new_shard.max_shard_value = max_bn;
 
-                            self.db.put::<ContractLogs>(
+                            self.db.dae_put::<ContractLogs>(
                                 new_shard,
                                 TxLogs {
                                     log_ids: logs_to_save.to_vec(),
@@ -384,7 +384,7 @@ impl LogsWriter for DatabaseProvider {
                         // check amount of ids 
                         let shard = ShardedKey::new(*address, logs_max);
 
-                        self.db.put::<ContractLogs>(
+                        self.db.dae_put::<ContractLogs>(
                             shard,
                             TxLogs {
                                 log_ids: l.to_vec(),
@@ -436,7 +436,7 @@ impl LogsWriter for DatabaseProvider {
             };
 
             // save all logs by tx
-            self.db.put::<TransactionLogs>(tx.0, tx_logs)?;
+            self.db.dae_put::<TransactionLogs>(tx.0, tx_logs)?;
         }
 
         self.insert_logs_by_address(&logs_by_address).unwrap();
@@ -453,7 +453,7 @@ mod test {
     use db::tables::models::AbiContract;
     use db::tables::AbiData;
     use db::{
-        implementation::sip_rocksdb::DB, init_db, tables::models::TxLogId,
+        init_db, tables::models::TxLogId,
         test_utils::ERROR_TEMPDIR,
     };
     use hex_literal::hex;
@@ -462,9 +462,7 @@ mod test {
     use std::collections::HashMap;
     use std::fs;
     fn get_provider() -> DatabaseProvider {
-        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path());
-
-        let db = DB::new(db.unwrap());
+        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path()).unwrap();
 
         DatabaseProvider::new(db, AccessType::Primary)
     }

@@ -2,13 +2,10 @@ use log::{ debug, error };
 use std::env;
 use tokio;
 
-use abi_discovery::{helpers::contracts::copy_contracts_to_redis_set, mongo::types::ContractAbiCollection};
 use simplefi_engine_settings::load_settings;
 
 use simplefi_logger::init_logging;
 use simplefi_redis::connect;
-
-use mongo_types::{ MongoConfig, Mongo };
 
 
 #[tokio::main]
@@ -48,41 +45,43 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mongodb_uri = mysettings.mongodb_uri.to_string();
     let mongodb_database_name = mysettings.mongodb_database_name.to_string();
 
-    let mongo_config = MongoConfig {
-        uri: mongodb_uri,
-        database: mongodb_database_name,
-    };
+    // TODO: replace with rocksDB
 
-    println!("Mongo config: {:?}", mongo_config);
+    // let mongo_config = MongoConfig {
+    //     uri: mongodb_uri,
+    //     database: mongodb_database_name,
+    // };
 
-    let mongo = Mongo::new(&mongo_config).await;
+    // println!("Mongo config: {:?}", mongo_config);
 
-    if mongo.is_err() {
-        error!("Failed to connect to MongoDB: {:?}", mongo.err().unwrap());
+    // let mongo = Mongo::new(&mongo_config).await;
 
-        return Err("Failed to connect to MongoDB".into());
-    }
+    // if mongo.is_err() {
+    //     error!("Failed to connect to MongoDB: {:?}", mongo.err().unwrap());
 
-    let mongo = mongo.unwrap();
+    //     return Err("Failed to connect to MongoDB".into());
+    // }
+
+    // let mongo = mongo.unwrap();
 
     let contract_abi_collection_name = format!("{}_{}", chain, &mysettings.contract_abi_collection_name);
 
     debug!("Contract ABI collection name: {}", contract_abi_collection_name);
 
-    let contracts_collection = mongo.database.collection::<ContractAbiCollection>(&contract_abi_collection_name);
+    // let contracts_collection = mongo.database.collection::<ContractAbiCollection>(&contract_abi_collection_name);
+        // TODO:
 
+    // let is_copied = copy_contracts_to_redis_set(
+    //     &mut redis_connection,
+    //     &contracts_collection,
+    //     &chain,
+    // ).await;
 
-    let is_copied = copy_contracts_to_redis_set(
-        &mut redis_connection,
-        &contracts_collection,
-        &chain,
-    ).await;
+    // if is_copied.is_err() {
+    //     error!("Failed to copy contracts to redis set: {:?}", is_copied.err().unwrap());
 
-    if is_copied.is_err() {
-        error!("Failed to copy contracts to redis set: {:?}", is_copied.err().unwrap());
-
-        return Err("Failed to copy contracts to redis set".into());
-    }
+    //     return Err("Failed to copy contracts to redis set".into());
+    // }
 
     debug!("Contracts copied to redis set");
 

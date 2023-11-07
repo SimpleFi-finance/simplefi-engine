@@ -4,8 +4,9 @@ use std::{fmt::Display, str::FromStr};
 pub mod codecs;
 pub mod models;
 use simp_primitives::{
-    Address, BlockHash, BlockNumber, Header, StoredDecodedData, StoredLog, TransactionSigned,
-    TxHash, TxNumber, VolumeKey, Volumetric, MarketAddress, Protocol, Market, H256, TokenMarkets, PeriodVolumes
+    Address, BlockHash, BlockNumber, Header, Market, MarketAddress, PeriodVolumes, Protocol,
+    StoredDecodedData, StoredLog, TokenMarkets, TransactionSigned, TxHash, TxNumber, VolumeKey,
+    Volumetric, H256,
 };
 pub mod utils;
 pub use models::{
@@ -13,7 +14,7 @@ pub use models::{
     TxIndices, TxLogs,
 };
 
-use self::models::{VolumeKeysWithData, VolumeKeys};
+use self::models::{VolumeKeys, VolumeKeysWithData};
 /// Enum for the types of tables present in rocksdb.
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum TableType {
@@ -24,7 +25,7 @@ pub enum TableType {
 }
 
 /// Number of tables that should be present inside database.
-pub const NUM_TABLES: usize = 32;
+pub const NUM_TABLES: usize = 33;
 
 pub trait TableViewer<R> {
     /// type of error to return
@@ -135,7 +136,8 @@ tables!([
     (MarketProtocol, TableType::Table),
     (TokensMarkets, TableType::Table),
     (TempPeriodVolumesFive, TableType::Table),
-    (TempPeriodVolumesHour, TableType::Table)
+    (TempPeriodVolumesHour, TableType::Table),
+    (SyncStage, TableType::Table)
 ]);
 
 #[macro_export]
@@ -242,6 +244,13 @@ table!(
     ( Logs ) String | StoredLog
 );
 
+// TODO: traces are just listened to druing sync but not stored
+
+// table!(
+//     /// stores transaction traces
+//     ( Traces ) String | String
+// );
+
 table!(
     /// stores the id to its decoded log data
     ( DecodedLogs ) String | StoredDecodedData
@@ -292,7 +301,6 @@ table!(
     /// stores volumetric 1 day
     ( VolumetricsDay ) VolumeKey | Volumetric
 );
-
 
 table!(
     /// stores marketAddress - volume  keys 5 min
@@ -347,19 +355,32 @@ table!(
     ( TempPeriodVolumesHour )  ShardedKey<MarketAddress> | PeriodVolumes
 );
 
+// pipeline checkpoints
 
+table!(
+    /// Stores the sync stage
+    ( SyncStage ) StageId | BlockNumber
+);
+
+pub type StageId = String;
 
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
 
-    use crate::tables::{MarketProtocol, MarketVolumetricsIndicesDay, MarketVolumetricsIndicesFiveMin, MarketVolumetricsIndicesHour, Protocols, Tables, TimestampVolumetricsIndicesDay, TimestampVolumetricsIndicesFiveMin, TimestampVolumetricsIndicesHour, VolumetricsDay, VolumetricsFiveMin, VolumetricsHour};
+    use crate::tables::{
+        MarketProtocol, MarketVolumetricsIndicesDay, MarketVolumetricsIndicesFiveMin,
+        MarketVolumetricsIndicesHour, Protocols, Tables, TimestampVolumetricsIndicesDay,
+        TimestampVolumetricsIndicesFiveMin, TimestampVolumetricsIndicesHour, VolumetricsDay,
+        VolumetricsFiveMin, VolumetricsHour,
+    };
 
     use super::{
         Abi, BlockIndices, BlockLogs, CanonicalHeaders, ContractLogs, ContractProxy, ContractsData,
-        DecodedLogs, HeaderNumbers, Headers, Logs, MarketToProxy, TableType, TrackedContracts,
+        DecodedLogs, HeaderNumbers, Headers, Logs, MarketToProxy, SyncStage, TableType,
+        TempPeriodVolumesFive, TempPeriodVolumesHour, TokensMarkets, TrackedContracts,
         TransactionBlock, TransactionLogs, Transactions, TxHashNumber, UnknownContracts,
-        NUM_TABLES, TokensMarkets, TempPeriodVolumesFive, TempPeriodVolumesHour,
+        NUM_TABLES,
     };
 
     const TABLES: [(TableType, &str); NUM_TABLES] = [
@@ -384,17 +405,30 @@ mod tests {
         (TableType::Table, VolumetricsFiveMin::const_name()),
         (TableType::Table, VolumetricsHour::const_name()),
         (TableType::Table, VolumetricsDay::const_name()),
-        (TableType::Table, MarketVolumetricsIndicesFiveMin::const_name()),
+        (
+            TableType::Table,
+            MarketVolumetricsIndicesFiveMin::const_name(),
+        ),
         (TableType::Table, MarketVolumetricsIndicesHour::const_name()),
         (TableType::Table, MarketVolumetricsIndicesDay::const_name()),
-        (TableType::Table, TimestampVolumetricsIndicesFiveMin::const_name()),
-        (TableType::Table, TimestampVolumetricsIndicesHour::const_name()),
-        (TableType::Table, TimestampVolumetricsIndicesDay::const_name()),
+        (
+            TableType::Table,
+            TimestampVolumetricsIndicesFiveMin::const_name(),
+        ),
+        (
+            TableType::Table,
+            TimestampVolumetricsIndicesHour::const_name(),
+        ),
+        (
+            TableType::Table,
+            TimestampVolumetricsIndicesDay::const_name(),
+        ),
         (TableType::Table, Protocols::const_name()),
         (TableType::Table, MarketProtocol::const_name()),
         (TableType::Table, TokensMarkets::const_name()),
         (TableType::Table, TempPeriodVolumesFive::const_name()),
-        (TableType::Table, TempPeriodVolumesHour::const_name())
+        (TableType::Table, TempPeriodVolumesHour::const_name()),
+        (TableType::Table, SyncStage::const_name()),
     ];
 
     #[test]

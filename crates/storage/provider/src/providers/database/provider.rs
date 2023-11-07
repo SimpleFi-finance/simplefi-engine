@@ -1,9 +1,8 @@
 use db::{
-    implementation::sip_rocksdb::DB,
     tables::utils::decoder, table::Encode,
 };
 use interfaces::Result;
-use rocksdb::{BoundColumnFamily, ReadOptions, TransactionDB};
+use rocksdb::{BoundColumnFamily, ReadOptions, TransactionDB, MultiThreaded};
 
 use std::sync::Arc;
 
@@ -13,14 +12,14 @@ use super::options::AccessType;
 use db::transaction::DbTx;
 /// A provider struct that fetchs data from the database.
 pub struct DatabaseProvider {
-    pub db: DB,
+    pub db: TransactionDB<MultiThreaded>,
     pub access_type: AccessType,
     _phantom_data: std::marker::PhantomData<TransactionDB>,
 }
 
 impl DatabaseProvider {
     /// Creates a provider with an inner read-only transaction.
-    pub fn new(db: DB, access_type: AccessType) -> Self {
+    pub fn new(db: TransactionDB<MultiThreaded>, access_type: AccessType) -> Self {
         Self {
             db,
             access_type,
@@ -29,13 +28,13 @@ impl DatabaseProvider {
     }
 
     pub fn get_cf(&self, table: &str) -> Option<Arc<BoundColumnFamily>> {
-        let cf = self.db.db.cf_handle(table);
+        let cf = self.db.cf_handle(table);
 
         cf
     }
 
     pub fn into_db(self) -> TransactionDB {
-        self.db.db
+        self.db
     }
 }
 
@@ -68,7 +67,7 @@ impl ShardedTableProvider for DatabaseProvider {
         // resolves for the specified shard or finds the nearest one using a cursor
         let opts = ReadOptions::default();
 
-        let mut iter = self.db.new_cursor::<T>(opts).unwrap();
+        let mut iter = self.db.dae_new_cursor::<T>(opts).unwrap();
         iter.seek(prefix.encode());
 
         if iter.valid() {
@@ -90,7 +89,7 @@ impl ShardedTableProvider for DatabaseProvider {
 mod test {
     use super::*;
     use db::{
-        implementation::sip_rocksdb::DB, init_db, tables::{Headers, TxLogs, models::TxLogId, ContractLogs, ShardedKey},
+        init_db, tables::{Headers, TxLogs, models::TxLogId, ContractLogs, ShardedKey},
         test_utils::ERROR_TEMPDIR,
     };
     use simp_primitives::{Header, Address};
@@ -102,7 +101,7 @@ mod test {
     fn test_db() {
         let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path());
 
-        let db = DB::new(db.unwrap());
+        let db = db.unwrap();
 
         let headers = vec![
             (0, Header::default()),
@@ -119,7 +118,7 @@ mod test {
         ];
 
         for h in headers.clone() {
-            db.put::<Headers>(h.0, h.1).unwrap();
+            db.dae_put::<Headers>(h.0, h.1).unwrap();
         }
 
         let provider = DatabaseProvider::new(db, AccessType::Primary);
@@ -136,9 +135,7 @@ mod test {
 
     #[test]
     fn test_logs_rw_by_address() {
-        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path());
-
-        let db = DB::new(db.unwrap());
+        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path()).unwrap();
         let address_0 = Address::from(0);
         let address_1 = Address::from(1);
 
@@ -226,13 +223,13 @@ mod test {
 
         for log in logs.clone() {
             let key = ShardedKey::new(log.0, log.1);
-            provider.db.put::<ContractLogs>(key, log.2).unwrap();
+            provider.db.dae_put::<ContractLogs>(key, log.2).unwrap();
         }
 
         let mut opts = ReadOptions::default();
         opts.set_iterate_range(PrefixRange(address_0.encode().as_slice()));
 
-        let mut iter = provider.db.new_cursor::<ContractLogs>(opts).unwrap();
+        let mut iter = provider.db.dae_new_cursor::<ContractLogs>(opts).unwrap();
 
         iter.seek_to_first();
         let mut logs_0 = Vec::new();

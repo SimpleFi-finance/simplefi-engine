@@ -5,11 +5,11 @@ members = [
     "bin/simp",
     # services
     "crates/abi_discovery",
-    "crates/grpc_server",
     # pipelines
     "crates/gold",
     "crates/silver",
     "crates/bronze",
+    "crates/processes",
     "crates/stages",
     # storage
     "crates/storage/db",
@@ -30,11 +30,11 @@ members = [
     "crates/utils/redis",
     "crates/utils/chains",
     "crates/utils/settings",
+    "crates/utils/etherscan",
+    "crates/utils/tokio",
     # types
     "crates/types/abi_discovery",
     "crates/types/chains",
-    "crates/types/data_lake",
-    "crates/types/mongo",
     "crates/types/redis",
     "crates/types/providers",
     # metrics
@@ -67,7 +67,9 @@ db = { path = "./crates/storage/db" }
 rlp = { path = "./crates/rlp" }
 interfaces = { path = "./crates/interfaces" }
 storage-provider = { path = "./crates/storage/provider" }
-
+simplefi-http = { path = "./crates/utils/http" }
+processes = { path = "./crates/processes" }
+stages = { path = "./crates/stages" }
 revm = { version = "3" }
 revm-primitives = { version = "=1.1.0"}
 rocksdb = { version = "0.21.0", features = [ "zstd" ] }

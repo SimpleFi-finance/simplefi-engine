@@ -11,7 +11,7 @@ use db::tables::utils::decoder;
 impl BlockNumReader for DatabaseProvider {
     fn last_block_number(&self) -> Result<BlockNumber> {
         let opts = ReadOptions::default();
-        let mut iter = self.db.new_cursor::<HeaderNumbers>(opts).unwrap();
+        let mut iter = self.db.dae_new_cursor::<HeaderNumbers>(opts).unwrap();
         iter.seek_to_last();
         if iter.valid() {
             let k = iter.key().unwrap();
@@ -25,14 +25,14 @@ impl BlockNumReader for DatabaseProvider {
     }
 
     fn block_number(&self, hash: H256) -> Result<Option<BlockNumber>> {
-        Ok(self.db.get::<HeaderNumbers>(hash).unwrap())
+        Ok(self.db.dae_get::<HeaderNumbers>(hash).unwrap())
     }
 }
 
 impl BlockNumWriter for DatabaseProvider {
     fn insert_block_number(&self, hash: H256, number: BlockNumber) -> Result<()> {
         // TODO: insert validation?
-        self.db.put::<HeaderNumbers>(hash, number)?;
+        self.db.dae_put::<HeaderNumbers>(hash, number)?;
         Ok(())
     }
 }
@@ -46,9 +46,7 @@ mod tests {
     use crate::DatabaseProvider;
 
     fn get_provider() -> DatabaseProvider {
-        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path());
-
-        let db = DB::new(db.unwrap());
+        let db = init_db(&tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path()).unwrap();
 
         DatabaseProvider::new(db, crate::providers::options::AccessType::Primary)
     }

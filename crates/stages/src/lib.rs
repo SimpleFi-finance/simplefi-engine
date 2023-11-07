@@ -1,12 +1,10 @@
-// mongo to data_lake weekly
+mod pipeline;
 
-// archive node to data_lake history
+mod error;
+pub use error::PipelineError;
+mod stages;
 
-// sync and update bronze
+mod stage;
+pub use stage::Stage;
 
-// sync and update silver
-
-// sync and update gold
-
-
-
+pub mod util;

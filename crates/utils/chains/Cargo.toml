@@ -15,11 +15,5 @@ hex = { workspace = true }
 mongodb = { workspace = true }
 serde = { workspace = true }
 
-
-grpc_server = { path = "../../grpc_server" }
-
 #shared utils
 simplefi_engine_settings = { path = "../../utils/settings" }
-
-# shared types
-mongo_types = { path = "../../types/mongo" }
