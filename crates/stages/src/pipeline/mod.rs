@@ -27,11 +27,9 @@ pub struct Pipeline {
     stages: Vec<BoxedStage>,
 
     db: DatabaseProvider,
-    // TODO: add Pipeline events
     listeners: EventListeners<PipelineEvent>,
 
     max_block: Option<BlockNumber>,
-    // TODO: keep track of pipeline progress
     progress: PipelineProgress,
 }
 
@@ -124,7 +122,6 @@ impl Pipeline {
         let stage_id = stage.id();
         let mut made_progress = false;
         let target = self.max_block.or(previous_stage);
-
 
         loop {
             let prev_checkpoint = db_provider.get_stage_checkpoint(stage_id).unwrap();
