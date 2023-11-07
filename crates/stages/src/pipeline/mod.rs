@@ -13,7 +13,7 @@ use simp_primitives::{BlockNumber, StageId};
 use rocksdb::{TransactionDB, MultiThreaded};
 use storage_provider::{DatabaseProvider, traits::*};
 use tracing::*;
-use tokio_utils::EventListeners;
+use simp_tokio_util::EventListeners;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
 
