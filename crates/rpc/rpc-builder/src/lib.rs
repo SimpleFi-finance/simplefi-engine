@@ -596,7 +596,7 @@ impl Serialize for SimpRpcModule {
 #[derive(Debug)]
 pub struct SimpModuleRegistry {
     /// Additional settings for handlers.
-    config: RpcModuleConfig,
+    _config: RpcModuleConfig,
     /// Contains the [Methods] of a module
     modules: HashMap<SimpRpcModule, Methods>,
 }
@@ -610,7 +610,7 @@ impl SimpModuleRegistry {
     ) -> Self {
         Self {
             modules: Default::default(),
-            config,
+            _config: config,
         }
     }
 
