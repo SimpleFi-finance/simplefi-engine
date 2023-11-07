@@ -1,4 +1,4 @@
-use primitives::{StageId, BlockNumber};
+use simp_primitives::{StageId, BlockNumber};
 
 use crate::error::StageError;
 

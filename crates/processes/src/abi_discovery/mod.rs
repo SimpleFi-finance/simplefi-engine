@@ -1,4 +1,4 @@
-use primitives::{ProcessId, Process};
+use simp_primitives::{ProcessId, Process};
 
 pub struct AbiDiscoveryProcess;
 

@@ -1,5 +1,5 @@
 use interfaces::Result;
-use primitives::{BlockNumber, StageId};
+use simp_primitives::{BlockNumber, StageId};
 
 #[auto_impl::auto_impl(&, Arc)]
 pub trait StageCheckpointProvider: Send + Sync {

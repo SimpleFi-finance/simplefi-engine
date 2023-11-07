@@ -1,6 +1,7 @@
 use super::ctrl::ControlFlow;
 use crate::util::opt;
-use primitives::BlockNumber;
+use simp_primitives::BlockNumber;
+
 
 #[derive(Debug, Default)]
 pub(crate) struct PipelineProgress {
