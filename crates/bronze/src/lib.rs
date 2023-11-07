@@ -1,5 +1,3 @@
-use std::error::Error;
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[allow(missing_docs)]
 pub enum ProcessId {
@@ -14,7 +12,7 @@ pub enum ProcessId {
 
 impl ProcessId {
     /// All supported Stages
-    pub const ALL: [ProcessId; 13] = [
+    pub const ALL: [ProcessId; 6] = [
         ProcessId::Headers,
         ProcessId::Transactions,
         ProcessId::Logs,
@@ -51,10 +49,4 @@ impl std::fmt::Display for ProcessId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_str())
     }
-}
-
-pub trait Process: Send + Sync {
-    fn id(&self) -> ProcessId;
-
-    fn execute(&self) -> Result<u64, dyn Error>;
 }
