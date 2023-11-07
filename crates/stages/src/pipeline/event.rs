@@ -1,5 +1,5 @@
 use crate::stage::ExecOutput;
-use primitives::{StageId, BlockNumber};
+use simp_primitives::{StageId, BlockNumber};
 use std::fmt::{Display, Formatter};
 
 /// An event emitted by a [Pipeline][crate::Pipeline].

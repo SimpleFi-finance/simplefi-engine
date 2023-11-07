@@ -9,19 +9,17 @@ mod ctrl;
 pub use ctrl::ControlFlow;
 mod builder;
 pub use builder::PipelineBuilder;
-use primitives::{BlockNumber, StageId};
+use simp_primitives::{BlockNumber, StageId};
 use rocksdb::{TransactionDB, MultiThreaded};
-use storage_provider::{DatabaseProvider, providers::options::AccessType, traits::*};
-use tokio_util::EventListeners;
+use storage_provider::{DatabaseProvider, traits::*};
 use tracing::*;
-
+use tokio_utils::EventListeners;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
 
 use crate::{stage::{BoxedStage, ExecOutput}, PipelineError, error::StageError, pipeline::event::PipelineEvent};
 
 use self::event::PipelineStagesProgress;
-use storage_provider::traits::*;
 
 pub struct Pipeline {
     stages: Vec<BoxedStage>,

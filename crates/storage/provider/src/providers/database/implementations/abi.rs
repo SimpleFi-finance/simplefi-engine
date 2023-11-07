@@ -317,7 +317,7 @@ mod test {
 
     use chrono::Utc;
     use simp_primitives::{H256, Address, H160, Log, StoredLog};
-    use db::{tables::{AbiData, models::ProxyImplementations}, init_db, test_utils::ERROR_TEMPDIR, implementation::sip_rocksdb::DB};
+    use db::{tables::{AbiData, models::ProxyImplementations}, init_db, test_utils::ERROR_TEMPDIR};
     use hex_literal::hex;
     use crate::{DatabaseProvider, providers::options::AccessType, traits::{AbiWriter, AbiProvider}};
 

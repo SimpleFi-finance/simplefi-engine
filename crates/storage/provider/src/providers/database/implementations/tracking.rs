@@ -25,7 +25,7 @@ impl TrackingWriter for DatabaseProvider {
 #[cfg(test)]
 mod test {
     use simp_primitives::Address;
-    use db::{init_db, test_utils::ERROR_TEMPDIR, implementation::sip_rocksdb::DB};
+    use db::{init_db, test_utils::ERROR_TEMPDIR};
     use crate::{DatabaseProvider, providers::options::AccessType, traits::{TrackingWriter, TrackingProvider}};
 
     fn get_provider() -> DatabaseProvider {

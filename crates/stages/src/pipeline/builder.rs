@@ -4,7 +4,7 @@
 
 // includes the db?
 
-use primitives::StageId;
+use simp_primitives::StageId;
 
 use crate::{stage::BoxedStage, Stage};
 

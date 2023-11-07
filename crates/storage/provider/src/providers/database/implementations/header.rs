@@ -74,7 +74,7 @@ impl HeaderWriter for DatabaseProvider {
 mod tests {
     use std::fs;
 
-    use db::{init_db, test_utils::ERROR_TEMPDIR, implementation::sip_rocksdb::DB};
+    use db::{init_db, test_utils::ERROR_TEMPDIR};
     use simp_primitives::Header;
     use crate::traits::{HeaderProvider, HeaderWriter, BlockNumWriter, BlockHashWriter};
     use crate::DatabaseProvider;

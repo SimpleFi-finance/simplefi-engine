@@ -1,4 +1,4 @@
-use primitives::{BlockNumber, H256};
+use simp_primitives::{BlockNumber, H256};
 
 /// Determines the control flow during pipeline execution.
 ///

@@ -173,7 +173,7 @@ mod tests {
 
     use db::tables::{Transactions, BlockBodyIndices};
     use db::transaction::DbTx;
-    use db::{init_db, test_utils::ERROR_TEMPDIR, implementation::sip_rocksdb::DB};
+    use db::{init_db, test_utils::ERROR_TEMPDIR};
     use simp_primitives::TransactionSigned;
     use serde_json::Value;
     use crate::traits::{TransactionsWriter, TransactionsProvider, BlockBodyIndicesWriter};
