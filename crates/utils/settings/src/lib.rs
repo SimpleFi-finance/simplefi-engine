@@ -1,4 +1,4 @@
-use clap::Parser;
+use clap::{Parser, command};
 use confy::{load, store, ConfyError};
 use serde::{Deserialize, Serialize};
 

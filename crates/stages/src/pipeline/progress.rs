@@ -2,6 +2,7 @@ use super::ctrl::ControlFlow;
 use crate::util::opt;
 use simp_primitives::BlockNumber;
 
+
 #[derive(Debug, Default)]
 pub(crate) struct PipelineProgress {
     /// Block number reached by the stage.
