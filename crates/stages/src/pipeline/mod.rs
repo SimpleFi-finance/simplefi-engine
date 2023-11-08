@@ -1,8 +1,6 @@
 mod event;
 
 mod progress;
-
-use std::sync::Arc;
 use progress::PipelineProgress;
 
 mod ctrl;
@@ -10,7 +8,6 @@ pub use ctrl::ControlFlow;
 mod builder;
 pub use builder::PipelineBuilder;
 use simp_primitives::{BlockNumber, StageId};
-use rocksdb::{TransactionDB, MultiThreaded};
 use storage_provider::{DatabaseProvider, traits::*};
 use tracing::*;
 use simp_tokio_util::EventListeners;
