@@ -3,15 +3,17 @@ pub enum StageId {
     Waiting,
     Sync,
     BlockIndexing,
+    Headers,
     SnapshotsIndexing,
     Finish,
 }
 
 impl StageId {
-    pub const ALL: [StageId; 5] = [
+    pub const ALL: [StageId; 6] = [
         StageId::Waiting,
         StageId::Sync,
         StageId::BlockIndexing,
+        StageId::Headers,
         StageId::SnapshotsIndexing,
         StageId::Finish,
     ];
@@ -21,6 +23,7 @@ impl StageId {
             StageId::Waiting => "Waiting",
             StageId::Sync => "Sync",
             StageId::BlockIndexing => "BlockIndexing",
+            StageId::Headers => "Headers",
             StageId::SnapshotsIndexing => "SnapshotsIndexing",
             StageId::Finish => "Finish",
         }

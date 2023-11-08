@@ -18,7 +18,7 @@ use simp_tokio_util::EventListeners;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
 
-use crate::{stage::{BoxedStage, ExecOutput}, PipelineError, error::StageError, pipeline::event::PipelineEvent};
+use crate::{stage::{BoxedStage, ExecOutput, ExecInput}, PipelineError, error::StageError, pipeline::event::PipelineEvent};
 
 use self::event::PipelineStagesProgress;
 
@@ -44,7 +44,27 @@ impl Pipeline {
     }
     // run pipeline in infinte loop
 
+    /// Registers progress metrics for each registered stage
+    pub fn register_metrics(&mut self) -> Result<(), PipelineError> {
+
+        // TODO: metrics in db
+        // let Some(metrics_tx) = &mut self.metrics_tx else { return Ok(()) };
+        // let factory = ProviderFactory::new(&self.db, self.chain_spec.clone());
+        // let provider = factory.provider()?;
+
+        // for stage in &self.stages {
+        //     let stage_id = stage.id();
+        //     let _ = metrics_tx.send(MetricEvent::StageCheckpoint {
+        //         stage_id,
+        //         checkpoint: provider.get_stage_checkpoint(stage_id)?.unwrap_or_default(),
+        //         max_block_number: None,
+        //     });
+        // }
+        Ok(())
+    }
+
     pub async fn run(&mut self) -> Result<(), PipelineError> {
+        self.register_metrics()?;
         loop {
             let next_action = self.run_loop().await?;
 
@@ -156,7 +176,13 @@ impl Pipeline {
             // if stage does not error update and continue pipeline
             // else fail gracefully (try again or stop process)
             match stage
-                .execute()
+                .execute(
+                    ExecInput {
+                        target,
+                        checkpoint: prev_checkpoint,
+                    },
+                    db_provider,
+                )
                 .await
             {
                 Ok(out @ ExecOutput { checkpoint, done }) => {
@@ -208,6 +234,7 @@ impl Pipeline {
                     } else {
                         // On other errors we assume they are recoverable if we discard the
                         // transaction and run the stage again.
+                        // TODO: add action
                         warn!(
                             target: "sync::pipeline",
                             stage = %stage_id,
