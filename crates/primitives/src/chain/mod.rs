@@ -9,14 +9,14 @@ use std::{fmt, str::FromStr};
 // The chain spec module.
 mod spec;
 pub use spec::{
-    BaseFeeParams, ChainSpec, ChainSpecBuilder, DisplayHardforks, ForkCondition,
-    ForkTimestamps, DEV, GOERLI, MAINNET, SEPOLIA,
+    ChainSpec, ChainSpecBuilder, DEV, GOERLI, MAINNET, SEPOLIA,
 };
 
-// The chain info module.
-mod info;
-pub use info::ChainInfo;
+mod traits;
+pub use traits::*;
 
+mod rpc;
+pub use rpc::*;
 /// Either a named or chain id or the actual id value
 #[add_arbitrary_tests(rlp)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
