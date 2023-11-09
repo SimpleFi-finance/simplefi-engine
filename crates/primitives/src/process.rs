@@ -1,5 +1,9 @@
 use std::error::Error;
 
+use thiserror::Error;
+
+use crate::{chain::error, BlockNumber};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[allow(missing_docs)]
 pub enum ProcessId {
@@ -63,4 +67,22 @@ pub trait Process: Send + Sync {
     fn id(&self) -> ProcessId;
 
     fn execute<T>(self: Box<Self>) -> T;
+}
+
+#[derive(Error, Debug, PartialEq, Eq, Clone)]
+pub enum ProcessorError {
+    #[error("error in process {0}")]
+    InternalError(String),
+
+    #[error("error processing header of block number {0}")]
+    HeaderProcessingError(BlockNumber),
+
+    #[error("error processing txs for block number {0}")]
+    TxsProcessingError(BlockNumber),
+
+    #[error("error processing logs for block number {0}")]
+    LogsProcessingError(BlockNumber),
+
+    #[error("error processing traces for block number {0}")]
+    TracesProcessingError(BlockNumber),
 }

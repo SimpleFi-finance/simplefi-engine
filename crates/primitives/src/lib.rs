@@ -10,7 +10,7 @@ pub use chain::{
 };
 
 mod process;
-pub use process::{ProcessId, Process};
+pub use process::{ProcessId, Process, ProcessorError};
 
 mod stage;
 pub use stage::StageId;
