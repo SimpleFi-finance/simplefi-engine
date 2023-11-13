@@ -1,4 +1,4 @@
-use simp_primitives::{StageId, BlockNumber};
+use simp_primitives::{StageId, BlockNumber, ChainSpec};
 
 use crate::error::StageError;
 use storage_provider::DatabaseProvider;
@@ -53,7 +53,7 @@ impl ExecOutput {
 pub trait Stage: Send + Sync {
     fn id(&self) -> StageId;
 
-    async fn execute(&mut self, input: ExecInput, db_provider: &DatabaseProvider) -> Result<ExecOutput, StageError>;
+    async fn execute(&mut self, input: ExecInput, db_provider: &DatabaseProvider, chain: &ChainSpec) -> Result<ExecOutput, StageError>;
 }
 
 

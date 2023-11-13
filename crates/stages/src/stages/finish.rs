@@ -1,4 +1,4 @@
-use simp_primitives::StageId;
+use simp_primitives::{StageId, ChainSpec};
 use storage_provider::DatabaseProvider;
 use crate::{stage::{ExecInput, ExecOutput}, error::StageError, Stage};
 
@@ -19,6 +19,7 @@ impl Stage for FinishStage {
         &mut self,
         input: ExecInput,
         db_provider: &DatabaseProvider,
+        chain: &ChainSpec
     ) -> Result<ExecOutput, StageError> {
         Ok(ExecOutput { checkpoint: input.target(), done: true })
     }

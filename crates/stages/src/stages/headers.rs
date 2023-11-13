@@ -1,4 +1,4 @@
-use simp_primitives::StageId;
+use simp_primitives::{StageId, ChainSpec};
 use storage_provider::DatabaseProvider;
 use crate::{Stage, stage::{ExecInput, ExecOutput}, error::StageError};
 
@@ -10,7 +10,7 @@ impl Stage for HeadersStage {
         StageId::Headers
     }
     /// saves the Sealed header of the block in the database
-    async fn execute(&mut self, input: ExecInput, db_provider: &DatabaseProvider) ->  Result<ExecOutput, StageError> {
+    async fn execute(&mut self, input: ExecInput, db_provider: &DatabaseProvider, chain: &ChainSpec) ->  Result<ExecOutput, StageError> {
         let target = input.target();
         let checkpoint = input.checkpoint();
 

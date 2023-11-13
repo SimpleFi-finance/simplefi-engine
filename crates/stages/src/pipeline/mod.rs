@@ -7,7 +7,7 @@ mod ctrl;
 pub use ctrl::ControlFlow;
 mod builder;
 pub use builder::PipelineBuilder;
-use simp_primitives::{BlockNumber, StageId};
+use simp_primitives::{BlockNumber, StageId, ChainSpec};
 use storage_provider::{DatabaseProvider, traits::*};
 use tracing::*;
 use simp_tokio_util::EventListeners;
@@ -23,6 +23,9 @@ pub struct Pipeline {
     stages: Vec<BoxedStage>,
 
     db: DatabaseProvider,
+
+    chain: ChainSpec,
+
     listeners: EventListeners<PipelineEvent>,
 
     max_block: Option<BlockNumber>,
@@ -179,6 +182,7 @@ impl Pipeline {
                         checkpoint: prev_checkpoint,
                     },
                     db_provider,
+                    &self.chain
                 )
                 .await
             {
