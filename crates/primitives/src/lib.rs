@@ -9,9 +9,6 @@ pub use chain::{
     Chain, ChainSpec, ChainSpecBuilder, DEV, GOERLI, MAINNET, SEPOLIA,
 };
 
-mod process;
-pub use process::{ProcessId, Process, ProcessorError};
-
 mod stage;
 pub use stage::StageId;
 

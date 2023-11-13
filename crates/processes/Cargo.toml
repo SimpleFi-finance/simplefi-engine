@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 simp-primitives = { workspace = true }
+thiserror = { workspace = true }
+storage-provider = { workspace = true }

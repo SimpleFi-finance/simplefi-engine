@@ -13,7 +13,7 @@ impl Stage for BlockIndexingStage {
     async fn execute(&mut self, input: ExecInput, db_provider: &DatabaseProvider) ->  Result<ExecOutput, StageError> {
         let target = input.target();
         let checkpoint = input.checkpoint();
-
+        // load chain and load appropriate method
         for block in checkpoint..=target {
             // load chain to get block methods
             println!("block indexing: {}", block);
