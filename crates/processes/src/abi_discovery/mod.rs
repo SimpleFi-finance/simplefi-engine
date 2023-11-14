@@ -1,6 +1,7 @@
+use simp_primitives::ChainSpec;
 use storage_provider::DatabaseProvider;
 
-use crate::{ProcessId, Process};
+use crate::{ProcessId, Process, ExecInput};
 
 pub struct AbiDiscoveryProcess;
 
@@ -9,7 +10,7 @@ impl Process for AbiDiscoveryProcess {
         ProcessId::AbiDiscovery
     }
 
-    fn execute<T>(&mut self, db_provider: Option<&DatabaseProvider>) -> T {
+    fn execute<T>(&mut self, input: ExecInput, db_provider: Option<&DatabaseProvider>, chain: ChainSpec) -> Vec<T> {
         unimplemented!()
     }
 }

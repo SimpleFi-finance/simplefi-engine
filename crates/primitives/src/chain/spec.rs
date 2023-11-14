@@ -49,7 +49,8 @@ pub static DEV: Lazy<Arc<ChainSpec>> = Lazy::new(|| {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Copy)]
 pub enum ComputationEngine {
     EVM,
-    EVMCompatible
+    EVMCompatible,
+    COSMOS
 }
 
 impl Default for ComputationEngine {
@@ -117,6 +118,9 @@ impl ChainRpcProvider for ChainSpec {
     fn get_block_header<T>(&self, block_number: u64) -> Result<T, RpcProviderError> {
         match self.chain_type() {
             ComputationEngine::EVM | ComputationEngine::EVMCompatible => {
+                // load rpc connection
+                // query
+                
                 unimplemented!()
             },
             _ => {

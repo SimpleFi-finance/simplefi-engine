@@ -1,6 +1,7 @@
+use simp_primitives::ChainSpec;
 use storage_provider::DatabaseProvider;
 
-use crate::{ProcessId, Process};
+use crate::{ExecInput, Process, ProcessId};
 
 pub struct LogsProcess;
 
@@ -9,8 +10,12 @@ impl Process for LogsProcess {
         ProcessId::Logs
     }
 
-    fn execute<T>(&mut self, db_provider: Option<&DatabaseProvider>) -> T {
-
+    fn execute<T>(
+        &mut self,
+        input: ExecInput,
+        db_provider: Option<&DatabaseProvider>,
+        chain: ChainSpec,
+    ) -> Vec<T> {
         // load chain Rpc methods
         // get headers and return or store them
         unimplemented!()

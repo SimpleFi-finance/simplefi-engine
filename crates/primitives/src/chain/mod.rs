@@ -9,7 +9,7 @@ use std::{fmt, str::FromStr};
 // The chain spec module.
 mod spec;
 pub use spec::{
-    ChainSpec, ChainSpecBuilder, DEV, GOERLI, MAINNET, SEPOLIA,
+    ChainSpec, ChainSpecBuilder, DEV, GOERLI, MAINNET, SEPOLIA, ComputationEngine
 };
 
 mod traits;

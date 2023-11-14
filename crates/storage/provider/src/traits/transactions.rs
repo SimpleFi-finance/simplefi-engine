@@ -50,5 +50,5 @@ pub trait TransactionsWriter: Send + Sync {
     fn insert_transactions(
         &self,
         transactions: Vec<TransactionSigned>,
-    ) -> Result<TxIndices>;
+    ) -> Result<(TxIndices, Vec<(TxNumber, TxHash)>)>;
 }

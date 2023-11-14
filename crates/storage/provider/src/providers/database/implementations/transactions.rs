@@ -2,7 +2,7 @@ use crate::DatabaseProvider;
 use crate::traits::{TransactionsProvider, TransactionsWriter, BlockNumReader};
 use db::tables::{TransactionBlock, self, TxHashNumber, BlockIndices, Transactions, TxIndices};
 use interfaces::Result;
-use simp_primitives::{BlockNumber, TransactionSigned, BlockHashOrNumber};
+use simp_primitives::{BlockNumber, TransactionSigned, BlockHashOrNumber, TxNumber, TxHash};
 use rocksdb::ReadOptions;
 use db::tables::utils::decoder;
 use db::transaction::DbTx;
@@ -136,7 +136,7 @@ impl TransactionsProvider for DatabaseProvider {
 
 impl TransactionsWriter for DatabaseProvider {
     // ATTENTION: this method must be called per block.
-    fn insert_transactions(&self, transactions: Vec<TransactionSigned>) -> Result<TxIndices> {
+    fn insert_transactions(&self, transactions: Vec<TransactionSigned>) -> Result<(TxIndices, Vec<(TxNumber, TxHash)>)> {
         let opts = ReadOptions::default();
         let mut latest_tx = self.db.dae_new_cursor::<Transactions>(opts)?;
         latest_tx.seek_to_last();
@@ -152,18 +152,22 @@ impl TransactionsWriter for DatabaseProvider {
         };
 
         let mut key_holder = latest_key.clone() + 1;
+
+        let mut num_hash = vec![];
+
         for tx in transactions.clone() {
             self.db.dae_put::<Transactions>(key_holder, tx.clone())?;
+            num_hash.push((key_holder, tx.hash()));
             self.db.dae_put::<TxHashNumber>(tx.hash(), key_holder)?;
             self.db
                 .dae_put::<TransactionBlock>(key_holder, tx.block_number())?;
             key_holder += 1;
         }
 
-        Ok(TxIndices {
+        Ok((TxIndices {
             first_tx_num: latest_key.clone() + 1,
             tx_count: transactions.len() as u64,
-        })
+        }, num_hash))
     }
 }
 
@@ -204,12 +208,12 @@ mod tests {
 
         let inserted = provider.insert_transactions(txs.clone()).unwrap();
 
-        assert_eq!(inserted.tx_count, txs.len() as u64);
-        assert!(inserted.first_tx_num > 0);
+        assert_eq!(inserted.0.tx_count, txs.len() as u64);
+        assert!(inserted.0.first_tx_num > 0);
 
         let inserted = provider.insert_transactions(txs.clone()).unwrap();
-        assert_eq!(inserted.tx_count, txs.len() as u64);
-        assert_eq!(inserted.first_tx_num as usize, txs.len() + 1);
+        assert_eq!(inserted.0.tx_count, txs.len() as u64);
+        assert_eq!(inserted.0.first_tx_num as usize, txs.len() + 1);
     }
 
     #[test]
@@ -266,8 +270,8 @@ mod tests {
                 false => i as u64,
             };
             let index = BlockBodyIndices {
-                first_tx_num: inserted.first_tx_num,
-                tx_count: inserted.tx_count,
+                first_tx_num: inserted.0.first_tx_num,
+                tx_count: inserted.0.tx_count,
             };
 
             provider.insert_block_body_indices(bn, index).unwrap();
@@ -299,7 +303,7 @@ mod tests {
 
         let inserted = provider.insert_transactions(txs.clone()).unwrap();
 
-        let tx = provider.transaction_by_id(inserted.first_tx_num).unwrap().unwrap();
+        let tx = provider.transaction_by_id(inserted.0.first_tx_num).unwrap().unwrap();
 
         assert_eq!(tx.hash(), txs[0].hash());
     }
@@ -321,7 +325,7 @@ mod tests {
 
         let tx_id = provider.transaction_id(txs[0].hash()).unwrap().unwrap();
 
-        assert_eq!(tx_id, inserted.first_tx_num);
+        assert_eq!(tx_id, inserted.0.first_tx_num);
     }
 
     #[test]
@@ -359,7 +363,7 @@ mod tests {
 
         let inserted = provider.insert_transactions(txs.clone()).unwrap();
 
-        let block = provider.transaction_block(inserted.first_tx_num).unwrap().unwrap();
+        let block = provider.transaction_block(inserted.0.first_tx_num).unwrap().unwrap();
 
         assert_eq!(block, txs[0].block_number());
     }

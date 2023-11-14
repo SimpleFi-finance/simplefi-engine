@@ -8,11 +8,11 @@
 
 // sync and update gold
 
-mod abi_discovery;
+pub mod abi_discovery;
 
 pub mod evm;
 
-use simp_primitives::BlockNumber;
+use simp_primitives::{BlockNumber, ChainSpec};
 use storage_provider::DatabaseProvider;
 use thiserror::Error;
 
@@ -60,7 +60,10 @@ impl ProcessId {
 
     /// Returns true if it's a downloading process [ProcessId::Headers] or [ProcessId::Bodies]
     pub fn is_downloading_stage(&self) -> bool {
-        matches!(self, ProcessId::Headers | ProcessId::Transactions | ProcessId::Logs)
+        matches!(
+            self,
+            ProcessId::Headers | ProcessId::Transactions | ProcessId::Logs
+        )
     }
 
     /// Returns true indicating if it's the finish process [ProcessId::Finish]
@@ -70,15 +73,28 @@ impl ProcessId {
 }
 
 impl std::fmt::Display for ProcessId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(
+        &self,
+        f: &mut std::fmt::Formatter<'_>,
+    ) -> std::fmt::Result {
         write!(f, "{}", self.as_str())
     }
 }
 
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
+pub struct ExecInput {
+    pub start_bn: BlockNumber,
+    pub end_bn: Option<BlockNumber>,
+}
 pub trait Process: Send + Sync {
     fn id(&self) -> ProcessId;
 
-    fn execute<T>(&mut self, db_provider: Option<&DatabaseProvider>) -> T;
+    fn execute<T>(
+        &mut self,
+        input: ExecInput,
+        db_provider: Option<&DatabaseProvider>,
+        chain: ChainSpec,
+    ) -> Vec<T>;
 }
 
 #[derive(Error, Debug, PartialEq, Eq, Clone)]

@@ -6,7 +6,7 @@ pub use revm_primitives::{B160 as H160, B256 as H256, U256};
 
 mod chain;
 pub use chain::{
-    Chain, ChainSpec, ChainSpecBuilder, DEV, GOERLI, MAINNET, SEPOLIA,
+    Chain, ChainSpec, ChainSpecBuilder, DEV, GOERLI, MAINNET, SEPOLIA, ComputationEngine, ChainRpcProvider
 };
 
 mod stage;
