@@ -65,6 +65,7 @@ simp-primitives = { path = "./crates/primitives" }
 simp-rpc-builder = { path = "./crates/rpc/rpc-builder" }
 simp-tokio-util = { path = './crates/utils/tokio' }
 simp-processes = { path = './crates/processes' }
+simp-settings = { path = "./crates/utils/settings" }
 db = { path = "./crates/storage/db" }
 rlp = { path = "./crates/rlp" }
 interfaces = { path = "./crates/interfaces" }

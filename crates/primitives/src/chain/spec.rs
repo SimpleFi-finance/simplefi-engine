@@ -207,51 +207,6 @@ impl ChainRpcProvider for ChainSpec {
     }
 }
 
-// impl ChainDataProcessor for ChainSpec {
-//     fn process_block_header<T>(&self, block_header: T, chain: &ChainSpec) -> Result<(), crate::ProcessorError> {
-//         match self.chain_type() {
-//             ComputationEngine::EVM | ComputationEngine::EVMCompatible => {
-//                 unimplemented!()
-//             },
-//             _ => {
-//                 Err(crate::ProcessorError::InternalError("Invalid chain type".to_string()))
-//             }
-//         }
-//     }
-
-//     fn process_block_logs<T>(&self, block_logs: Vec<T>, chain: &ChainSpec) -> Result<(), crate::ProcessorError> {
-//         match self.chain_type() {
-//             ComputationEngine::EVM | ComputationEngine::EVMCompatible => {
-//                 unimplemented!()
-//             },
-//             _ => {
-//                 Err(crate::ProcessorError::InternalError("Invalid chain type".to_string()))
-//             }
-//         }
-//     }
-
-//     fn process_block_traces<T>(&self, block_traces: Vec<T>, chain: &ChainSpec) -> Result<(), crate::ProcessorError> {
-//         match self.chain_type() {
-//             ComputationEngine::EVM | ComputationEngine::EVMCompatible => {
-//                 unimplemented!()
-//             },
-//             _ => {
-//                 Err(crate::ProcessorError::InternalError("Invalid chain type".to_string()))
-//             }
-//         }
-//     }
-
-//     fn process_block_txs<T>(&self, block_txs: Vec<T>, chain: &ChainSpec) -> Result<(), crate::ProcessorError> {
-//         match self.chain_type() {
-//             ComputationEngine::EVM | ComputationEngine::EVMCompatible => {
-//                 unimplemented!()
-//             },
-//             _ => {
-//                 Err(crate::ProcessorError::InternalError("Invalid chain type".to_string()))
-//             }
-//         }
-//     }
-// }
 /// A helper to build custom chain specs
 #[derive(Debug, Default)]
 pub struct ChainSpecBuilder {

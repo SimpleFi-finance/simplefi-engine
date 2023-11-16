@@ -25,7 +25,7 @@ tokio =         { workspace = true, features = ["full"] }
 abi_discovery_types = { path = "../types/abi_discovery" }
 
 #shared utils
-simplefi_engine_settings = { path = "../utils/settings" }
+simp-settings = { path = "../utils/settings" }
 simplefi-logger =  { path = "../utils/logger" }
 simplefi-redis =  { path = "../utils/redis" }
 simplefi-http =  { path = "../utils/http" }

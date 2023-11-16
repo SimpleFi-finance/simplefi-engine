@@ -2,7 +2,7 @@ use log::{ debug, error };
 use std::env;
 use tokio;
 
-use simplefi_engine_settings::load_settings;
+use simp_settings::load_settings;
 
 use simplefi_logger::init_logging;
 use simplefi_redis::connect;

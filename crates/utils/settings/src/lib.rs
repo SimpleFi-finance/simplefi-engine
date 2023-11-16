@@ -1,7 +1,7 @@
 use clap::{Parser, command};
 use confy::{load, store, ConfyError};
 use serde::{Deserialize, Serialize};
-use simp_primitives::ChainSpec;
+use simp_primitives::{ChainSpec, Chain};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum RpcProvider {
@@ -149,6 +149,14 @@ pub struct Settings {
     pub local_storage: std::path::PathBuf,
 
     #[arg(
+        short = 'C',
+        long = "chain",
+        help = "Chain ID of the system",
+        required = true
+    )]
+    pub chain_id: u64,
+
+    #[arg(
         long = "log_level",
         help = "Log level to filter the logs. Default is INFO",
         default_value = "INFO"
@@ -166,6 +174,7 @@ pub struct Settings {
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct MySettings {
     pub rpc_key: String,
+    pub chain_id: u64,
     pub rpc_provider: RpcProvider,
     pub local_storage: std::path::PathBuf,
     pub log_level: String,
@@ -176,12 +185,14 @@ impl MySettings {
     pub fn new(
         rpc_key: String,
         rpc_provider: RpcProvider,
+        chain_id: u64,
         local_storage: std::path::PathBuf,
         log_level: String,
         log_file: String,
     ) -> Self {
         MySettings {
             rpc_key,
+            chain_id,
             rpc_provider,
             local_storage,
             log_level,
@@ -194,6 +205,7 @@ pub fn load_settings() -> Result<MySettings, ConfyError> {
     let default_settings = MySettings {
         rpc_key: String::from("default_infura_token"),
         rpc_provider: RpcProvider::default(),
+        chain_id: 1,
         local_storage: std::path::PathBuf::from("default_local_storage"),
         // logging
         log_level: String::from("INFO"),

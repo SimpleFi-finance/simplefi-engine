@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use serde_json::Value;
-use simplefi_engine_settings::load_settings;
+use simp_settings::load_settings;
 
 pub fn rpc_methods() -> HashMap<String, Value> {
 

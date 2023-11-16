@@ -1,4 +1,4 @@
-use std::{error, sync::mpsc::SendError};
+use std::sync::mpsc::SendError;
 use thiserror::Error;
 
 

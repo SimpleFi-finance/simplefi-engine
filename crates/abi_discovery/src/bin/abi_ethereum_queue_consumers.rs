@@ -1,6 +1,6 @@
 use log::{ error, debug };
 use redis::{AsyncCommands, RedisError};
-use simplefi_engine_settings::load_settings;
+use simp_settings::load_settings;
 use tokio::{time::{ sleep, Duration }, spawn};
 
 use simplefi_logger::init_logging;

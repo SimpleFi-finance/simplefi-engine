@@ -16,4 +16,4 @@ mongodb = { workspace = true }
 serde = { workspace = true }
 
 #shared utils
-simplefi_engine_settings = { path = "../../utils/settings" }
+simp-settings = { path = "../../utils/settings" }

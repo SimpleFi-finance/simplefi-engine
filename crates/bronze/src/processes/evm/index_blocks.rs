@@ -1,4 +1,4 @@
-use simplefi_engine_settings::load_settings;
+use simp_settings::load_settings;
 use chains_types::get_chain;
 use chains_types::common::chain::{
     IndexFullBlocks,
