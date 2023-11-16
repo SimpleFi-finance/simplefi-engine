@@ -52,7 +52,7 @@ impl ExecOutput {
 #[async_trait::async_trait]
 pub trait Stage: Send + Sync {
     fn id(&self) -> StageId;
-
+    
     async fn execute(&mut self, input: ExecInput, db_provider: &DatabaseProvider, chain: &ChainSpec) -> Result<ExecOutput, StageError>;
 }
 

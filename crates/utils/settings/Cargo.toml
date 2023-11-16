@@ -11,3 +11,4 @@ repository.workspace = true
 clap = { workspace = true, features = ["derive"] }
 confy ={ workspace = true }
 serde ={ workspace = true, features = ["derive"] }
+simp-primitives = { workspace = true }

@@ -19,7 +19,7 @@ async fn main() {
 
     match chain_id {
         "1" => {
-            let uri = glob_settings.redis_uri.clone();
+            let uri = "".clone();
             let chain = get_chain(chain_id).unwrap();
 
             let queue_name = format!("{}_blocks", chain.info().symbol.to_lowercase());

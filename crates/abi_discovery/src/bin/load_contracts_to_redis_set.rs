@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     debug!("Loading contracts into redis set for chain: {}", chain);
 
     let mysettings = load_settings().expect("Failed to load settings");
-    let redis_uri = mysettings.redis_uri.to_string();
+    let redis_uri = "".to_string();
 
     let redis_connection = connect(redis_uri.as_str()).await;
 
@@ -42,8 +42,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut redis_connection = redis_connection.unwrap();
 
-    let mongodb_uri = mysettings.mongodb_uri.to_string();
-    let mongodb_database_name = mysettings.mongodb_database_name.to_string();
+    let mongodb_uri = "".to_string();
+    let mongodb_database_name = "".to_string();
 
     // TODO: replace with rocksDB
 
@@ -64,7 +64,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // let mongo = mongo.unwrap();
 
-    let contract_abi_collection_name = format!("{}_{}", chain, &mysettings.contract_abi_collection_name);
+    let contract_abi_collection_name = format!("{}_{}", chain, &"");
 
     debug!("Contract ABI collection name: {}", contract_abi_collection_name);
 

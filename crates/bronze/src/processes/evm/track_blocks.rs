@@ -10,7 +10,7 @@ async fn main() {
 
     match chain_id {
         "1" => {
-            let uri = glob_settings.redis_uri.clone();
+            let uri = "".to_string().clone();
             SupportedChains::EthereumMainnet.subscribe_blocks(uri).await.unwrap();
             // TODO: in future convert to stream returned from subscribe_blocks and save new block to db
         },
