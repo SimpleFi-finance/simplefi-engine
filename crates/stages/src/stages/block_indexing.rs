@@ -33,11 +33,11 @@ impl Stage for BlockIndexingStage {
             match chain.chain_type() {
                 ComputationEngine::EVM | ComputationEngine::EVMCompatible => {
 
-                    let logs = chain.get_block_logs::<Log>(block).unwrap();
+                    let logs = chain.get_block_logs::<Log>(block).await.unwrap();
 
-                    let txs = chain.get_block_txs::<String>(block).unwrap();
+                    let txs = chain.get_block_txs::<String>(block).await.unwrap();
 
-                    let txs = txs.iter().map(|tx| {
+                    let txs = txs.result.iter().map(|tx| {
                         let tx = serde_json::from_str::<Value>(tx).unwrap();
                         TransactionSigned::from(tx)
                     }).collect::<Vec<TransactionSigned>>();
@@ -55,7 +55,7 @@ impl Stage for BlockIndexingStage {
 
                     let mut tx_hash_logs = HashMap::new();
 
-                    for log in logs.iter() {
+                    for log in logs.result.iter() {
                         let tx_hash = log.transaction_hash;
                         tx_hash_logs.entry(tx_hash).or_insert(vec![]).push(log.clone());
                     }

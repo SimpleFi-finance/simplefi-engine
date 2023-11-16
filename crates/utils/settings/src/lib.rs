@@ -1,7 +1,7 @@
 use clap::{Parser, command};
 use confy::{load, store, ConfyError};
 use serde::{Deserialize, Serialize};
-use simp_primitives::{ChainSpec, Chain};
+use simp_primitives::ChainSpec;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum RpcProvider {

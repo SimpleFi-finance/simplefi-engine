@@ -17,7 +17,7 @@ impl Stage for HeadersStage {
             match chain.chain_type() {
                 ComputationEngine::EVM | ComputationEngine::EVMCompatible => {
                     // TODO: if more than 10k blocks, batch calls
-                    let headers = chain.get_blocks_headers::<Header>(checkpoint, target).unwrap();
+                    let headers = chain.get_blocks_headers::<Header>(checkpoint, target).await.unwrap();
 
                     for header in headers.iter() {
                         db_provider.insert_block_hash(header.number, header.hash).unwrap();
