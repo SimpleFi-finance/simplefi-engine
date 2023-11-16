@@ -1,5 +1,5 @@
 use interfaces::db::DatabaseError;
-use rocksdb::{DBRawIteratorWithThreadMode, TransactionDB, ReadOptions, Transaction};
+use rocksdb::{DBRawIteratorWithThreadMode, TransactionDB, ReadOptions};
 
 use crate::{table::Table, common::PairResult};
 

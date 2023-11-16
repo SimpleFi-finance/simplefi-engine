@@ -1,6 +1,4 @@
-use std::str::FromStr;
-
-use chains_types::{common::chain::Info, get_chain, SupportedChains};
+use chains_types::get_chain;
 
 #[tokio::main]
 async fn main() {

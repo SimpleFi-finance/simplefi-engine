@@ -6,8 +6,8 @@ use crate::{
     stage::{ExecInput, ExecOutput},
     Stage,
 };
-use db::tables::{BlockBodyIndices, TxLogs};
-use simp_primitives::{ChainSpec, StageId, ComputationEngine, ChainRpcProvider, Log, Transaction, TransactionSigned, TxNumber, TxHash, };
+use db::tables::BlockBodyIndices;
+use simp_primitives::{ChainSpec, StageId, ComputationEngine, ChainRpcProvider, Log, TransactionSigned, TxNumber, TxHash, };
 use storage_provider::{DatabaseProvider, traits::{TransactionsWriter, BlockBodyIndicesWriter, LogsWriter}};
 use serde_json::Value;
 

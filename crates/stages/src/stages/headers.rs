@@ -29,7 +29,6 @@ impl Stage for HeadersStage {
                 },
                 _ => panic!("chain not supported")
             }
-            // TODO: get headers and store them
         Ok(ExecOutput { checkpoint: input.target(), done: true })
     }
 }

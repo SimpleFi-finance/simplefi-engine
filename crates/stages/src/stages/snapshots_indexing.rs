@@ -17,7 +17,6 @@ impl Stage for SnapshotsIndexingStage {
         for block in checkpoint..=target {
             // load chain to get block methods
             println!("snapshots indexing: {}", block);
-            // TODO: get headers and store them
         }
         Ok(ExecOutput { checkpoint: input.target(), done: true })
     }

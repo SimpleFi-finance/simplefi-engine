@@ -11,10 +11,10 @@ use simplefi_engine_settings::load_settings;
 use serde_json::Value;
 use simplefi_redis::{connect as redis_connect, queue_message};
 use tungstenite::connect;
-use simplefi_chains::ethereum::{mainnet::{
+use simplefi_chains::ethereum::mainnet::{
     rpc_methods as mainnet_methods, 
     nodes as mainnet_nodes,
-}, decoding::evm_logs_decoder};
+};
 
 use crate::{
     common::{
@@ -82,10 +82,6 @@ impl Info for SupportedChains {
                         decimals: 18,
                         address: "0x0000000000".to_string(),
                     }],
-                    // db: MongoConfig {
-                    //     uri: glob_settings.mongodb_uri,
-                    //     database: glob_settings.mongodb_database_name,
-                    // },
                     network: "mainnet".to_string(),
                     engine_type: Engine::EVM,
                     nodes,
