@@ -288,14 +288,15 @@ impl std::fmt::Debug for Pipeline {
 mod tests {
     use super::*;
     use db::test_utils::create_test_rw_db;
-    use simp_primitives::StageId;
+    use simp_primitives::{StageId, MAINNET};
     use storage_provider::options::AccessType;
 
     use crate::{
         pipeline::{progress::PipelineProgress, ControlFlow},
         test_utils::stage::TestStage,
     };
-
+    use tokio_stream::StreamExt;
+    
     #[test]
     fn record_progress_calculates_outliers() {
         let mut progress = PipelineProgress::default();
@@ -346,13 +347,7 @@ mod tests {
             .with_max_block(10)
             .build(
                 db_provider,
-                ChainSpec {
-                    chain: (),
-                    rpc_connection: (),
-                    computation_engine: (),
-                    mint_time: (),
-                    confirmation_block_time: (),
-                },
+                MAINNET.clone().as_ref().clone(),
             );
         let events = pipeline.events();
 
