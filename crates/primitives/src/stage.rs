@@ -10,6 +10,7 @@ pub enum StageId {
     SnapshotsIndexing,
     // finish loop
     Finish,
+    Other(&'static str)
 }
 
 impl StageId {
@@ -26,6 +27,7 @@ impl StageId {
             StageId::BlockIndexing => "BlockIndexing",
             StageId::SnapshotsIndexing => "SnapshotsIndexing",
             StageId::Finish => "Finish",
+            StageId::Other(name) => name,
         }
     }
 

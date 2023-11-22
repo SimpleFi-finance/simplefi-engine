@@ -4,12 +4,17 @@
 
 // includes the db?
 
-use simp_primitives::StageId;
+use simp_primitives::{StageId, BlockNumber,ChainSpec};
+use storage_provider::DatabaseProvider;
 
 use crate::{stage::BoxedStage, Stage};
 
+use super::Pipeline;
+
 pub struct PipelineBuilder {
     stages: Vec<BoxedStage>,
+
+    max_block: Option<BlockNumber>,
 }
 
 impl PipelineBuilder {
@@ -21,21 +26,32 @@ impl PipelineBuilder {
         self
     }
 
-    // pub fn build(self, db: DB, chain_spec: Arc<ChainSpec>) -> Pipeline<DB> {
-    //     let Self { stages} = self;
-    //     Pipeline {
-    //         db,
-    //         chain_spec,
-    //         stages,
-    //         listeners: Default::default(),
-    //         progress: Default::default(),
-    //     }
-    // }
+    pub fn with_max_block(mut self, block: BlockNumber) -> Self {
+        self.max_block = Some(block);
+        self
+    }
+    pub fn build(self, db: DatabaseProvider, chain_spec: ChainSpec) -> Pipeline {
+        let Self { 
+            stages,
+            max_block
+        } = self;
+        Pipeline {
+            db,
+            chain: chain_spec,
+            stages,
+            max_block,
+            listeners: Default::default(),
+            progress: Default::default(),
+        }
+    }
 }
 
 impl  Default for PipelineBuilder {
     fn default() -> Self {
-        Self { stages: Vec::new() }
+        Self { 
+            stages: Vec::new(),
+            max_block: None,
+        }
     }
 }
 
@@ -43,6 +59,7 @@ impl std::fmt::Debug for PipelineBuilder {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("PipelineBuilder")
             .field("stages", &self.stages.iter().map(|stage| stage.id()).collect::<Vec<StageId>>())
+            .field("max_block", &self.max_block)
             .finish()
     }
 }
