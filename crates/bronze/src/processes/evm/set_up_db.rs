@@ -1,4 +1,3 @@
-use chains_types::get_chain;
 use simp_settings::load_settings;
 #[tokio::main]
 async fn main() {
@@ -11,7 +10,6 @@ async fn main() {
             // let db = SupportedChains::EthereumMainnet.get_db();
 
             // let db = Mongo::new(&db).await.unwrap();
-            let _chain = get_chain(chain_id).unwrap();
             // let block_coll =
             //     &chain.resolve_collection_name(&SupportedDataTypes::Blocks, &data_level);
             // let log_coll = &chain.resolve_collection_name(&SupportedDataTypes::Logs, &data_level);

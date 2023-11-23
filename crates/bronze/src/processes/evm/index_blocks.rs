@@ -1,9 +1,9 @@
 use simp_settings::load_settings;
-use chains_types::get_chain;
-use chains_types::common::chain::{
-    IndexFullBlocks,
-    Info
-};
+// use chains_types::get_chain;
+// use chains_types::common::chain::{
+//     IndexFullBlocks,
+//     Info
+// };
 use simplefi_redis::connect_client;
 
 use redis::AsyncCommands;
@@ -18,9 +18,9 @@ async fn main() {
     match chain_id {
         "1" => {
             let uri = "";
-            let chain = get_chain(chain_id).unwrap();
+            // let chain = get_chain(chain_id).unwrap();
 
-            let queue_name = format!("{}_blocks", chain.info().symbol.to_lowercase());
+            // let queue_name = format!("{}_blocks", chain.info().symbol.to_lowercase());
 
             let redis_cli = connect_client(&uri).await.unwrap();
 
@@ -28,7 +28,7 @@ async fn main() {
             let mut redis_async_conn = redis_cli.get_async_connection().await.unwrap();
 
             let mut pubsub = redis_conn.as_pubsub();
-            pubsub.subscribe(&queue_name).unwrap();
+            // pubsub.subscribe(&queue_name).unwrap();
 
             // let db = chain.get_db();
 
@@ -37,7 +37,7 @@ async fn main() {
             loop {
                 loop {
                     let data: Vec<isize> = redis_async_conn
-                        .lpop(&queue_name, None)
+                        .lpop("", None)
                         .await
                         .unwrap_or_default();
 
@@ -45,14 +45,10 @@ async fn main() {
                         break;
                     }
 
-                    let data = chain
-                        .index_full_blocks(true, data[0] as u64, None)
-                        .await
-                        .unwrap();
-
-                    let _blocks = data.0;
-                    let _transactions = data.1;
-                    let _logs = data.2;
+                    // let data = chain
+                    //     .index_full_blocks(true, data[0] as u64, None)
+                    //     .await
+                    //     .unwrap();
                 }
             }
         }
