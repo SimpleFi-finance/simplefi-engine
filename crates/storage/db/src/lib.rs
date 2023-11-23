@@ -88,7 +88,6 @@ pub fn open_db<P: AsRef<Path>>(path: P) -> eyre::Result<TransactionDB::<MultiThr
 
 pub mod test_utils {
     use super::*;
-    use std::sync::Arc;
 
     /// Error during database open
     pub const ERROR_DB_OPEN: &str = "Not able to open the database file.";

@@ -30,8 +30,6 @@ members = [
     "crates/utils/settings",
     "crates/utils/etherscan",
     "crates/utils/tokio",
-    # types
-    "crates/types/chains",
     # metrics
     "crates/tracing",
     "crates/metrics",
