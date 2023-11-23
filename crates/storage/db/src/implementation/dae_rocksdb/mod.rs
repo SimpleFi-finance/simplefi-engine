@@ -106,9 +106,9 @@ impl DbTx for TransactionDB<MultiThreaded> {
         }
     }
 
-    fn dae_drop(&self) {
-        drop(&self.transaction())
-    }
+    // fn dae_drop(&self) {
+    //     drop(&self.transaction())
+    // }
 
     fn dae_new_cursor<T: Table>(&self, opts: ReadOptions) -> Result<DBRawIteratorWithThreadMode<TransactionDB>, DatabaseError> {
         let cf_handle = self.cf_handle(T::NAME).unwrap();

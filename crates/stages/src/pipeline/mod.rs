@@ -240,6 +240,7 @@ impl Pipeline {
                     //
                     let out = if let StageError::Block { block } = err {
                         unimplemented!()
+                        // retry block
                     } else if err.is_fatal() {
                         error!(
                             target: "sync::pipeline",
@@ -250,7 +251,7 @@ impl Pipeline {
                     } else {
                         // On other errors we assume they are recoverable if we discard the
                         // transaction and run the stage again.
-                        // TODO: add action
+
                         warn!(
                             target: "sync::pipeline",
                             stage = %stage_id,
@@ -296,7 +297,7 @@ mod tests {
         test_utils::stage::TestStage,
     };
     use tokio_stream::StreamExt;
-    
+
     #[test]
     fn record_progress_calculates_outliers() {
         let mut progress = PipelineProgress::default();
@@ -401,4 +402,7 @@ mod tests {
             ]
         );
     }
+
+
+    // TODO: missing unwind implementation and pipeline error handling
 }

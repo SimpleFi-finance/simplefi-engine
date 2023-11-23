@@ -1,6 +1,5 @@
-use simp_primitives::{ChainSpec, ComputationEngine, Header};
-use storage_provider::{DatabaseProvider, traits::{BlockHashWriter, BlockNumWriter, HeaderWriter}};
-use simp_primitives::ChainRpcProvider;
+use simp_primitives::{ChainSpec, ComputationEngine};
+use storage_provider::DatabaseProvider;
 
 use crate::{ProcessId, Process, ExecInput};
 
@@ -10,7 +9,7 @@ impl Process for HeaderProcess {
     fn id(&self) -> ProcessId {
         ProcessId::Headers
     }
-
+    #[allow(unused_variables)]
     fn execute<T>(&mut self, input: ExecInput, db_provider: Option<&DatabaseProvider>, chain: ChainSpec) -> Vec<T> 
     {
 

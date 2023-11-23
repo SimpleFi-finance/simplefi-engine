@@ -9,7 +9,7 @@ impl Process for LogsProcess {
     fn id(&self) -> ProcessId {
         ProcessId::Logs
     }
-
+    #[allow(unused_variables)]
     fn execute<T>(
         &mut self,
         input: ExecInput,

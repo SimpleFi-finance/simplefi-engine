@@ -3,8 +3,6 @@
 members = [
     # bin
     "bin/simp",
-    # services
-    "crates/abi_discovery",
     # pipelines
     "crates/gold",
     "crates/silver",
@@ -33,10 +31,7 @@ members = [
     "crates/utils/etherscan",
     "crates/utils/tokio",
     # types
-    "crates/types/abi_discovery",
     "crates/types/chains",
-    "crates/types/redis",
-    "crates/types/providers",
     # metrics
     "crates/tracing",
     "crates/metrics",

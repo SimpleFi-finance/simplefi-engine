@@ -11,13 +11,13 @@ use redis::AsyncCommands;
 #[tokio::main]
 async fn main() {
     // load chain using settings name
-    let glob_settings = load_settings().unwrap();
+    let _glob_settings = load_settings().unwrap();
 
     let chain_id = "1"; //todo switch to env
 
     match chain_id {
         "1" => {
-            let uri = "".clone();
+            let uri = "";
             let chain = get_chain(chain_id).unwrap();
 
             let queue_name = format!("{}_blocks", chain.info().symbol.to_lowercase());
@@ -50,9 +50,9 @@ async fn main() {
                         .await
                         .unwrap();
 
-                    let blocks = data.0;
-                    let transactions = data.1;
-                    let logs = data.2;
+                    let _blocks = data.0;
+                    let _transactions = data.1;
+                    let _logs = data.2;
                 }
             }
         }

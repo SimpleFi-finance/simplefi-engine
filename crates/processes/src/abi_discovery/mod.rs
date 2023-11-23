@@ -10,6 +10,7 @@ impl Process for AbiDiscoveryProcess {
         ProcessId::AbiDiscovery
     }
 
+    #[allow(unused_variables)]
     fn execute<T>(&mut self, input: ExecInput, db_provider: Option<&DatabaseProvider>, chain: ChainSpec) -> Vec<T> {
         unimplemented!()
     }
