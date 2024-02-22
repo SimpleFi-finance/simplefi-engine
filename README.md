@@ -2,34 +2,19 @@
 
 This is HOWTO documentation to configure and run this engine. The main programming language is Rust and it uses workspaces to generate multiples binaries to run all different processes while sharing libraries and settings.
 
-| [Developer Docs](./docs)
-
-*The project is still work in progress, see the [disclaimer below](#status).*
+*The project is not completed and to get it up and running more work outlined in the READMEs is required.*
 
 ## What is SIP DeFi Engine?
 
-## Goals
+The engine was meant to be a data processor specialised in DeFi data. It works as a state machine, node-agnostic, where data produced by a given blockchain is digested and stored in a local rocksDB database ready for analysis.
 
-More concretely, our goals are:
--
--
--
 
 ## Status
 
-The project is **not ready for production use**.
+The project is **not complete**.
 
-SIP DeFi Engine is fully capable of syncing, however, there are still some missing features, and we are still working on performance and stability. Because of this, we are still introducing breaking changes.
+SIMP DeFi Engine is partially capable of syncing basic blockchain data, however, several essential features are still some missing.
 
-It has **not been audited for security purposes** and should not be used in production yet.
-
-We will be updating the documentation with the completion status of each component, as well as include more contributing guidelines (design docs, architecture diagrams, repository layouts) and "good first issues".
-
-We appreciate your patience until we get there. Until then, we are happy to answer all questions in the Telegram link above.
-
-## For Users
-
-See the [SIP Engine Book](https://) for instructions on how to install and run Simp.
 
 ## Installation
 
@@ -37,9 +22,45 @@ Clone the repository `git clone ...`
 
 For development just build it like `cargo build`
 
-On production, build using release parameter `cargo build --release`
-
 ## For Developers
+
+The main crates to look at are: Utils, Stages and Storage.
+
+Storage crate contains all the logic to use RocksDB as a database provider in the engine. It has been tested and runs on its own.
+
+Stages crate contains all the logic to run the state engine and some of the code has been tested and can run when connected to an external node, downloading basic blockchain data such as transactions and logs.
+
+### Utils
+
+The utils crate contains all the logic to query nodes, select which node to use and decode incoming logs before storing them in the local database. 
+
+### Stages
+
+#### Basic blockchain data
+
+The logic to store basic blockchain data has been included in the main branch of the repo and can be found in crates/stages/*.rs
+These methods can be added to a pipeline to be concurrently run. The pipeline methods can be found in crates/pipeline.
+
+Goal of the blockchain data:
+- backfill and track blockchain data served by a given node
+- transform the data received in a unified data structure, allowing for a multi-chain environment
+- make the data available for subsequent stages (ie. DeFi Data, ML analysis)
+
+#### DeFi Specific Data
+
+The logic to store DeFi specific data can be found in a separate branch of this repo, since it needs migrating from a previous version of the engine to the current state machine version.
+The types and methods can be found in crates/silver of branch "refactor/gold-silver".
+
+Goal of the DeFi Data:
+- use the unified blockchain data
+- select the correct methods to record volumentric and market snapshot data in a programmatic and automatic methodology
+- create 5 min, 1hr, and daily timeseries documentation of the market activity
+- backfill and track the history/progress of such markets
+
+### Types
+
+The structs related to blockchain, DeFi, storage and relevant other can be found in crates/primitives. The structs saved in the database already implement the serialize and deserialize methods to be properly write and read into RocksDB.
+
 
 ### Settings
 
@@ -53,18 +74,16 @@ Example:
 
 `.\settings.exe --help`
 
-### Using SIP engine as a library
 
-You can use individual crates of SIP in your project.
+# Major features missing
 
-For a general overview of the crates, see [Project Layout](./docs/repo/layout.md).
+To run a basic full version of this engine the following features are missing:
 
-### Contributing
+- build and run a pipeline (state machine) within the bin folder to allow calling the process from the terminal
+- import and convert the silver pipeline to match the current version of the engine
+- various tests and performance checks
 
-If you want to contribute, or follow along with contributor discussion, you can use our [main discord](https://) to chat with us about the development of Reth!
-
-- Our contributor guidelines can be found in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
-- See our [contributor docs](./docs) for more information on the project. A good starting point is [Project Layout](./docs/repo/layout.md).
+To run the engine in a meaningful way, the user needs to have access to either a local node or private cloud node.
 
 ### Building and testing
 
@@ -81,35 +100,13 @@ Next, run the tests:
 
 We recommend using [`cargo nextest`](https://nexte.st/) to speed up testing. With nextest installed, simply substitute `cargo test` with `cargo nextest run`.
 
-## Getting Help
-
-If you have any questions, first see if the answer to your question can be found in the [book][book].
-
-If the answer is not there:
-
-- Join the [Discord][discord-url] to get help, or
-- Open a [discussion](https://github.com/) with your question, or
-- Open an issue with [the bug](https://github.com/)
-
-## Security
-
-See [`SECURITY.md`](./SECURITY.md).
-
 ## Acknowledgements
 
-SIP DeFi Engine is a new implementation towards reliable DeFi data cross-chain. In the process of developing the engine we investigated the design decisions some nodes have made to understand what is done well, what is not, and where we can improve the status quo.
+SIMP DeFi Engine is a new implementation towards reliable DeFi data cross-chain. In the process of developing the engine we investigated the design decisions some nodes have made to understand what is done well, what is not, and where we can improve the status quo.
 
 None of this would have been possible without them, so big shoutout to the teams below:
 * [Geth](https://github.com/ethereum/go-ethereum/): We would like to express our heartfelt gratitude to the go-ethereum team for their outstanding contributions to Ethereum over the years. Their tireless efforts and dedication have helped to shape the Ethereum ecosystem and make it the vibrant and innovative community it is today. Thank you for your hard work and commitment to the project.
 * [Erigon](https://github.com/ledgerwatch/erigon) (fka Turbo-Geth): Erigon pioneered the ["Staged Sync" architecture](https://erigon.substack.com/p/erigon-stage-sync-and-control-flows) that Reth is using, as well as [introduced MDBX](https://github.com/ledgerwatch/erigon/wiki/Choice-of-storage-engine) as the database of choice. We thank Erigon for pushing the state of the art research on the performance limits of Ethereum nodes.
-* [Akula](https://github.com/akula-bft/akula/): Reth uses forks of the Apache versions of Akula's [MDBX Bindings](https://github.com/paradigmxyz/reth/pull/132), [FastRLP](https://github.com/paradigmxyz/reth/pull/63) and [ECIES](https://github.com/paradigmxyz/reth/pull/80) . Given that these packages were already released under the Apache License, and they implement standardized solutions, we decided not to reimplement them to iterate faster. We thank the Akula team for their contributions to the Rust Ethereum ecosystem and for publishing these packages.
 * [Reth](https://github.com/paradigmxyz/reth): Reth engineered a lightening fast node based in Rust. We thank Reth for pushing the state of the art research on the performance limits of Ethereum nodes using the Rust language.
 
-[book]: https://
-[discord-url]: https://
-
-
-# TODO!
-
-* Licensing
 
