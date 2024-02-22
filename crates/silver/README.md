@@ -1,5 +1,11 @@
 # Silver Pipeline
 
+## IMPORTANT
+Migration of the silver pipeline to the current state machine format has not been completed.
+The previous version used Dragonfly (redis) and mongoDB to store the majority of it's defi data output, this is no longer the case.
+Storage methods for rocksDB have been created and tested however not implemented fully.
+Full migration of pipeline logic has also not been completed.
+
 
 ## About
 The silver pipeline digests decoded log/event data from the bronze pipeline.  The events are processed for each market in each
