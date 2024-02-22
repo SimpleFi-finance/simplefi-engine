@@ -1,5 +1,5 @@
 use interfaces::db::DatabaseError;
-use rocksdb::{DBRawIteratorWithThreadMode, TransactionDB, ReadOptions, Transaction};
+use rocksdb::{DBRawIteratorWithThreadMode, TransactionDB, ReadOptions};
 
 use crate::{table::Table, common::PairResult};
 
@@ -11,8 +11,8 @@ pub trait DbTx: Send + Sync {
     fn dae_get_last<T: Table>(&self) -> PairResult<T>;
     /// Get earlisest value saved in table
     fn dae_get_first<T: Table>(&self) -> PairResult<T>;
-    /// Drops transaction
-    fn dae_drop(&self);
+    // /// Drops transaction
+    // fn dae_drop(&self);
     /// Iterate over read only values in table.
     fn dae_entries<T: Table>(&self) -> Result<usize, DatabaseError>;
     /// Put value to database

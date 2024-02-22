@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use serde_json::Value;
-use simplefi_engine_settings::load_settings;
+use simp_settings::load_settings;
 
 pub fn rpc_methods() -> HashMap<String, Value> {
 
@@ -63,10 +63,7 @@ pub fn nodes() -> HashMap<(String, String), String> {
 
     let settings = load_settings().unwrap();
 
-    let nodes = vec![
-        ("infura".to_string(), "rpc".to_string(), format!("{}{}", settings.infura_mainnet_rpc, settings.infura_token)),
-        ("infura".to_string(), "wss".to_string(), format!("{}{}", settings.infura_mainnet_ws, settings.infura_token)),
-    ];
+    let nodes = vec![];
 
     let mut nodes_hm = HashMap::new();
 

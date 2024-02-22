@@ -16,3 +16,6 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 rocksdb = { workspace = true }
 simp-tokio-util = { workspace = true }
+simp-processes = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }

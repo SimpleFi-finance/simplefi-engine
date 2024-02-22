@@ -3,8 +3,6 @@
 members = [
     # bin
     "bin/simp",
-    # services
-    "crates/abi_discovery",
     # pipelines
     "crates/gold",
     "crates/silver",
@@ -32,11 +30,6 @@ members = [
     "crates/utils/settings",
     "crates/utils/etherscan",
     "crates/utils/tokio",
-    # types
-    "crates/types/abi_discovery",
-    "crates/types/chains",
-    "crates/types/redis",
-    "crates/types/providers",
     # metrics
     "crates/tracing",
     "crates/metrics",
@@ -64,6 +57,8 @@ simp-tracing = { path = "./crates/tracing" }
 simp-primitives = { path = "./crates/primitives" }
 simp-rpc-builder = { path = "./crates/rpc/rpc-builder" }
 simp-tokio-util = { path = './crates/utils/tokio' }
+simp-processes = { path = './crates/processes' }
+simp-settings = { path = "./crates/utils/settings" }
 db = { path = "./crates/storage/db" }
 rlp = { path = "./crates/rlp" }
 interfaces = { path = "./crates/interfaces" }

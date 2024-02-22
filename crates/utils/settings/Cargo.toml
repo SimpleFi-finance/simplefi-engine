@@ -1,5 +1,5 @@
 [package]
-name = "simplefi_engine_settings"
+name = "simp-settings"
 version.workspace = true
 edition.workspace = true
 homepage.workspace = true
@@ -11,3 +11,5 @@ repository.workspace = true
 clap = { workspace = true, features = ["derive"] }
 confy ={ workspace = true }
 serde ={ workspace = true, features = ["derive"] }
+simp-primitives = { workspace = true }
+tracing = { workspace = true }

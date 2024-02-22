@@ -1,11 +1,9 @@
 use std::{error::Error, collections::HashMap};
-use log::info;
-use serde_json::{json, Value};
-use std::str::FromStr;
+use serde_json::Value;
 use rayon::iter::ParallelIterator;
 use rayon::prelude::IntoParallelRefIterator;
 use ethabi::ethereum_types::H256;
-use ethabi::{RawLog, Contract, Token};
+use ethabi::Token;
 
 struct TokenWType {
     value: String,
@@ -65,7 +63,6 @@ pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Value>>, abis: Vec<
 
             eventhm.insert(e.signature(), e);
         }
-
         return H256::zero().to_string();
     })
     .collect::<Vec<String>>();
@@ -207,7 +204,6 @@ pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Value>>, abis: Vec<
         decoded.extend(d);
         decoding_errors.extend(e);
     }
-
     let undecoded = contract_no_abi
         .par_iter()
         .map(|address| {

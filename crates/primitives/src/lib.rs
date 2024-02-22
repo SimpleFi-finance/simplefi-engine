@@ -6,12 +6,8 @@ pub use revm_primitives::{B160 as H160, B256 as H256, U256};
 
 mod chain;
 pub use chain::{
-    BaseFeeParams, Chain, ChainInfo, ChainSpec, ChainSpecBuilder,
-    DisplayHardforks, ForkCondition, ForkTimestamps, DEV, GOERLI, MAINNET, SEPOLIA,
+    Chain, ChainSpec, ChainSpecBuilder, DEV, GOERLI, MAINNET, SEPOLIA, ComputationEngine, ChainRpcProvider
 };
-
-mod process;
-pub use process::{ProcessId, Process};
 
 mod stage;
 pub use stage::StageId;

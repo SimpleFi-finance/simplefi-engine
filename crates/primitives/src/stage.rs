@@ -1,16 +1,21 @@
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum StageId {
-    Waiting,
-    Sync,
+    // waits for a block to be minted (or confirmed) and saves header
+    // in update mode its the latest block confirmed
+    // in sync mode its the next block in checkpoint until target
+    Headers,
+    // index the block
     BlockIndexing,
+    // updated the market snapshots
     SnapshotsIndexing,
+    // finish loop
     Finish,
+    Other(&'static str)
 }
 
 impl StageId {
-    pub const ALL: [StageId; 5] = [
-        StageId::Waiting,
-        StageId::Sync,
+    pub const ALL: [StageId; 4] = [
+        StageId::Headers,
         StageId::BlockIndexing,
         StageId::SnapshotsIndexing,
         StageId::Finish,
@@ -18,11 +23,11 @@ impl StageId {
 
     pub fn as_str(&self) -> &str {
         match self {
-            StageId::Waiting => "Waiting",
-            StageId::Sync => "Sync",
+            StageId::Headers => "Headers",
             StageId::BlockIndexing => "BlockIndexing",
             StageId::SnapshotsIndexing => "SnapshotsIndexing",
             StageId::Finish => "Finish",
+            StageId::Other(name) => name,
         }
     }
 
@@ -31,7 +36,7 @@ impl StageId {
     }
 
     pub fn is_downloading_stage(&self) -> bool {
-        matches!(self, StageId::BlockIndexing | StageId::Sync)
+        matches!(self, StageId::BlockIndexing | StageId::Headers)
     }
 }
 

@@ -1,3 +1,5 @@
+pub mod error;
+
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]

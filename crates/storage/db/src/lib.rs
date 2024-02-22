@@ -88,7 +88,6 @@ pub fn open_db<P: AsRef<Path>>(path: P) -> eyre::Result<TransactionDB::<MultiThr
 
 pub mod test_utils {
     use super::*;
-    use std::sync::Arc;
 
     /// Error during database open
     pub const ERROR_DB_OPEN: &str = "Not able to open the database file.";
@@ -100,16 +99,14 @@ pub mod test_utils {
     pub const ERROR_TEMPDIR: &str = "Not able to create a temporary directory.";
 
     /// Create read/write database for testing
-    pub fn create_test_rw_db() -> Arc<TransactionDB> {
-        Arc::new(
-            init_db(tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path())
-                .expect(ERROR_DB_CREATION),
-        )
+    pub fn create_test_rw_db() -> TransactionDB {
+        init_db(tempfile::TempDir::new().expect(ERROR_TEMPDIR).into_path())
+            .expect(ERROR_DB_CREATION)
     }
 
     /// Create read/write database for testing
-    pub fn create_test_rw_db_with_path<P: AsRef<Path>>(path: P) -> Arc<TransactionDB> {
-        Arc::new(init_db(path.as_ref()).expect(ERROR_DB_CREATION))
+    pub fn create_test_rw_db_with_path<P: AsRef<Path>>(path: P) -> TransactionDB {
+        init_db(path.as_ref()).expect(ERROR_DB_CREATION)
     }
 }
 

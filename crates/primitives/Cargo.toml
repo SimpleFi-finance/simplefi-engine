@@ -50,3 +50,5 @@ rayon = "1.7.0"
 
 strum = { workspace = true, features = ["derive"] }
 zstd = { version = "0.12", features = ["experimental"] }
+reqwest = { workspace = true }
+async-trait = { workspace = true }

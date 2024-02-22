@@ -1,9 +1,12 @@
-// index block
+mod finish;
+pub use finish::FinishStage;
 
-// get headers
+mod headers;
+pub use headers::HeadersStage;
 
-// contract snapshots
+mod block_indexing;
+pub use block_indexing::BlockIndexingStage;
 
-// volumes
+mod snapshots_indexing;
+pub use snapshots_indexing::SnapshotsIndexingStage;
 
-// ....

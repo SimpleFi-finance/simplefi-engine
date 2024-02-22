@@ -1,10 +1,8 @@
-use std::str::FromStr;
-
-use chains_types::{common::chain::Info, get_chain, SupportedChains};
-
+use simp_settings::load_settings;
 #[tokio::main]
 async fn main() {
-    let chain_id = "1"; //TODO: switch to env
+    let chain_id = load_settings().unwrap().chain_id.clone().to_string();
+    let chain_id = chain_id.as_str();
     // let data_level = SupportedDataLevels::from_str("bronze").unwrap();
 
     match chain_id {
@@ -12,7 +10,6 @@ async fn main() {
             // let db = SupportedChains::EthereumMainnet.get_db();
 
             // let db = Mongo::new(&db).await.unwrap();
-            let chain = get_chain(chain_id).unwrap();
             // let block_coll =
             //     &chain.resolve_collection_name(&SupportedDataTypes::Blocks, &data_level);
             // let log_coll = &chain.resolve_collection_name(&SupportedDataTypes::Logs, &data_level);

@@ -11,4 +11,4 @@ chrono = { workspace = true }
 log = { workspace = true }
 fern = { workspace = true }
 
-simplefi_engine_settings = { path = "../../utils/settings" }
+simp-settings = { path = "../../utils/settings" }
