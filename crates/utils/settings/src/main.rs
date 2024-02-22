@@ -2,18 +2,18 @@ use clap::Parser;
 use simp_settings::{MySettings, Settings, store_settings};
 use tracing::info;
 fn main() {
-    info!(" Running Settings Generator ");
-    info!("");
+    info!("**** Running Settings Generator ****");
+    info!("****");
     info!(
-        " Settings Path: {:?} ",
+        "**** Settings Path: {:?} ****",
         confy::get_configuration_file_path("simplefi_engine", Some("settings"))
     );
-    info!("");
-    info!("** Parsing Data...");
+    info!("****");
+    info!("**** Parsing Data...");
 
     let settings = Settings::parse();
 
-    info!("* {:#?}", settings);
+    info!("*** {:#?}", settings);
 
     // load settings from a local file using confy
     let my_local_settings: MySettings =  {
@@ -34,8 +34,12 @@ fn main() {
         }
     };
 
-    info!(" Saving Settings...");
+    info!("*** Saving Settings...");
 
     // store settings to a local file using confy
     store_settings(&my_local_settings).expect("Failed to store settings");
+
+    info!("*** Settings saved successfully...");
 }
+
+
