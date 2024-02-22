@@ -1,10 +1,10 @@
-# SIP DeFi Engine
+# SIMP DeFi Engine
 
 This is HOWTO documentation to configure and run this engine. The main programming language is Rust and it uses workspaces to generate multiples binaries to run all different processes while sharing libraries and settings.
 
 *The project is not completed and to get it up and running more work outlined in the READMEs is required.*
 
-## What is SIP DeFi Engine?
+## What is SIMP DeFi Engine?
 
 The engine was meant to be a data processor specialised in DeFi data. It works as a state machine, node-agnostic, where data produced by a given blockchain is digested and stored in a local rocksDB database ready for analysis.
 
