@@ -46,8 +46,6 @@ fn get_token_type(token: Token) -> Result<TokenWType, Box<dyn Error>> {
     })
 }
 
-// TODO: update to replace grpc ContractInfo
-
 pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Value>>, abis: Vec<String>) -> Result<(Vec<Value>, Vec<Value>), Box<dyn Error>>{
 
     let mut eventhm = HashMap::new();
@@ -67,8 +65,6 @@ pub fn evm_logs_decoder(logs_by_address: HashMap<String, Vec<Value>>, abis: Vec<
 
             eventhm.insert(e.signature(), e);
         }
-        
-        a.clone();
 
         return H256::zero().to_string();
     })
