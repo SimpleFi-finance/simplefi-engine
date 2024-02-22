@@ -1,12 +1,14 @@
-use std::{pin::Pin};
+use std::pin::Pin;
 
 // use futures::prelude::*;
 use redis::{
-    Client, AsyncCommands, RedisError, RedisResult,
     aio::{AsyncStream, Connection, ConnectionManager},
+    AsyncCommands, Client, RedisError, RedisResult,
 };
 // create a helper to establish a connection to redis in async way
-pub async fn connect(redis_uri: &str) -> RedisResult<Connection<Pin<Box<dyn AsyncStream + Send + Sync>>>> {
+pub async fn connect(
+    redis_uri: &str
+) -> RedisResult<Connection<Pin<Box<dyn AsyncStream + Send + Sync>>>> {
     let client = Client::open(redis_uri)?;
     let con = client.get_async_connection().await?;
 
@@ -33,6 +35,71 @@ pub async fn add_to_set(
     let _: () = con.sadd(list_name, value).await?;
 
     Ok(())
+}
+
+pub async fn store_in_hset(
+    con: &mut Connection,
+    hmap_name: &str,
+    key: &str,
+    value: &str,
+) -> RedisResult<()> {
+    let _ = con.hset(hmap_name, key, value).await?;
+    Ok(())
+}
+pub async fn store_multiple_in_hset(
+    con: &mut Connection,
+    hmap_name: &str,
+    values: Vec<(String, String)>,
+) -> RedisResult<()> {
+    let _ = con.hset_multiple(hmap_name, &values).await?;
+    Ok(())
+}
+pub async fn get_from_hset(
+    con: &mut Connection,
+    hmap_name: &str,
+    key: &str,
+) -> RedisResult<String> {
+    let result = con.hget(hmap_name, key).await?;
+    Ok(result)
+}
+pub async fn key_exists_hset(
+    con: &mut Connection,
+    hmap_name: &str,
+    key: &str,
+) -> RedisResult<bool> {
+    let result = con.hexists(hmap_name, key).await?;
+    Ok(result)
+}
+pub async fn delete_from_hset(
+    con: &mut Connection,
+    hmap_name: &str,
+    key: &str,
+) -> RedisResult<String> {
+    let result = con.hdel(hmap_name, key).await?;
+    Ok(result)
+}
+pub async fn delete_multiple_from_hset(
+    con: &mut Connection,
+    hmap_name: &str,
+    key: Vec<String>,
+) -> RedisResult<String> {
+    let result = con.hdel(hmap_name, key).await?;
+    Ok(result)
+}
+pub async fn get_complete_hset(
+    con: &mut Connection,
+    hmap_name: &str,
+) -> RedisResult<Vec<String>> {
+    let result = con.hgetall(hmap_name).await?;
+    Ok(result)
+}
+
+pub async fn get_hset_keys(
+    con: &mut Connection,
+    hmap_name: &str,
+) -> RedisResult<Vec<String>> {
+    let result = con.hkeys(hmap_name).await?;
+    Ok(result)
 }
 
 pub async fn queue_message(
@@ -75,12 +142,18 @@ pub async fn delete_set(
     Ok(())
 }
 
-pub async fn check_set_exists(connection: &mut Connection, set_key: &str) -> RedisResult<bool> {
+pub async fn check_set_exists(
+    connection: &mut Connection,
+    set_key: &str,
+) -> RedisResult<bool> {
     let exists: bool = connection.exists(set_key).await?;
     Ok(exists)
 }
 
-pub async fn has_items_in_queue(connection: &mut Connection, set_key: &str) -> RedisResult<bool> {
+pub async fn has_items_in_queue(
+    connection: &mut Connection,
+    set_key: &str,
+) -> RedisResult<bool> {
     let size: i64 = connection.scard(set_key).await?;
 
     Ok(size > 0)
