@@ -1,36 +1,8 @@
 [package]
 name = "silver"
-# version.workspace = true
-# edition.workspace = true
-# rust-version.workspace = true
-# homepage.workspace = true
-# repository.workspace = true
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-async-trait = { workspace = true }
-mongodb = { workspace = true }
-polars = { workspace = true }
-polars-io = { workspace = true }
-chrono ={ workspace = true}
-ethers ={ workspace = true}
-serde = {workspace = true}
-serde_json = {workspace = true}
-redis = {workspace = true}
-futures = {workspace = true}
-tokio = {workspace = true}
-
-
-# shared types
-mongo_types = { path = "../types/mongo"}
-data_lake_types = { path = "../types/data_lake"}
-
-# shared utils
-simplefi_engine_settings = { path = "../utils/settings"}
-simplefi_redis = { path = "../utils/redis" }
-simplefi_chains = { path = "../utils/chains" }
-bronze = { path = "../bronze"}
-chains_types = { path = "../types/chains"}
