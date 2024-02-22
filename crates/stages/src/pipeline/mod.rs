@@ -264,6 +264,8 @@ impl Pipeline {
             }
         }
     }
+
+    // TODO: add on stage_error
 }
 
 impl std::fmt::Debug for Pipeline {
