@@ -18,6 +18,6 @@ tracing.workspace = true
 
 # rpc/net
 jsonrpsee = { workspace = true, features = ["server"] }
-tower-http = { version = "0.4", features = ["full"] }
+tower-http = { version = "0.5", features = ["full"] }
 tower = { version = "0.4", features = ["full"] }
 hyper = "0.14"
