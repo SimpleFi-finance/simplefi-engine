@@ -116,7 +116,7 @@ url = "2.2.1"
 parquet = "43.0.0"
 aquamarine = "0.3"
 anyhow = "1"
-jsonrpsee = { version = "0.20", features = ["server", "http-client", "ws-client", "macros", "client-ws-transport-native-tls"] }
+jsonrpsee = { version = "0.22", features = ["server", "http-client", "ws-client", "macros", "client-ws-transport-native-tls"] }
 metrics = "0.21.1"
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3.3", features = ["env-filter"] }
