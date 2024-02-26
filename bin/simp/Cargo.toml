@@ -33,7 +33,7 @@ futures.workspace = true
 pin-project.workspace = true
 
 # http/rpc
-hyper = "0.14.25"
+hyper = "1.2.0"
 
 # crypto
 secp256k1 = { workspace = true, features = ["global-context", "rand-std", "recovery"] }
