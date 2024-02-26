@@ -150,7 +150,7 @@ futures-util = "0.3.25"
 
 ## misc-testing
 proptest = "1.0"
-proptest-derive = "0.3.0"
+proptest-derive = "0.4.0"
 serial_test = "2"
 
 [patch."https://github.com/ethereum/c-kzg-4844"]

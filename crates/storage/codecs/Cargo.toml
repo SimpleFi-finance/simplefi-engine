@@ -19,7 +19,7 @@ revm-primitives = { workspace = true, features = ["serde"] }
 # arbitrary utils
 arbitrary = { workspace = true, features = ["derive"], optional = true }
 proptest = { workspace = true, optional = true }
-proptest-derive = { version = "0.3", optional = true }
+proptest-derive = { version = "0.4", optional = true }
 
 [dev-dependencies]
 revm-primitives = { workspace = true, features = ["serde", "arbitrary"] }
@@ -30,4 +30,4 @@ test-fuzz = "4"
 
 arbitrary = { workspace = true, features = ["derive"] }
 proptest.workspace = true
-proptest-derive = "0.3"
+proptest-derive = "0.4"
