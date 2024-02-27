@@ -1,5 +1,3 @@
-*The project is still work in progress, see the [disclaimer below](#status).*
-
 ## Status
 
 The project is **not ready for production use**.
