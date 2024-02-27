@@ -2,4 +2,4 @@
 
 ## Reporting a Vulnerability
 
-Contact filippo at simplefi.finance.
+Contact development at simplefi dot finance.
