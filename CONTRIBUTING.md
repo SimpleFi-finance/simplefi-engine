@@ -1,32 +1,28 @@
-## Contributing to SIP engine
+## Contributing to the SimpleFi DeFi Analytics Engine
 
-Thanks for your interest in improving SIP Engine!
+Thanks for your interest in improving the SimpleFi DAE!
 
 There are multiple opportunities to contribute at any level. It doesn't matter if you are just getting started with Rust or are the most weathered expert, we can use your help.
 
 **No contribution is too small and all contributions are valued.**
 
-This document will help you get started. **Do not let the document intimidate you**.
-It should be considered as a guide to help you navigate the process.
+Our [Discord](https://discord.gg/M6KYfN5Xbg) is available for any concerns you may have that are not covered in this guide.
 
-The [dev Discord][dev-discord] is available for any concerns you may have that are not covered in this guide.
-
-If you contribute to this project, your contributions will be made to the project under both Apache 2.0 and the MIT license.
+If you contribute to this project, your contributions will be made to the project under BUSL 1.1.
 
 ### Code of Conduct
 
-The Reth project adheres to the [Rust Code of Conduct][rust-coc]. This code of conduct describes the _minimum_ behavior expected from all contributors.
+The DAE project adheres to the [Rust Code of Conduct][rust-coc]. This code of conduct describes the _minimum_ behavior expected from all contributors.
 
-Instances of violations of the Code of Conduct can be reported by contacting the team at [filippo@simplefi.finance](mailto:filippo@simplefi.finance).
+Instances of violations of the Code of Conduct can be reported by contacting the team at development at simplefi dot finance.
 
 ### Ways to contribute
 
-There are fundamentally three ways an individual can contribute:
+There are three ways you can contribute:
 
-1. **By opening an issue:** For example, if you believe that you have uncovered a bug
-   in SIP Engine, creating a new issue in the issue tracker is the way to report it.
+1. **By opening an issue:**
 2. **By adding context:** Providing additional context to existing issues,
-   such as screenshots and code snippets to help resolve issues.
+   such as screenshots and code snippets to help resolution.
 3. **By resolving issues:** Typically this is done in the form of either
    demonstrating that the issue reported is not a problem after all, or more often,
    by opening a pull request that fixes the underlying problem, in a concrete and
@@ -38,7 +34,7 @@ There are fundamentally three ways an individual can contribute:
 
 If you have reviewed existing documentation and still have questions, or you are having problems, you can get help by **opening a discussion**. This repository comes with a discussions board where you can also ask for help. Click the "Discussions" tab at the top.
 
-As SIP DeFi Engine is still in heavy development, the documentation can be a bit scattered. The [SIP engine Book][sip-book] is our current best-effort attempt at keeping up-to-date information.
+As the DAE is still in heavy development, the documentation can be a bit scattered.
 
 ### Submitting a bug report
 
@@ -48,7 +44,7 @@ If you believe that you have uncovered a bug, please fill out the form to the be
 
 The most important pieces of information we need in a bug report are:
 
--   The Reth version you are on (and that it is up to date)
+-   The version you are on (and that it is up to date)
 -   The platform you are on (Windows, macOS, an M1 Mac or Linux)
 -   Code snippets if this is happening in relation to testing or building code
 -   Concrete steps to reproduce the bug
@@ -67,7 +63,7 @@ If you have examples of other tools that have the feature you are requesting, pl
 
 ### Resolving an issue
 
-Pull requests are the way concrete changes are made to the code, documentation, and dependencies of SIP.
+Pull requests are the way concrete changes are made to the code, documentation, and dependencies of the DAE.
 
 Even tiny pull requests, like fixing wording, are greatly appreciated. Before making a large change, it is usually a good idea to first open an issue describing the change to solicit feedback and guidance. This will increase the likelihood of the PR getting merged.
 
@@ -102,8 +98,8 @@ If you are working on a larger feature, we encourage you to open up a draft pull
 
 #### Adding tests
 
-If the change being proposed alters code, it is either adding new functionality to Reth, or fixing existing, broken functionality.
-In both of these cases, the pull request should include one or more tests to ensure that Reth does not regress in the future.
+If the change being proposed alters code, it is either adding new functionality, or fixing existing, broken functionality.
+In both of these cases, the pull request should include one or more tests to ensure that the DAE does not regress in the future.
 
 Types of tests include:
 
@@ -132,7 +128,7 @@ This is a big part of the submission process, so don't be discouraged! Some cont
 
 #### Reviewing pull requests
 
-**Any SIP community member is welcome to review any pull request**.
+**Any DAE community member is welcome to review any pull request**.
 
 All contributors who choose to review and provide feedback on pull requests have a responsibility to both the project and individual making the contribution. Reviews and feedback must be helpful, insightful, and geared towards improving the contribution as opposed to simply blocking it. If there are reasons why you feel the PR should not be merged, explain what those are. Do not expect to be able to block a PR from advancing simply because you say "no" without giving an explanation. Be open to having your mind changed. Be open to working _with_ the contributor to make the pull request better.
 
@@ -148,8 +144,8 @@ It is tempting to micro-optimize and make everything about relative performance,
 
 Focus first on the most significant aspects of the change:
 
-1. Does this change make sense for SIP Engine?
-2. Does this change make SIP Engine better, even if only incrementally?
+1. Does this change make sense for the DAE Engine?
+2. Does this change make the DAE better, even if only incrementally?
 3. Are there clear bugs or larger scale issues that need attending?
 4. Are the commit messages readable and correct? If it contains a breaking change, is it clear enough?
 
@@ -159,7 +155,7 @@ When changes are necessary, _request_ them, do not _demand_ them, and **do not a
 
 Specific performance optimization techniques, coding styles and conventions change over time. The first impression you give to a new contributor never does.
 
-Nits (requests for small changes that are not essential) are fine, but try to avoid stalling the pull request. Most nits can typically be fixed by the Reth maintainers merging the pull request, but they can also be an opportunity for the contributor to learn a bit more about the project.
+Nits (requests for small changes that are not essential) are fine, but try to avoid stalling the pull request. Most nits can typically be fixed by the DAE maintainers merging the pull request, but they can also be an opportunity for the contributor to learn a bit more about the project.
 
 It is always good to clearly indicate nits when you comment, e.g.: `Nit: change foo() to bar(). But this is not blocking`.
 
@@ -167,7 +163,7 @@ If your comments were addressed but were not folded after new commits, or if the
 
 ##### Be aware of the person behind the code
 
-Be aware that _how_ you communicate requests and reviews in your feedback can have a significant impact on the success of the pull request. Yes, we may merge a particular change that makes Reth better, but the individual might just not want to have anything to do with Reth ever again. The goal is not just having good code.
+Be aware that _how_ you communicate requests and reviews in your feedback can have a significant impact on the success of the pull request. Yes, we may merge a particular change that makes the DAE better, but the individual might just not want to have anything to do with us ever again. The goal is not just having good code.
 
 ##### Abandoned or stale pull requests
 
@@ -177,8 +173,6 @@ _Adapted from the [Foundry contributing guide][foundry-contributing]_.
 
 [rust-coc]: https://github.com/rust-lang/rust/blob/master/CODE_OF_CONDUCT.md
 [coc-header]: #code-of-conduct
-[dev-discord]: https://
-[sip-book]: https://
 [mcve]: https://stackoverflow.com/help/mcve
 [hiding-a-comment]: https://help.github.com/articles/managing-disruptive-comments/#hiding-a-comment
 [foundry-contributing]: https://github.com/foundry-rs/foundry/blob/master/CONTRIBUTING.md
